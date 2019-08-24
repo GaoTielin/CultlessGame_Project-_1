@@ -39,7 +39,7 @@ controller = {
 	end,
 	down = function()
 		-- player.destroy()
-        direction_flag.y = "up"
+	 	player, text_obj = exchange_obj(player, text_obj)
 	end,
 	left = function()
 		-- change_animation(player, "go")
@@ -77,7 +77,11 @@ function _init()
 	player_max_v = 2
 
   player = init_spr("player", 1, 50, 50, 1, 1, true)
-  init_animation(player, 1, 3, 10, "nomal", false)
+
+	text_obj = init_spr("text_obj", 3, 80, 50, 1, 1, true)
+	text_name = player.name
+
+  init_animation(player, 1, 3, 10, "nomal", true)
   init_animation(player, 4, 6, 10, "go", true)
   -- direction_flag.x = "nomal"
   -- direction_flag.y = "nomal"
@@ -90,7 +94,7 @@ game_states = {
 	update_states = {
     play_update = function()
       if (btnp (‚¨ÜÔ∏è) and can_jump < 2) controller.up()
-      if (btn (‚¨áÔ∏è)) controller.down()
+      if (btnp (‚¨áÔ∏è)) controller.down()
       if (btn (‚¨ÖÔ∏è) and direction_flag ~= "right") controller.left()
       if (btn (‚û°Ô∏è) and direction_flag ~= "right") controller.right()
 
@@ -129,8 +133,9 @@ game_states = {
   draw_states = {
 	play_draw = function()
       map(0,0)
-      print(player.vecter.x)
-	  print(player_state_x_flag)
+      -- print(player.vecter.x)
+	  	print(player.name)
+			print(object_table.player.name)
       for i,v in pairs(object_table) do
   			spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
       end
@@ -170,7 +175,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
   if not v_y then v_y = 0 end
   local animation_table = {}
   local animation
-  local spr_obj = {sp = sp, pos_x = pos_x, pos_y = pos_y, height = height, width = width,
+  local spr_obj = {name = name, sp = sp, pos_x = pos_x, pos_y = pos_y, height = height, width = width,
     vecter = {x = v_x, y = v_y},
     is_physic = is_physic,
 	animation_table = animation_table,
@@ -285,14 +290,32 @@ function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
 	end
 end
 
+-------------Â‚òâ‚ô•Ê‚ô™¢Â‚åÇ®Á‚¨ÜÔ∏èª----------------
 function change_animation(spr_obj, ani_flag)
 	spr_obj.animation = spr_obj.animation_table[ani_flag]
 end
 
+-----------Â‚åÇ®Á‚¨ÜÔ∏èªÊ‚òÖ≠Ê‚¨ÜÔ∏èæ---------------
 function update_animation()
 	for i,v in pairs(object_table) do
-		v.animation()
+		if v.animation then
+			v.animation()
+		end
 	end
+end
+
+------------Â‚òâ‚ô•Ê‚ô™¢ÂØπË±°---------------
+function exchange_obj(obj_1, obj_2)
+	-- local mid_obj
+	-- local mid_name
+	-- mid_obj = obj_1
+	-- -- mid_name = obj_1.name
+	-- -- object_table[obj_1.name] = object_table[obj_2.name]
+	-- -- object_table[obj_2.name] = object_table[mid_name]
+	-- obj_1 = obj_2
+	-- obj_2 = mid_obj
+	local mid_obj = obj_1
+	return obj_2, mid_obj
 end
 
 function _update()
