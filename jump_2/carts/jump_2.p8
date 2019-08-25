@@ -34,7 +34,7 @@ player_states = {
 --------------ÊüÖæÔ∏èßÂ‚òâ∂Â‚ñ•®----------------
 controller = {
 	up = function()
-		player.vecter.y -= 1
+		player.vecter.y -= 3
         direction_flag.y = "up"
         can_jump += 1
 	end,
@@ -64,7 +64,7 @@ function _init()
       y,
   } --Ê‚àßπÂ‚Ä¶‚û°Ô∏èÊ†‚ô•Á≠æ
   game_state_flag = "play"--Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊ†‚ô•Á≠æ
-  gravity = 0.05-- È‚ô•‚ô™Â‚åÇõ
+  gravity = 0.4-- È‚ô•‚ô™Â‚åÇõ
   update_state_flag = "play"
   draw_state_flage = "play"
   can_jump = 2
@@ -81,19 +81,8 @@ function _init()
   init_animation(player, 1, 3, 10, "nomal", true)
   init_animation(player, 4, 6, 10, "go", true)
 
-	test = 0
-	test_trigger_enter = ontrigger_enter(player, text_obj, function()
-		test = 1
-	end)
-	test_trigger_exit = ontrigger_exit(player, text_obj, function()
-		test = 0
-	end)
-	test_trigger_enter = ontrigger_enter(player, text_obj, function()
-		test = 1
-	end)
-	test_trigger_stay = ontrigger_stay(player, text_obj, function()
-		print("stay==")
-	end)
+	oncllision(player, text_obj)
+
   can_jump = 2
 	snow = init_snow()
 end
@@ -111,25 +100,27 @@ game_states = {
       player_states.states_x[player_state_x_flag]()
 	  -- player_states.states_y[player_state_y_flag]()
 
-        for k, v in pairs(object_table) do
-	        v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
-	        hit(v, 2, "height", function()
-	          v.vecter.y = 0
-	          can_jump = 0
-	        end)
-	      	hit(v, 2, "width", function()
-	          v.vecter.x = 0
-	        end)
-	        v.pos_x = v.pos_x + v.vecter.x
-	        v.pos_y = v.pos_y + v.vecter.y
-	      end
-      update_animation()
-	  if  abs(player.vecter.x) < player_acceleration then
-		  player_state_x_flag = "nomal"
-	  else
-		  player_state_x_flag = "fast_back"
-	  end
-    snow.update()
+      for k, v in pairs(object_table) do
+        v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+        hit(v, 2, "height", function()
+          v.vecter.y = 0
+          can_jump = 0
+        end)
+      	hit(v, 2, "width", function()
+          v.vecter.x = 0
+        end)
+				update_cllision()
+        v.pos_x = v.pos_x + v.vecter.x
+        v.pos_y = v.pos_y + v.vecter.y
+      end
+	    update_animation()
+		  if  abs(player.vecter.x) < player_acceleration then
+			  player_state_x_flag = "nomal"
+		  else
+			  player_state_x_flag = "fast_back"
+		  end
+	    snow.update()
+
     end,
 
     game_over_update = function()
@@ -142,12 +133,12 @@ game_states = {
   draw_states = {
 		play_draw = function()
       map(0,0)
-      print(test)
 
       for k, v in pairs(object_table) do
   			spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
       end
 			update_trigger()
+
 			snow.draw()
     end,
     game_over_draw = function()
@@ -180,9 +171,9 @@ newtimer = function ()
         o.timers[name] = nil
     end
     o.update = function ()
-        now = time()
+        local now = time()
         for name, timer in pairs(o.timers) do
-            timer_type, timer_start, timeout, callback = timer[1], timer[2], timer[3], timer[4]
+            local timer_type, timer_start, timeout, callback = timer[1], timer[2], timer[3], timer[4]
             if timer_type == 'timeout' then
                 if now - timer_start >= timeout then
                     callback()
@@ -311,15 +302,75 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
 	return trigger_exit
 end
 
-function oncllision(sprit_1, sprit_2)
-	local distance_x = abs(sprit_1.pos_x - sprit_2.pos_x)
-	local distance_y = abs(sprit_1.pos_y - sprit_2.pos_y)
-	local hit_distance_x = sprit_1.width + sprit_2.width
-	local hit_distance_y = sprit_1.height + sprit_2.height
-	if(distance_x <= hit_distance_x and distance_y <= hit_distance_y) then
-		return true
-	end
-	return false
+cllision_table = {}
+function update_cllision()
+  for k,v in pairs(cllision_table) do
+    v.width()
+    v.height()
+  end
+end
+
+function oncllision(sprit_1, sprit_2, cllision_func)
+  local tbl = {
+    width = function()
+      local cllision_width = false
+      local x1 = sprit_1.pos_x + sprit_1.vecter.x
+      local w1 = sprit_1.width * 8
+
+      local x2 = sprit_2.pos_x + sprit_2.vecter.x
+      local w2 = sprit_2.width * 8
+
+      local xd=abs((x1+(w1/2))-(x2+(w2/2)))
+      local xs=w1*0.5+w2*0.5
+
+      local cllision_height = false
+      local y1 = sprit_1.pos_y
+      local h1 = sprit_1.height * 8
+
+      local y2 = sprit_2.pos_y
+      local h2 = sprit_2.height * 8
+
+      local yd=abs((y1+(h1/2))-(y2+(h2/2)))
+      local ys=h1/2+h2/2
+
+      print(xd)
+      if xd<=xs and yd<ys then
+        sprit_1.vecter.x = 0
+        if cllision_func then
+          if cllision_func.width then cllision_func.width() end
+        end
+      end
+    end,
+    height = function()
+      local cllision_height = false
+      local y1 = sprit_1.pos_y + sprit_1.vecter.y
+      local h1 = sprit_1.height * 8
+
+      local y2 = sprit_2.pos_y + sprit_2.vecter.y
+      local h2 = sprit_2.height * 8
+
+      local yd=abs((y1+(h1/2))-(y2+(h2/2)))
+      local ys=h1/2+h2/2
+
+      local x1 = sprit_1.pos_x
+      local w1 = sprit_1.width * 8
+
+      local x2 = sprit_2.pos_x
+      local w2 = sprit_2.width * 8
+
+      local xd=abs((x1+(w1/2))-(x2+(w2/2)))
+      local xs=w1*0.5+w2*0.5
+
+      print(yd)
+      if yd<=ys and xd<xs then
+        sprit_1.vecter.y = 0
+        if cllision_func then
+          if cllision_func.height then cllision_func.height() end
+        end
+      end
+    end,
+  }
+  add(cllision_table, tbl)
 end
 ---------------------------------------
 
@@ -415,7 +466,7 @@ end
 
 -----------Â‚åÇ®Á‚¨ÜÔ∏èªÊ‚òÖ≠Ê‚¨ÜÔ∏èæ---------------
 function update_animation()
-	for k, v in pairs(object_table) do
+	for i,v in pairs(object_table) do
 		if v.animation then
 			v.animation()
 		end
@@ -441,29 +492,37 @@ end
 
 -->8
 -->scene-2
-function init_snow(speed, num)
+function init_snow(speed, num, hit_spr_flag)
   if not speed then speed = 1 end
+  if not hit_spr_flag then hit_spr_flag = 2 end
   if not num then num = 128 end
   local snows = {}
-  for i=1, 128 do
+  for i=1, num do
       local s = {
           n = i,
           landed=false,
           x=rnd(128),
           y=rnd(128),
-          speed=rnd(2)+1
+          speed=rnd(2)+speed
       }
       add(snows, s)
   end
   local timer = newtimer()
+
+  local function is_land(sp)
+    if fget(mget(sp.x/8, (sp.y+speed)/8)) == hit_spr_flag then
+      sp.y = flr((sp.y+speed)/8)*8 - 1
+      return true
+    end
+  end
 
   local function update()
     for s in all(snows) do
         if not s.landed then
             s.y += s.speed
         end
-        if s.y >= 100 and not s.landed then
-            s.y = 100
+        if is_land(s) and not s.landed then
+            -- s.y = 100
             s.landed = true
             timer.add_timeout('snow_melt'..s.n, 1, function()
                 s.landed = false
@@ -515,7 +574,9 @@ __map__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0303030303030303030303030303030303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0303030303030303030303030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
