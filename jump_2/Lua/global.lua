@@ -39,19 +39,104 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
+Trigger_table = {}
+
+function Update_Trigger()
+	for _,v in pairs(Trigger_table) do
+		v()
+	end
+end
+
+local function Trigger(sprit_1, sprit_2)
+	local hit = false
+	local x1 = sprit_1.pos_x
+	local x2 = sprit_2.pos_x
+	local w1 = sprit_1.width*8
+	local w2 = sprit_2.width*8
+	local y1 = sprit_1.pos_y
+	local y2 = sprit_2.pos_y
+	local h1 = sprit_1.height*8
+	local h2 = sprit_2.height*8
+	local xd=abs((x1+(w1/2))-(x2+(w2/2)))
+  local xs=w1*0.5+w2*0.5
+  local yd=abs((y1+(h1/2))-(y2+(h2/2)))
+  local ys=h1/2+h2/2
+  if xd<xs and
+     yd<ys then
+    hit=true
+  end
+  return hit
+end
 ---------------盒体碰撞（未完成）-----------------
--- function OnTrigger()
---
--- function OnCllision(sprit_1, sprit_2)
--- 	local distance_x = abs(sprit_1.pos_x - sprit_2.pos_x)
--- 	local distance_y = abs(sprit_1.pos_y - sprit_2.pos_y)
--- 	local hit_distance_x = sprit_1.width + sprit_2.width
--- 	local hit_distance_y = sprit_1.height + sprit_2.height
--- 	if(distance_x <= hit_distance_x and distance_y <= hit_distance_y) then
--- 		return true
--- 	end
--- 	return false
--- end
+function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
+	local entered = false
+	local function trigger_enter ()
+		is_trigger = Trigger(sprit_1, sprit_2)
+		if not entered and is_trigger then
+			enter_func()
+			entered = true
+		end
+		if entered and not is_trigger then
+			entered = false
+		end
+	end
+
+	if trigger_name then
+		Trigger_table[trigger_name] = trigger_enter
+	else
+		add(Trigger_table, trigger_enter)
+	end
+
+	return trigger_enter
+end
+
+function OnTrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
+	local entered = false
+	local function trigger_stay()
+		if Trigger(sprit_1, sprit_2) then
+			stay_func()
+		end
+	end
+	if trigger_name then
+		Trigger_table[trigger_name] = trigger_stay
+	else
+		add(Trigger_table, trigger_stay)
+	end
+
+	return trigger_stay
+end
+
+function OnTrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
+	local entered = false
+	local function trigger_exit()
+		is_trigger = Trigger(sprit_1, sprit_2)
+		if not entered and is_trigger then
+			entered = true
+		end
+		if entered and not is_trigger then
+			exit_func()
+			entered = false
+		end
+	end
+	if trigger_name then
+		Trigger_table[trigger_name] = trigger_exit
+	else
+		add(Trigger_table, trigger_exit)
+	end
+
+	return trigger_exit
+end
+
+function OnCllision(sprit_1, sprit_2)
+	local distance_x = abs(sprit_1.pos_x - sprit_2.pos_x)
+	local distance_y = abs(sprit_1.pos_y - sprit_2.pos_y)
+	local hit_distance_x = sprit_1.width + sprit_2.width
+	local hit_distance_y = sprit_1.height + sprit_2.height
+	if(distance_x <= hit_distance_x and distance_y <= hit_distance_y) then
+		return true
+	end
+	return false
+end
 ---------------------------------------
 
 --------------地形碰撞-------------------
@@ -155,14 +240,6 @@ end
 
 ------------切换对象---------------
 function exchange_obj(obj_1, obj_2)
-	-- local mid_obj
-	-- local mid_name
-	-- mid_obj = obj_1
-	-- -- mid_name = obj_1.name
-	-- -- object_table[obj_1.name] = object_table[obj_2.name]
-	-- -- object_table[obj_2.name] = object_table[mid_name]
-	-- obj_1 = obj_2
-	-- obj_2 = mid_obj
 	local mid_obj = obj_1
 	return obj_2, mid_obj
 end

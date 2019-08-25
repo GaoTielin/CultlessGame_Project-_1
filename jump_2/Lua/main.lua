@@ -27,7 +27,7 @@ player_states = {
 	states_y = {},
 }
 
---------------�∧��…➡️----------------
+--------------控制器----------------
 controller = {
 	up = function()
 		player.vecter.y -= 1
@@ -36,7 +36,6 @@ controller = {
 	end,
 	down = function()
 		-- player.destroy()
-	 	player, text_obj = exchange_obj(player, text_obj)
 	end,
 	left = function()
 		-- change_animation(player, "go")
@@ -56,8 +55,6 @@ controller = {
 
 function _init()
   cls()
-  direction_x = 0 --移动距离_x
-  direction_y = 0--移动距离_y
   direction_flag = {
       x,
       y,
@@ -75,13 +72,24 @@ function _init()
 
   player = init_spr("player", 1, 50, 50, 1, 1, true)
 
-	text_obj = init_spr("text_obj", 3, 80, 50, 1, 1, true)
-	text_name = player.name
+	text_obj = init_spr("text_obj", 3, 80, 50, 2, 1, true)
 
   init_animation(player, 1, 3, 10, "nomal", true)
   init_animation(player, 4, 6, 10, "go", true)
-  -- direction_flag.x = "nomal"
-  -- direction_flag.y = "nomal"
+
+	test = 0
+	test_trigger_enter = OnTrigger_enter(player, text_obj, function()
+		test = 1
+	end)
+	test_trigger_exit = OnTrigger_exit(player, text_obj, function()
+		test = 0
+	end)
+	test_trigger_enter = OnTrigger_enter(player, text_obj, function()
+		test = 1
+	end)
+	test_trigger_stay = OnTrigger_stay(player, text_obj, function()
+		print("stay==")
+	end)
   can_jump = 2
 end
 
@@ -128,14 +136,14 @@ game_states = {
 
   -----------draw状态机-------------
   draw_states = {
-	play_draw = function()
+		play_draw = function()
       map(0,0)
-      -- print(player.vecter.x)
-	  	print(player.name)
-			print(object_table.player.name)
+      print(test)
+
       for i,v in pairs(object_table) do
   			spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
       end
+			Update_Trigger()
     end,
     game_over_draw = function()
       -- map(16, 0)
