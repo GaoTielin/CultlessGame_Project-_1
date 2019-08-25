@@ -3,13 +3,13 @@ function init_snow(speed, num)
   if not speed then speed = 1 end
   if not num then num = 128 end
   local snows = {}
-  for i=1, 128 do
+  for i=1, num do
       local s = {
           n = i,
           landed=false,
           x=rnd(128),
           y=rnd(128),
-          speed=rnd(2)+1
+          speed=rnd(2)+speed
       }
       add(snows, s)
   end
