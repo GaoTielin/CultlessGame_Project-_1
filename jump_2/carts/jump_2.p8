@@ -1,6 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
+-->main-0
 player_states = {
 	states_x = {
 		nomal = function()
@@ -94,6 +95,7 @@ function _init()
 		print("stay==")
 	end)
   can_jump = 2
+	snow = init_snow()
 end
 
 ------------æ¸¸æâ˜‰â—†çâŒ‚¶æâ–ˆâ–’æœº-----------------
@@ -109,26 +111,25 @@ game_states = {
       player_states.states_x[player_state_x_flag]()
 	  -- player_states.states_y[player_state_y_flag]()
 
-      for i,v in pairs(object_table) do
-        v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
-        hit(v, 2, "height", function()
-          v.vecter.y = 0
-          can_jump = 0
-        end)
-      	hit(v, 2, "width", function()
-          v.vecter.x = 0
-        end)
-        v.pos_x = v.pos_x + v.vecter.x
-        v.pos_y = v.pos_y + v.vecter.y
-      end
+        for k, v in pairs(object_table) do
+	        v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+	        hit(v, 2, "height", function()
+	          v.vecter.y = 0
+	          can_jump = 0
+	        end)
+	      	hit(v, 2, "width", function()
+	          v.vecter.x = 0
+	        end)
+	        v.pos_x = v.pos_x + v.vecter.x
+	        v.pos_y = v.pos_y + v.vecter.y
+	      end
       update_animation()
 	  if  abs(player.vecter.x) < player_acceleration then
 		  player_state_x_flag = "nomal"
 	  else
 		  player_state_x_flag = "fast_back"
 	  end
-      -- direction_flag.x = "nomal"
-      -- direction_flag.y = "nomal"
+    snow.update()
     end,
 
     game_over_update = function()
@@ -143,10 +144,11 @@ game_states = {
       map(0,0)
       print(test)
 
-      for i,v in pairs(object_table) do
+      for k, v in pairs(object_table) do
   			spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
       end
 			update_trigger()
+			snow.draw()
     end,
     game_over_draw = function()
       -- map(16, 0)
@@ -157,23 +159,46 @@ game_states = {
 -----------------------------------
 
 -->8
+--> global-1
 object_table = {}
 ---------------è®¡æâŽ¶åâ–¥¨-------------------
-function timer(time)
-	local up_date = 0
-	return function()
-		print(time)
-		if up_date >= 30 * time then
-			up_date = 0
-		end
-			up_date += 1
-		if up_date >= 30 * time then
-			return true
-		else
-			return false
-		end
-	end
+newtimer = function ()
+    local o = {
+        timers = {}
+    }
+    o.add_timeout = function (name, timeout, callback)
+        local start = time()
+        local t = {'timeout', start, timeout, callback}
+        o.timers[name] = t
+    end
+    o.add_interval = function (name, interval, callback)
+        local start = time()
+        local t = {'interval', start, interval, callback}
+        o.timers[name] = t
+    end
+    o.del = function (name)
+        o.timers[name] = nil
+    end
+    o.update = function ()
+        now = time()
+        for name, timer in pairs(o.timers) do
+            timer_type, timer_start, timeout, callback = timer[1], timer[2], timer[3], timer[4]
+            if timer_type == 'timeout' then
+                if now - timer_start >= timeout then
+                    callback()
+                    o.del(name)
+                end
+            elseif timer_type == 'interval' then
+                if now - timer_start >= timeout then
+                    callback()
+                    o.add_interval(name, timeout, callback)
+                end
+            end
+        end
+    end
+    return o
 end
+
 ----------------------------------------
 
 ----------------å®žä¾â¬…ï¸åðŸ˜âˆ§å¯¹è±¡---------------
@@ -390,7 +415,7 @@ end
 
 -----------åâŒ‚¨çâ¬†ï¸»æâ˜…­æâ¬†ï¸¾---------------
 function update_animation()
-	for i,v in pairs(object_table) do
+	for k, v in pairs(object_table) do
 		if v.animation then
 			v.animation()
 		end
@@ -412,6 +437,54 @@ function _draw()
   cls()
   draw_state_flage = game_state_flag .. "_draw"
   game_states.draw_states[draw_state_flage]()
+end
+
+-->8
+-->scene-2
+function init_snow(speed, num)
+  if not speed then speed = 1 end
+  if not num then num = 128 end
+  local snows = {}
+  for i=1, 128 do
+      local s = {
+          n = i,
+          landed=false,
+          x=rnd(128),
+          y=rnd(128),
+          speed=rnd(2)+1
+      }
+      add(snows, s)
+  end
+  local timer = newtimer()
+
+  local function update()
+    for s in all(snows) do
+        if not s.landed then
+            s.y += s.speed
+        end
+        if s.y >= 100 and not s.landed then
+            s.y = 100
+            s.landed = true
+            timer.add_timeout('snow_melt'..s.n, 1, function()
+                s.landed = false
+                s.y = 0
+                s.x = rnd(128)
+            end)
+        end
+    end
+    timer.update()
+  end
+
+  local function draw()
+    for s in all(snows) do
+        pset(s.x, s.y, 6)
+    end
+  end
+
+  return {
+    update = update,
+    draw = draw,
+  }
 end
 
 __gfx__

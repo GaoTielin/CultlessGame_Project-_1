@@ -1,3 +1,4 @@
+--> global-1
 object_table = {}
 ---------------计时器-------------------
 newtimer = function ()

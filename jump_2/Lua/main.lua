@@ -1,3 +1,4 @@
+-->main-0
 player_states = {
 	states_x = {
 		nomal = function()
@@ -91,6 +92,7 @@ function _init()
 		print("stay==")
 	end)
   can_jump = 2
+	snow = init_snow()
 end
 
 ------------游戏状态机-----------------
@@ -106,26 +108,25 @@ game_states = {
       player_states.states_x[player_state_x_flag]()
 	  -- player_states.states_y[player_state_y_flag]()
 
-      for i,v in pairs(object_table) do
-        v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
-        hit(v, 2, "height", function()
-          v.vecter.y = 0
-          can_jump = 0
-        end)
-      	hit(v, 2, "width", function()
-          v.vecter.x = 0
-        end)
-        v.pos_x = v.pos_x + v.vecter.x
-        v.pos_y = v.pos_y + v.vecter.y
-      end
+        for k, v in pairs(object_table) do
+	        v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+	        hit(v, 2, "height", function()
+	          v.vecter.y = 0
+	          can_jump = 0
+	        end)
+	      	hit(v, 2, "width", function()
+	          v.vecter.x = 0
+	        end)
+	        v.pos_x = v.pos_x + v.vecter.x
+	        v.pos_y = v.pos_y + v.vecter.y
+	      end
       update_animation()
 	  if  abs(player.vecter.x) < player_acceleration then
 		  player_state_x_flag = "nomal"
 	  else
 		  player_state_x_flag = "fast_back"
 	  end
-      -- direction_flag.x = "nomal"
-      -- direction_flag.y = "nomal"
+    snow.update()
     end,
 
     game_over_update = function()
@@ -140,10 +141,11 @@ game_states = {
       map(0,0)
       print(test)
 
-      for i,v in pairs(object_table) do
+      for k, v in pairs(object_table) do
   			spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
       end
 			Update_Trigger()
+			snow.draw()
     end,
     game_over_draw = function()
       -- map(16, 0)
