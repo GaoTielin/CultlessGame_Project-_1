@@ -16,9 +16,9 @@ newtimer = function ()
         o.timers[name] = nil
     end
     o.update = function ()
-        now = time()
+        local now = time()
         for name, timer in pairs(o.timers) do
-            timer_type, timer_start, timeout, callback = timer[1], timer[2], timer[3], timer[4]
+            local timer_type, timer_start, timeout, callback = timer[1], timer[2], timer[3], timer[4]
             if timer_type == 'timeout' then
                 if now - timer_start >= timeout then
                     callback()
