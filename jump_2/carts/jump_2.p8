@@ -30,7 +30,7 @@ player_states = {
 	states_y = {},
 }
 
---------------ÔøΩ‚àßÔøΩÔøΩ‚Ä¶‚û°Ô∏è----------------
+--------------ÊüÖæÔ∏èßÂ‚òâ∂Â‚ñ•®----------------
 controller = {
 	up = function()
 		player.vecter.y -= 1
@@ -39,7 +39,6 @@ controller = {
 	end,
 	down = function()
 		-- player.destroy()
-	 	player, text_obj = exchange_obj(player, text_obj)
 	end,
 	left = function()
 		-- change_animation(player, "go")
@@ -59,8 +58,6 @@ controller = {
 
 function _init()
   cls()
-  direction_x = 0 --ÁßªÂ‚åÇ®Ë∑ùÁ¶ª_x
-  direction_y = 0--ÁßªÂ‚åÇ®Ë∑ùÁ¶ª_y
   direction_flag = {
       x,
       y,
@@ -78,13 +75,24 @@ function _init()
 
   player = init_spr("player", 1, 50, 50, 1, 1, true)
 
-	text_obj = init_spr("text_obj", 3, 80, 50, 1, 1, true)
-	text_name = player.name
+	text_obj = init_spr("text_obj", 3, 80, 50, 2, 1, true)
 
   init_animation(player, 1, 3, 10, "nomal", true)
   init_animation(player, 4, 6, 10, "go", true)
-  -- direction_flag.x = "nomal"
-  -- direction_flag.y = "nomal"
+
+	test = 0
+	test_trigger_enter = ontrigger_enter(player, text_obj, function()
+		test = 1
+	end)
+	test_trigger_exit = ontrigger_exit(player, text_obj, function()
+		test = 0
+	end)
+	test_trigger_enter = ontrigger_enter(player, text_obj, function()
+		test = 1
+	end)
+	test_trigger_stay = ontrigger_stay(player, text_obj, function()
+		print("stay==")
+	end)
   can_jump = 2
 end
 
@@ -131,14 +139,14 @@ game_states = {
 
   -----------drawÁ‚åÇ∂Ê‚ñà‚ñíÊú∫-------------
   draw_states = {
-	play_draw = function()
+		play_draw = function()
       map(0,0)
-      -- print(player.vecter.x)
-	  	print(player.name)
-			print(object_table.player.name)
+      print(test)
+
       for i,v in pairs(object_table) do
   			spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
       end
+			update_trigger()
     end,
     game_over_draw = function()
       -- map(16, 0)
@@ -190,19 +198,104 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
+trigger_table = {}
+
+function update_trigger()
+	for _,v in pairs(trigger_table) do
+		v()
+	end
+end
+
+local function trigger(sprit_1, sprit_2)
+	local hit = false
+	local x1 = sprit_1.pos_x
+	local x2 = sprit_2.pos_x
+	local w1 = sprit_1.width*8
+	local w2 = sprit_2.width*8
+	local y1 = sprit_1.pos_y
+	local y2 = sprit_2.pos_y
+	local h1 = sprit_1.height*8
+	local h2 = sprit_2.height*8
+	local xd=abs((x1+(w1/2))-(x2+(w2/2)))
+  local xs=w1*0.5+w2*0.5
+  local yd=abs((y1+(h1/2))-(y2+(h2/2)))
+  local ys=h1/2+h2/2
+  if xd<xs and
+     yd<ys then
+    hit=true
+  end
+  return hit
+end
 ---------------Áõ‚òÖ‰Ω‚ßóÁ¢∞Ê‚òÖûÔº‚òâÊú™ÂÆüòêÊ‚òâ‚Ä¶ÔºÏõÉ-----------------
--- function ontrigger()
---
--- function oncllision(sprit_1, sprit_2)
--- 	local distance_x = abs(sprit_1.pos_x - sprit_2.pos_x)
--- 	local distance_y = abs(sprit_1.pos_y - sprit_2.pos_y)
--- 	local hit_distance_x = sprit_1.width + sprit_2.width
--- 	local hit_distance_y = sprit_1.height + sprit_2.height
--- 	if(distance_x <= hit_distance_x and distance_y <= hit_distance_y) then
--- 		return true
--- 	end
--- 	return false
--- end
+function ontrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
+	local entered = false
+	local function trigger_enter ()
+		is_trigger = trigger(sprit_1, sprit_2)
+		if not entered and is_trigger then
+			enter_func()
+			entered = true
+		end
+		if entered and not is_trigger then
+			entered = false
+		end
+	end
+
+	if trigger_name then
+		trigger_table[trigger_name] = trigger_enter
+	else
+		add(trigger_table, trigger_enter)
+	end
+
+	return trigger_enter
+end
+
+function ontrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
+	local entered = false
+	local function trigger_stay()
+		if trigger(sprit_1, sprit_2) then
+			stay_func()
+		end
+	end
+	if trigger_name then
+		trigger_table[trigger_name] = trigger_stay
+	else
+		add(trigger_table, trigger_stay)
+	end
+
+	return trigger_stay
+end
+
+function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
+	local entered = false
+	local function trigger_exit()
+		is_trigger = trigger(sprit_1, sprit_2)
+		if not entered and is_trigger then
+			entered = true
+		end
+		if entered and not is_trigger then
+			exit_func()
+			entered = false
+		end
+	end
+	if trigger_name then
+		trigger_table[trigger_name] = trigger_exit
+	else
+		add(trigger_table, trigger_exit)
+	end
+
+	return trigger_exit
+end
+
+function oncllision(sprit_1, sprit_2)
+	local distance_x = abs(sprit_1.pos_x - sprit_2.pos_x)
+	local distance_y = abs(sprit_1.pos_y - sprit_2.pos_y)
+	local hit_distance_x = sprit_1.width + sprit_2.width
+	local hit_distance_y = sprit_1.height + sprit_2.height
+	if(distance_x <= hit_distance_x and distance_y <= hit_distance_y) then
+		return true
+	end
+	return false
+end
 ---------------------------------------
 
 --------------Âú∞ÂΩ¢Á¢∞Ê‚òÖû-------------------
@@ -306,14 +399,6 @@ end
 
 ------------Â‚òâ‚ô•Ê‚ô™¢ÂØπË±°---------------
 function exchange_obj(obj_1, obj_2)
-	-- local mid_obj
-	-- local mid_name
-	-- mid_obj = obj_1
-	-- -- mid_name = obj_1.name
-	-- -- object_table[obj_1.name] = object_table[obj_2.name]
-	-- -- object_table[obj_2.name] = object_table[mid_name]
-	-- obj_1 = obj_2
-	-- obj_2 = mid_obj
 	local mid_obj = obj_1
 	return obj_2, mid_obj
 end
@@ -330,14 +415,14 @@ function _draw()
 end
 
 __gfx__
-0000000088888888dddddddd55555555cccccc0000000bb0000000ee000000000000000000000000000000000000000000000000000000000000000000000000
-0000000088888888dddddddd55555555c0000cc000bbbbb000ee00ee000000000000000000000000000000000000000000000000000000000000000000000000
-0070070088888888dddddddd555555550000ccc00bbbb0bb0eeee0ee000000000000000000000000000000000000000000000000000000000000000000000000
-0007700088888888dddddddd5555555500ccccc00bbbbbb00eeee0ee000000000000000000000000000000000000000000000000000000000000000000000000
-0007700088888888dddddddd555555550ccc00c00bbbbbb00000e00e000000000000000000000000000000000000000000000000000000000000000000000000
-0070070088888888dddddddd55555555ccccccc00bbbbbb0000eeeee000000000000000000000000000000000000000000000000000000000000000000000000
-0000000088888888dddddddd55555555000000c000bbbbb00000ee00000000000000000000000000000000000000000000000000000000000000000000000000
-0000000088888888dddddddd55555555000000000000bb000000ee00000000000000000000000000000000000000000000000000000000000000000000000000
+0000000088888888dddddddd55555555cccccccc00000bb0000000ee000000000000000000000000000000000000000000000000000000000000000000000000
+0000000088888888dddddddd55555555cccccccc00bbbbb000ee00ee000000000000000000000000000000000000000000000000000000000000000000000000
+0070070088888888dddddddd55555555cccccccc0bbbb0bb0eeee0ee000000000000000000000000000000000000000000000000000000000000000000000000
+0007700088888888dddddddd55555555cccccccc0bbbbbb00eeee0ee000000000000000000000000000000000000000000000000000000000000000000000000
+0007700088888888dddddddd55555555cccccccc0bbbbbb00000e00e000000000000000000000000000000000000000000000000000000000000000000000000
+0070070088888888dddddddd55555555cccccccc0bbbbbb0000eeeee000000000000000000000000000000000000000000000000000000000000000000000000
+0000000088888888dddddddd55555555cccccccc00bbbbb00000ee00000000000000000000000000000000000000000000000000000000000000000000000000
+0000000088888888dddddddd55555555cccccccc0000bb000000ee00000000000000000000000000000000000000000000000000000000000000000000000000
 000000009999999944444444777777778888880805555505ccccccc0000000000000000000000000000000000000000000000000000000000000000000000000
 0000000099999999444444447777777000800088555555500ccccccc000000000000000000000000000000000000000000000000000000000000000000000000
 000000009999999944444444077777770888888850055555cccccccc000000000000000000000000000000000000000000000000000000000000000000000000
