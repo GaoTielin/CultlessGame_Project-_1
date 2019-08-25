@@ -150,15 +150,75 @@ function OnTrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
 	return trigger_exit
 end
 
-function OnCllision(sprit_1, sprit_2)
-	local distance_x = abs(sprit_1.pos_x - sprit_2.pos_x)
-	local distance_y = abs(sprit_1.pos_y - sprit_2.pos_y)
-	local hit_distance_x = sprit_1.width + sprit_2.width
-	local hit_distance_y = sprit_1.height + sprit_2.height
-	if(distance_x <= hit_distance_x and distance_y <= hit_distance_y) then
-		return true
-	end
-	return false
+Cllision_Table = {}
+function Update_Cllision()
+  for k,v in pairs(Cllision_Table) do
+    v.width()
+    v.height()
+  end
+end
+
+function OnCllision(sprit_1, sprit_2, cllision_func)
+  local tbl = {
+    width = function()
+      local cllision_width = false
+      local x1 = sprit_1.pos_x + sprit_1.vecter.x
+      local w1 = sprit_1.width * 8
+
+      local x2 = sprit_2.pos_x + sprit_2.vecter.x
+      local w2 = sprit_2.width * 8
+
+      local xd=abs((x1+(w1/2))-(x2+(w2/2)))
+      local xs=w1*0.5+w2*0.5
+
+      local cllision_height = false
+      local y1 = sprit_1.pos_y
+      local h1 = sprit_1.height * 8
+
+      local y2 = sprit_2.pos_y
+      local h2 = sprit_2.height * 8
+
+      local yd=abs((y1+(h1/2))-(y2+(h2/2)))
+      local ys=h1/2+h2/2
+
+      print(xd)
+      if xd<=xs and yd<ys then
+        sprit_1.vecter.x = 0
+        if cllision_func then
+          if cllision_func.width then cllision_func.width() end
+        end
+      end
+    end,
+    height = function()
+      local cllision_height = false
+      local y1 = sprit_1.pos_y + sprit_1.vecter.y
+      local h1 = sprit_1.height * 8
+
+      local y2 = sprit_2.pos_y + sprit_2.vecter.y
+      local h2 = sprit_2.height * 8
+
+      local yd=abs((y1+(h1/2))-(y2+(h2/2)))
+      local ys=h1/2+h2/2
+
+      local x1 = sprit_1.pos_x
+      local w1 = sprit_1.width * 8
+
+      local x2 = sprit_2.pos_x
+      local w2 = sprit_2.width * 8
+
+      local xd=abs((x1+(w1/2))-(x2+(w2/2)))
+      local xs=w1*0.5+w2*0.5
+
+      print(yd)
+      if yd<=ys and xd<xs then
+        sprit_1.vecter.y = 0
+        if cllision_func then
+          if cllision_func.height then cllision_func.height() end
+        end
+      end
+    end,
+  }
+  add(Cllision_Table, tbl)
 end
 ---------------------------------------
 
