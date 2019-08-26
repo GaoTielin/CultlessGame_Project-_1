@@ -2,50 +2,6 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
-function map_hit(obj)
-	local map_hit_trg = {
-		hit_3 = function()
-
-		end,
-		hit_5 = function()
-
-		end
-	}
-	local map_hit_cls = {
-		hit_2 = function()
-
-		end,
-		hit_4 = function()
-
-		end
-	}
-
-	local function update_cls()
-		local cllision_flage
-
-		if map_hit_cls["hit_" .. cllision_flage] then	map_hit_cls["hit_" .. cllision_flage]() end
-	end
-
-	local function update_trg()
-		local trigger_flage
-
-		local x1 = obj.pos_x
-		local w1 = obj.width*8
-		local y1 = obj.pos_y
-		local h1 = obj.height*8
-		for i = x1, (x1 + w1 - 1), (w1-1) do
-			for j = y1, (x1 + h1 -1), (h1-1) do
-				trigger_flage = fget(mget(i/8, j/8))
-				if trigger_flage ~= 0 then
-					if map_hit_trg["hit_" .. trigger_flage] then	map_hit_trg["hit_" .. trigger_flage]() end
-					return
-				end
-			end
-		end
-	end
-
-end
-
 player_states = {
 	states_x = {
 		nomal = function()
@@ -79,8 +35,8 @@ player_states = {
 controller = {
 	up = function()
 		player.vecter.y -= 3
-        direction_flag.y = "up"
-        can_jump += 1
+    direction_flag.y = "up"
+    can_jump -= 1
 	end,
 	down = function()
 		-- player.destroy()
@@ -124,10 +80,10 @@ function _init()
 
   init_animation(player, 1, 3, 10, "nomal", true)
   init_animation(player, 4, 6, 10, "go", true)
+	map_col = map_hit(player)
 
 	oncllision(player, text_obj)
 
-  can_jump = 2
 	snow = init_snow()
 end
 
@@ -136,23 +92,23 @@ game_states = {
   ----------updateÁ‚åÇ∂Ê‚ñà‚ñíÊú∫--------------
 	update_states = {
     play_update = function()
-      if (btnp (‚¨ÜÔ∏è) and can_jump < 2) controller.up()
+      if (btnp (‚¨ÜÔ∏è) and can_jump <= 2 and can_jump > 0) controller.up()
       if (btnp (‚¨áÔ∏è)) controller.down()
       if (btn (‚¨ÖÔ∏è) and direction_flag ~= "right") controller.left()
       if (btn (‚û°Ô∏è) and direction_flag ~= "right") controller.right()
 
       player_states.states_x[player_state_x_flag]()
 	  -- player_states.states_y[player_state_y_flag]()
-
+			hit(player, 1, "height", function()
+				can_jump = 2
+			end)
       for k, v in pairs(object_table) do
         v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
         hit(v, 1, "height", function()
           v.vecter.y = 0
-
         end)
       	hit(v, 1, "width", function()
           v.vecter.x = 0
-					can_jump = 0
         end)
 				update_cllision()
         v.pos_x = v.pos_x + v.vecter.x
@@ -183,8 +139,9 @@ game_states = {
   			spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
       end
 			update_trigger()
-
+			print(can_jump)
 			snow.draw()
+			map_col.update_trg()
     end,
     game_over_draw = function()
       -- map(16, 0)
@@ -259,6 +216,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
+-------------Áõ‚òÖ‰Ω‚ßóÁ¢∞Ê‚òÖûÔº‚òâËß¶Â‚óÜ‚û°Ô∏èÂû‚¨ÖÔ∏èÔºÏõÉ--------------
 trigger_table = {}
 
 function update_trigger()
@@ -287,7 +245,7 @@ local function trigger(sprit_1, sprit_2)
   end
   return hit
 end
----------------Áõ‚òÖ‰Ω‚ßóÁ¢∞Ê‚òÖûÔº‚òâÊú™ÂÆüòêÊ‚òâ‚Ä¶ÔºÏõÉ-----------------
+
 function ontrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
 	local entered = false
 	local function trigger_enter ()
@@ -347,6 +305,7 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
 	return trigger_exit
 end
 
+-------------Áõ‚òÖ‰Ω‚ßóÁ¢∞Ê‚òÖûÔº‚òâÁ¢∞Ê‚òÖûÂû‚¨ÖÔ∏èÔºÏõÉ--------------
 cllision_table = {}
 function update_cllision()
   for k,v in pairs(cllision_table) do
@@ -591,6 +550,56 @@ function init_snow(speed, num, hit_spr_flag)
   }
 end
 
+-->8
+-->map-3
+function map_hit(obj)
+	local map_hit_trg = {
+		hit_3 = function(x, y)
+			mset(x, y, 0)
+		end,
+		hit_5 = function(x, y)
+
+		end
+	}
+	local map_hit_cls = {
+		hit_2 = function(x, y)
+
+		end,
+		hit_4 = function(x, y)
+
+		end
+	}
+
+	local function update_cls()
+		local cllision_flage
+
+		if map_hit_cls["hit_" .. cllision_flage] then	map_hit_cls["hit_" .. cllision_flage]() end
+	end
+	local trigger_flage
+
+	local function update_trg()
+		local x1 = obj.pos_x
+		local w1 = obj.width*8
+		local y1 = obj.pos_y
+		local h1 = obj.height*8
+		for i = x1, (x1 + w1 - 1), (w1-1) do
+			for j = y1, (y1 + h1 -1), (h1-1) do
+				local m_x, m_y = i/8, j/8
+				trigger_flage = fget(mget(m_x, m_y))
+				if trigger_flage ~= 0 and trigger_flage ~= nil then
+					if map_hit_trg["hit_" .. trigger_flage] then
+						map_hit_trg["hit_" .. trigger_flage](m_x, m_y) end
+					return
+				end
+			end
+		end
+	end
+	return{
+		update_trg = update_trg,
+		update_cls = update_cls,
+	}
+end
+
 __gfx__
 0000000088888888dddddddd55555555cccccccc00000bb0000000ee000000000000000000000000000000000000000000000000000000000000000000000000
 0000000088888888dddddddd55555555cccccccc00bbbbb000ee00ee000000000000000000000000000000000000000000000000000000000000000000000000
@@ -609,7 +618,7 @@ __gfx__
 000000009999999944444444777777770888888805550555cccc0c0c000000000000000000000000000000000000000000000000000000000000000000000000
 000000009999999944444444777770700088000000555555c0ccc000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000100000000000000000000000000080000000003000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -620,7 +629,7 @@ __map__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000303000000000000000016000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0303030303030303030303030303030303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
