@@ -1,48 +1,4 @@
 -->main-0
-function map_hit(obj)
-	local map_hit_trg = {
-		local function hit_3()
-			
-		end
-		local function hit_5()
-
-		end
-	}
-	local map_hit_cls = {
-		local function hit_2()
-
-		end
-		local function hit_4()
-
-		end
-	}
-
-	local function update_cls()
-		local cllision_flage
-
-		if map_hit_cls["hit_" .. cllision_flage] then	map_hit_cls["hit_" .. cllision_flage]() end
-	end
-
-	local function update_trg()
-		local trigger_flage
-
-		local x1 = obj.pos_x
-		local w1 = obj.width*8
-		local y1 = obj.pos_y
-		local h1 = obj.height*8
-		for x1, x1 + w1 - 1, w1 do
-			for y1, x1 + h1 -1, h1 do
-				trigger_flage = fget(mget(x1/8, y1/8)
-				if trigger_flage ~= 0 then
-					if map_hit_trg["hit_" .. trigger_flage] then	map_hit_trg["hit_" .. trigger_flage]() end
-					return
-				end
-			end
-		end
-	end
-
-end
-
 player_states = {
 	states_x = {
 		nomal = function()
@@ -76,8 +32,8 @@ player_states = {
 controller = {
 	up = function()
 		player.vecter.y -= 3
-        direction_flag.y = "up"
-        can_jump += 1
+    direction_flag.y = "up"
+    can_jump -= 1
 	end,
 	down = function()
 		-- player.destroy()
@@ -117,14 +73,14 @@ function _init()
 
   player = init_spr("player", 1, 50, 50, 1, 1, true)
 
-	text_obj = init_spr("text_obj", 3, 80, 50, 2, 1, true)
+	-- text_obj = init_spr("text_obj", 3, 80, 50, 2, 1, true)
 
   init_animation(player, 1, 3, 10, "nomal", true)
   init_animation(player, 4, 6, 10, "go", true)
+	map_col = map_hit(player)
 
-	OnCllision(player, text_obj)
+	-- OnCllision(player, text_obj)
 
-  can_jump = 2
 	snow = init_snow()
 end
 
@@ -133,19 +89,20 @@ game_states = {
   ----------update状态机--------------
 	update_states = {
     play_update = function()
-      if (btnp (⬆️) and can_jump < 2) controller.up()
+      if (btnp (⬆️) and can_jump <= 2 and can_jump > 0) controller.up()
       if (btnp (⬇️)) controller.down()
       if (btn (⬅️) and direction_flag ~= "right") controller.left()
       if (btn (➡️) and direction_flag ~= "right") controller.right()
 
       player_states.states_x[player_state_x_flag]()
 	  -- player_states.states_y[player_state_y_flag]()
-
+			hit(player, 1, "height", function()
+				can_jump = 2
+			end)
       for k, v in pairs(object_table) do
         v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
         hit(v, 1, "height", function()
           v.vecter.y = 0
-          can_jump = 0
         end)
       	hit(v, 1, "width", function()
           v.vecter.x = 0
@@ -179,8 +136,9 @@ game_states = {
   			spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
       end
 			Update_Trigger()
-
+			print(can_jump)
 			snow.draw()
+			map_col.update_trg()
     end,
     game_over_draw = function()
       -- map(16, 0)

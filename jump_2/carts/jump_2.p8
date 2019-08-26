@@ -2,6 +2,50 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
+function map_hit(obj)
+	local map_hit_trg = {
+		hit_3 = function()
+
+		end,
+		hit_5 = function()
+
+		end
+	}
+	local map_hit_cls = {
+		hit_2 = function()
+
+		end,
+		hit_4 = function()
+
+		end
+	}
+
+	local function update_cls()
+		local cllision_flage
+
+		if map_hit_cls["hit_" .. cllision_flage] then	map_hit_cls["hit_" .. cllision_flage]() end
+	end
+
+	local function update_trg()
+		local trigger_flage
+
+		local x1 = obj.pos_x
+		local w1 = obj.width*8
+		local y1 = obj.pos_y
+		local h1 = obj.height*8
+		for i = x1, (x1 + w1 - 1), (w1-1) do
+			for j = y1, (x1 + h1 -1), (h1-1) do
+				trigger_flage = fget(mget(i/8, j/8))
+				if trigger_flage ~= 0 then
+					if map_hit_trg["hit_" .. trigger_flage] then	map_hit_trg["hit_" .. trigger_flage]() end
+					return
+				end
+			end
+		end
+	end
+
+end
+
 player_states = {
 	states_x = {
 		nomal = function()
@@ -102,12 +146,13 @@ game_states = {
 
       for k, v in pairs(object_table) do
         v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
-        hit(v, 2, "height", function()
+        hit(v, 1, "height", function()
           v.vecter.y = 0
-          can_jump = 0
+
         end)
-      	hit(v, 2, "width", function()
+      	hit(v, 1, "width", function()
           v.vecter.x = 0
+					can_jump = 0
         end)
 				update_cllision()
         v.pos_x = v.pos_x + v.vecter.x
@@ -494,7 +539,7 @@ end
 -->scene-2
 function init_snow(speed, num, hit_spr_flag)
   if not speed then speed = 1 end
-  if not hit_spr_flag then hit_spr_flag = 2 end
+  if not hit_spr_flag then hit_spr_flag = 1 end
   if not num then num = 128 end
   local snows = {}
   for i=1, num do
@@ -564,7 +609,7 @@ __gfx__
 000000009999999944444444777777770888888805550555cccc0c0c000000000000000000000000000000000000000000000000000000000000000000000000
 000000009999999944444444777770700088000000555555c0ccc000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
