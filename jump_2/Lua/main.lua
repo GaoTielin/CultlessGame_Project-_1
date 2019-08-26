@@ -1,4 +1,48 @@
 -->main-0
+function map_hit(obj)
+	local map_hit_trg = {
+		local function hit_3()
+			
+		end
+		local function hit_5()
+
+		end
+	}
+	local map_hit_cls = {
+		local function hit_2()
+
+		end
+		local function hit_4()
+
+		end
+	}
+
+	local function update_cls()
+		local cllision_flage
+
+		if map_hit_cls["hit_" .. cllision_flage] then	map_hit_cls["hit_" .. cllision_flage]() end
+	end
+
+	local function update_trg()
+		local trigger_flage
+
+		local x1 = obj.pos_x
+		local w1 = obj.width*8
+		local y1 = obj.pos_y
+		local h1 = obj.height*8
+		for x1, x1 + w1 - 1, w1 do
+			for y1, x1 + h1 -1, h1 do
+				trigger_flage = fget(mget(x1/8, y1/8)
+				if trigger_flage ~= 0 then
+					if map_hit_trg["hit_" .. trigger_flage] then	map_hit_trg["hit_" .. trigger_flage]() end
+					return
+				end
+			end
+		end
+	end
+
+end
+
 player_states = {
 	states_x = {
 		nomal = function()
@@ -99,11 +143,11 @@ game_states = {
 
       for k, v in pairs(object_table) do
         v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
-        hit(v, 2, "height", function()
+        hit(v, 1, "height", function()
           v.vecter.y = 0
           can_jump = 0
         end)
-      	hit(v, 2, "width", function()
+      	hit(v, 1, "width", function()
           v.vecter.x = 0
         end)
 				Update_Cllision()
