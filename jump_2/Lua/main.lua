@@ -1,4 +1,45 @@
 -->main-0
+function map_hit(obj)
+	local map_hit_trg = {
+		local function hit_3()
+			
+		end
+		local function hit_5()
+
+		end
+	}
+	local map_hit_cls = {
+		local function hit_2()
+
+		end
+		local function hit_4()
+
+		end
+	}
+
+	local function update_cls()
+		local cllision_flage
+
+		if map_hit_cls["hit_" .. cllision_flage] then	map_hit_cls["hit_" .. cllision_flage]() end
+	end
+
+	local function update_trg()
+		local trigger_flage
+
+		local x1 = obj.pos_x
+		local w1 = obj.width*8
+		local y1 = obj.pos_y
+		local h1 = obj.height*8
+		for x1, x1 + w1 - 1, w1 do
+			for y1, x1 + h1 -1, h1 do
+				trigger_flage = fget(mget(x1/8, y1/8)
+			end
+		end
+		if map_hit_trg["hit_" .. trigger_flage] then	map_hit_trg["hit_" .. trigger_flage]() end
+	end
+
+end
+
 player_states = {
 	states_x = {
 		nomal = function()
