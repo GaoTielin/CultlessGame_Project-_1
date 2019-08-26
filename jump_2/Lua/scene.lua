@@ -1,7 +1,7 @@
 -->scene-2
 function init_snow(speed, num, hit_spr_flag)
   if not speed then speed = 1 end
-  if not hit_spr_flag then hit_spr_flag = 2 end
+  if not hit_spr_flag then hit_spr_flag = 1 end
   if not num then num = 128 end
   local snows = {}
   for i=1, num do

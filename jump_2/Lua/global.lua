@@ -62,6 +62,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
+-------------盒体碰撞（触发型）--------------
 Trigger_table = {}
 
 function Update_Trigger()
@@ -90,7 +91,7 @@ local function Trigger(sprit_1, sprit_2)
   end
   return hit
 end
----------------盒体碰撞（未完成）-----------------
+
 function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
 	local entered = false
 	local function trigger_enter ()
@@ -150,6 +151,7 @@ function OnTrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
 	return trigger_exit
 end
 
+-------------盒体碰撞（碰撞型）--------------
 Cllision_Table = {}
 function Update_Cllision()
   for k,v in pairs(Cllision_Table) do
