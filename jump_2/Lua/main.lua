@@ -33,9 +33,12 @@ function map_hit(obj)
 		for x1, x1 + w1 - 1, w1 do
 			for y1, x1 + h1 -1, h1 do
 				trigger_flage = fget(mget(x1/8, y1/8)
+				if trigger_flage ~= 0 then
+					if map_hit_trg["hit_" .. trigger_flage] then	map_hit_trg["hit_" .. trigger_flage]() end
+					return
+				end
 			end
 		end
-		if map_hit_trg["hit_" .. trigger_flage] then	map_hit_trg["hit_" .. trigger_flage]() end
 	end
 
 end
@@ -140,11 +143,11 @@ game_states = {
 
       for k, v in pairs(object_table) do
         v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
-        hit(v, 2, "height", function()
+        hit(v, 1, "height", function()
           v.vecter.y = 0
           can_jump = 0
         end)
-      	hit(v, 2, "width", function()
+      	hit(v, 1, "width", function()
           v.vecter.x = 0
         end)
 				Update_Cllision()
