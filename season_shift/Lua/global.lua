@@ -291,9 +291,9 @@ function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     local width = spr_obj.width
     local height = spr_obj.height
     local function next_ps(sprit)
-        local next = sprit + width
-        if next > 15 then next = flr(next / 15) * 16 + height end
-        return (sprit + width)
+        local next = sprit + spr_obj.width
+        if next > 15 then next = flr(next / 15) * 16 + spr_obj.height end
+        return (sprit + spr_obj.width)
     end
     local updat_v = 1
     spr_obj.animation_table[ani_flag] = function()
