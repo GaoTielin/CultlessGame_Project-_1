@@ -2,35 +2,6 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
-player_states = {
-    states_x = {
-        nomal = function()
-            player.vecter.x = 0
-        end,
-        fast_go_left = function()
-            player.vecter.x -= player_acceleration
-        end,
-        fast_back = function()
-            if abs(player.vecter.x) < player_acceleration then
-                player_state_x_flag = "nomal"
-            else
-                if (player.vecter.x > 0) then
-                    player.vecter.x -= player_acceleration
-                elseif (player.vecter.x < 0) then
-                    player.vecter.x += player_acceleration
-                end
-            end
-        end,
-        fast_go_right = function()
-            player.vecter.x += player_acceleration
-        end,
-        fast_go_stay = function()
-            player.vecter.x = player.vecter.x > 0 and player_max_v or (-1 * player_max_v)
-        end
-    },
-    states_y = {},
-}
-
 --------------ÊüÖæÔ∏èßÂ‚òâ∂Â‚ñ•®----------------
 controller = {
     up = function()
@@ -53,6 +24,7 @@ controller = {
 		if player.state ~= "run" and player.state ~= "jump" then
 			player.state = "run"
 			change_animation(player, "run")
+            change_animation(tail, "run")
 		end
     end,
     right = function()
@@ -63,6 +35,7 @@ controller = {
 		if player.state ~= "run" and player.state ~= "jump" then
 			player.state = "run"
 			change_animation(player, "run")
+            change_animation(tail, "run")
 		end
     end,
 }
@@ -84,19 +57,31 @@ function _init()
     player_acceleration = 0.1
     player_max_v = 2
 
-    player = init_spr("player", 192, 50, 30, 2, 2, true)
-	player.state = "nomal"
+    player = init_player()
+    tail = init_tail()
 
-    -- text_obj = init_spr("text_obj", 3, 80, 30, 2, 1, true)
-
-	init_animation(player, 192, 194, 10, "nomal", true)
-    init_animation(player, 192, 200, 10, "run", true)
-    init_animation(player, 224, 236, 10, "jump", true)
     map_col = map_hit(player)
 
     -- oncllision(player, text_obj)
 
     snow = init_snow()
+    chest = init_chest()
+    -- enemy = init_enemy()
+    -- pinecones of whole level
+    global_pinecone = init_global_pinecone()
+    max_pinecone_num = 6
+    player_pinecone = 3
+    timer = newtimer()
+    -- register collision
+    -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
+    ontrigger_stay(player, chest, function()
+        if btnp(5) then
+            if player_pinecone ~= 0 then
+                player_pinecone -= 1
+                chest.pinecone += 1
+            end
+        end
+    end, 'chest_store')
 end
 
 ------------Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊú∫-----------------
@@ -105,12 +90,18 @@ game_states = {
     update_states = {
         play_update = function()
 			player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-            if (btnp (‚ùé) and can_jump <= 2 and can_jump > 0) controller.up()
-            if (btnp (‚¨áÔ∏è)) controller.down()
-            if (btn (‚¨ÖÔ∏è) and direction_flag ~= "right") controller.left()
-            if (btn (‚û°Ô∏è) and direction_flag ~= "right") controller.right()
+            if (btnp (2) and can_jump <= 2 and can_jump > 0) controller.up()
+            if (btnp (3)) controller.down()
+            if (btn (0) and direction_flag ~= "right") then
+                player.flip_x = true
+                controller.left()
+            end
+            if (btn (1) and direction_flag ~= "right") then
+                player.flip_x = false
+                controller.right()
+            end
 
-            player_states.states_x[player_state_x_flag]()
+            player.player_states.states_x[player_state_x_flag]()
             -- player_states.states_y[player_state_y_flag]()
             hit(player, 1, "height", function()
                 can_jump = 2
@@ -118,9 +109,11 @@ game_states = {
 					if player.vecter.x == 0 then
 						player.state = "nomal"
 						change_animation(player, "nomal")
+                        change_animation(tail, "nomal")
 					else
 						player.state = "run"
 						change_animation(player, "run")
+                        change_animation(tail, "run")
 					end
 				end
             end)
@@ -160,7 +153,8 @@ game_states = {
                 player_state_x_flag = "fast_back"
             end
             snow.update()
-
+            timer.update()
+            tail.update()
         end,
 
         game_over_update = function()
@@ -175,12 +169,20 @@ game_states = {
             map(0, 0)
 
             for v in all(object_table) do
-                spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+                if v.flip_x then
+                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
+                else
+                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+                end
             end
             update_trigger()
 			print(player.vecter.x)
             print(player.state)
             snow.draw()
+            chest.draw()
+            -- enemy.draw()
+            global_pinecone.draw()
+            draw_pinecone_ui()
             map_col.update_trg()
         end,
         game_over_draw = function()
@@ -250,6 +252,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         destroy = function()
             object_table[obj_idx] = nil
         end,
+        flip_x = false,
     }
 
     add(object_table, spr_obj)
@@ -530,6 +533,25 @@ function exchange_obj(obj_1, obj_2)
     return obj_2, mid_obj
 end
 
+function handle_player_hit ()
+    if player_pinecone == 0 then
+        -- todo change scene to gameover
+    else
+        player_pinecone -= 1
+        local p = {sp=207, pos_x=player.pos_x+8, pos_y=player.pos_y+8, is_dropped=true}
+        add(global_pinecone.pinecone_list, p)
+        timer.add_timeout('remove_pinecone'..player_pinecone, 3, function()
+            del(global_pinecone.pinecone_list, p)
+        end)
+
+        if not player.flip_x then
+            player.pos_x -= 32
+        else
+            player.pos_x += 32
+        end
+    end
+end
+
 function _update()
     update_state_flag = game_state_flag .. "_update"
     game_states.update_states[update_state_flag]()
@@ -646,6 +668,107 @@ function map_hit(obj)
 		update_cls = update_cls,
 	}
 end
+-->8
+-- objects
+function init_chest ()
+    local c = init_spr("chest", 4, 10, 50, 1, 1, false, 0, 0)
+    c.pinecone = 0
+    c.draw = function ()
+        print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
+    end
+    return c
+end
+
+function init_enemy ()
+    local e = init_spr("enemy", 221, 60, 40, 1, 1, false, 0, 0)
+    e.draw = function ()
+        spr(enemy.sp, enemy.pos_x, enemy.pos_y)
+    end
+    return e
+end
+
+function init_global_pinecone ()
+    local g = {
+        pinecone_list = {}
+    }
+    g.draw = function ()
+        for p in all(g.pinecone_list) do
+            if p.is_dropped then
+                -- hack way to let pinecone flcik
+                if time() % 0.5 < 0.25 then
+                    spr(p.sp, p.pos_x, p.pos_y)
+                end
+            else
+                spr(p.sp, p.pos_x, p.pos_y)
+            end
+        end
+    end
+    return g
+end
+
+function draw_pinecone_ui()
+    for i=1, max_pinecone_num do
+        if i <= player_pinecone then
+            spr(4, 80+6*i, 3)
+        else
+            spr(3, 80+6*i, 3)
+        end
+    end
+end
+
+function init_player()
+    local player = init_spr("player", 192, 50, 30, 2, 2, true)
+	player.state = "nomal"
+    player.player_states = {
+        states_x = {
+            nomal = function()
+                player.vecter.x = 0
+            end,
+            fast_go_left = function()
+                player.vecter.x -= player_acceleration
+            end,
+            fast_back = function()
+                if abs(player.vecter.x) < player_acceleration then
+                    player_state_x_flag = "nomal"
+                else
+                    if (player.vecter.x > 0) then
+                        player.vecter.x -= player_acceleration
+                    elseif (player.vecter.x < 0) then
+                        player.vecter.x += player_acceleration
+                    end
+                end
+            end,
+            fast_go_right = function()
+                player.vecter.x += player_acceleration
+            end,
+            fast_go_stay = function()
+                player.vecter.x = player.vecter.x > 0 and player_max_v or (-1 * player_max_v)
+            end
+        },
+        states_y = {},
+    }
+
+    init_animation(player, 192, 194, 10, "nomal", true)
+    init_animation(player, 232, 238, 10, "run", true)
+    init_animation(player, 224, 236, 10, "jump", true)
+    return player
+end
+
+function init_tail()
+    if not player then
+        return
+    end
+    local tail = init_spr("tail", 224, player.pos_x - 16, player.pos_y, 2, 2, false, 0, 0)
+    tail.update = function()
+        tail.flip_x = player.flip_x
+        tail.pos_x = player.pos_x + (tail.flip_x and 16 or -16)
+        tail.pos_y = player.pos_y
+    end
+    init_animation(tail, 137, 139, 10, "nomal", true)
+    init_animation(tail, 224, 230, 10, "run", true)
+    return tail
+end
+
 __gfx__
 0000000033333333ffff3fffffff3fffffffffff00000000ffffffffffffffff7000000000000000000000000000000000000000000000000000000000770000
 0000000044444444ffff3ffffff33ffffff88fff000000007fff7fff7fff7fff0770000000000000000000000000000000000000000000000000000577500000
@@ -760,21 +883,21 @@ fffffffffffffffffffd555555555555555555fffffff4ffffffffffffffffff0000000000000000
 00099770000000000009970000000000009700000090000049999994999999940000000000970000009000000000000000000000000000000000000000000000
 00009999000000000000999000000000000990000009900004496667064444400000000000099000000990000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000999000000000000000000000000004499400000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000994444499000000000000000000000040049994000000000000000000000
-00000000000000000000000000000000040000000000000000000000040000000094449999944490000999009900400000000000499490000000000000000000
-00000000000000000000000004000000009944400000000000000009499000004449900000009944009444994494990000000000049949000000000000000000
-49944499000000000000000949900000000099944000000000000994999900000000000000000000494999449949779000000000004994000000000000000000
-00099944490000000000009499990000000000099440000000099449977900000000000000000000049999777997779000000000000449400000000000000000
-00000099944000000099994997790000000000004994000009944999700000000000000000000000009777000094000000000000000004940009990000000000
-00000000499400000944449970000000000000000499400009499770994000000000000000000000000999900009400000000000000000940094449000000000
-00000000004940009499977904400000000000000044990094997000009940000000000000000000000004400000994000000000000000094949994900004000
-00000000000494004999770099000000000000000000449949977000000000000000000000000000000000000000000000000000000000009499999499949900
-00000000000049409999700000000000000000000000000099770000000000000000000000000000000000000000000000000000000000000999777944497790
-00000000000000949977000000000000000000000000000009040000000000000000000000000000000000000000000000000000000000000099900779977790
-00000000000000004900000000000000000000000000000009400000000000000000000000000000000000000000000000000000000000000049990000900000
-00000000000000004900000000000000000000000000000090400000000000000000000000000000000000000000000000000000000000000000449900490000
-00000000000000000499600000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000000000000049900
+00000000000000000000000000000000000000099900000000004499400000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000099444449900000040049994000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000400000000000000009444999994449000000000499490000000000000000000000000000400000000099900990040000000000000000000
+00000000000000000099444000000000444990000000994400000000049949000000000004000000000000094990000000944499449499000000000000000000
+49944499000000000000999440000000000000000000000000000000004994000000000949900000000009949999000049499944994977900000000000000000
+00099944490000000000000994400000000000000000000000000000000449400000009499990000000994499779000004999977799777900000000000000000
+00000099944000000000000049940000000000000000000000000000000004940099994997790000099449997000000000977700009400000009990000000000
+00000000499400000000000004994000000000000000000000000000000000940944449970000000094997709940000000099990000940000094449000000000
+00000000004940000000000000449900000000000000000000000000000000099499977904400000949970000099400000000440000099404949994900004000
+00000000000494000000000000004499000000000000000000000000000000004999770099000000499770000000000000000000000000009499999499949900
+00000000000049400000000000000000000000000000000000000000000000009999700000000000997700000000000000000000000000000999777944497790
+00000000000000940000000000000000000000000000000000000000000000009977000000000000090400000000000000000000000000000099900779977790
+00000000000000000000000000000000000000000000000000000000000000004900000000000000094000000000000000000000000000000049990000900000
+00000000000000000000000000000000000000000000000000000000000000004900000000000000904000000000000000000000000000000000449900490000
+00000000000000000000000000000000000000000000000000000000000000000499600000000000900000000000000000000000000000000000000000049900
 __gff__
 0001000000000000000000000000000000010000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
