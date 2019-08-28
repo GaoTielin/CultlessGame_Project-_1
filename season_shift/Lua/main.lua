@@ -12,6 +12,7 @@ controller = {
 		end
     end,
     down = function()
+        player.new_ground = 1
     end,
     left = function()
         -- change_animation(player, "go")
@@ -89,7 +90,7 @@ game_states = {
         play_update = function()
 			player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
             if (btnp (2) and can_jump <= 2 and can_jump > 0) controller.up()
-            if (btnp (3)) controller.down()
+            if (btn (3)) controller.down()
             if (btn (0) and direction_flag ~= "right") then
                 player.flip_x = true
                 controller.left()
@@ -131,6 +132,7 @@ game_states = {
 
 
 			hit(player, 1, "height", function()
+                player.new_ground = 2
 				player.vecter.y = 0
 			end, function()
 				if player.state ~= "jump" then
@@ -138,6 +140,13 @@ game_states = {
 				end
 			end)
 			hit(player, 1, "width", function()
+				player.vecter.x = 0
+			end)
+            hit(player, player.new_ground, "height", function()
+                can_jump = 2
+				player.vecter.y = 0
+			end)
+			hit(player, player.new_ground, "width", function()
 				player.vecter.x = 0
 			end)
 			Update_Cllision()
@@ -174,7 +183,7 @@ game_states = {
                 end
             end
             Update_Trigger()
-			print(player.vecter.x)
+			print(can_jump)
             print(player.state)
             snow.draw()
             chest.draw()

@@ -46,8 +46,10 @@ function draw_pinecone_ui()
 end
 
 function init_player()
-    local player = init_spr("player", 192, 50, 30, 1, 1, true)
+    local player = init_spr("player", 192, 100, 10, 1, 1, true)
 	player.state = "nomal"
+    player.ground = 1
+    player.new_ground = 2
     player.player_states = {
         states_x = {
             nomal = function()
