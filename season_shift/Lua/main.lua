@@ -47,22 +47,20 @@ controller = {
         if player.vecter.x <= -player_max_v then
             player_state_x_flag = "fast_go_stay"
         end
-    		if player.state ~= "run" and player.state ~= "jump" then
-    			player.state = "run"
-          player.width = 4
-    			change_animation(player, "run")
-    		end
+		if player.state ~= "run" and player.state ~= "jump" then
+			player.state = "run"
+			change_animation(player, "run")
+		end
     end,
     right = function()
         player_state_x_flag = "fast_go_right"
         if player.vecter.x >= player_max_v then
             player_state_x_flag = "fast_go_stay"
         end
-    		if player.state ~= "run" and player.state ~= "jump" then
-    			player.state = "run"
-          player.width = 4
-    			change_animation(player, "run")
-    		end
+		if player.state ~= "run" and player.state ~= "jump" then
+			player.state = "run"
+			change_animation(player, "run")
+		end
     end,
 }
 
@@ -89,7 +87,7 @@ function _init()
     -- text_obj = init_spr("text_obj", 3, 80, 30, 2, 1, true)
 
 	init_animation(player, 192, 194, 10, "nomal", true)
-    init_animation(player, 224, 236, 10, "run", true)
+    init_animation(player, 192, 200, 10, "run", true)
     init_animation(player, 224, 236, 10, "jump", true)
     map_col = map_hit(player)
 
@@ -113,17 +111,15 @@ game_states = {
             -- player_states.states_y[player_state_y_flag]()
             hit(player, 1, "height", function()
                 can_jump = 2
-        				if player.state ~= "nomal" then
-        					if player.vecter.x == 0 then
-                    player.width = 2
-        						change_animation(player, "nomal")
-                    player.state = "nomal"
-        					else
-        						player.state = "run"
-                    player.width = 4
-        						change_animation(player, "run")
-        					end
-        				end
+				if player.state ~= "nomal" then
+					if player.vecter.x == 0 then
+						player.state = "nomal"
+						change_animation(player, "nomal")
+					else
+						player.state = "run"
+						change_animation(player, "run")
+					end
+				end
             end)
             for v in all(object_table) do
 				if v.name ~= "player" then
