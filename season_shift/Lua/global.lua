@@ -336,6 +336,25 @@ function exchange_obj(obj_1, obj_2)
     return obj_2, mid_obj
 end
 
+function handle_player_hit ()
+    if player_pinecone == 0 then
+        -- todo change scene to gameover
+    else
+        player_pinecone -= 1
+        local p = {sp=207, pos_x=player.pos_x+8, pos_y=player.pos_y+8, is_dropped=true}
+        add(global_pinecone.pinecone_list, p)
+        timer.add_timeout('remove_pinecone'..player_pinecone, 3, function()
+            del(global_pinecone.pinecone_list, p)
+        end)
+
+        if not player.flip_x then
+            player.pos_x -= 32
+        else
+            player.pos_x += 32
+        end
+    end
+end
+
 function _update()
     update_state_flag = game_state_flag .. "_update"
     game_states.update_states[update_state_flag]()

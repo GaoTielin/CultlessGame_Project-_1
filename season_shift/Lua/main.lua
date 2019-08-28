@@ -1,33 +1,4 @@
 -->main-0
-player_states = {
-    states_x = {
-        nomal = function()
-            player.vecter.x = 0
-        end,
-        fast_go_left = function()
-            player.vecter.x -= player_acceleration
-        end,
-        fast_back = function()
-            if abs(player.vecter.x) < player_acceleration then
-                player_state_x_flag = "nomal"
-            else
-                if (player.vecter.x > 0) then
-                    player.vecter.x -= player_acceleration
-                elseif (player.vecter.x < 0) then
-                    player.vecter.x += player_acceleration
-                end
-            end
-        end,
-        fast_go_right = function()
-            player.vecter.x += player_acceleration
-        end,
-        fast_go_stay = function()
-            player.vecter.x = player.vecter.x > 0 and player_max_v or (-1 * player_max_v)
-        end
-    },
-    states_y = {},
-}
-
 --------------控制器----------------
 controller = {
     up = function()
@@ -81,19 +52,30 @@ function _init()
     player_acceleration = 0.1
     player_max_v = 2
 
-    player = init_spr("player", 192, 50, 30, 2, 2, true)
-	player.state = "nomal"
+    player = init_player()
 
-    -- text_obj = init_spr("text_obj", 3, 80, 30, 2, 1, true)
-
-	init_animation(player, 192, 194, 10, "nomal", true)
-    init_animation(player, 192, 200, 10, "run", true)
-    init_animation(player, 224, 236, 10, "jump", true)
     map_col = map_hit(player)
 
     -- OnCllision(player, text_obj)
 
     snow = init_snow()
+    chest = init_chest()
+    -- enemy = init_enemy()
+    -- pinecones of whole level
+    global_pinecone = init_global_pinecone()
+    max_pinecone_num = 6
+    player_pinecone = 3
+    timer = newtimer()
+    -- register collision
+    -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
+    ontrigger_stay(player, chest, function()
+        if btnp(5) then
+            if player_pinecone ~= 0 then
+                player_pinecone -= 1
+                chest.pinecone += 1
+            end
+        end
+    end, 'chest_store')
 end
 
 ------------游戏状态机-----------------
@@ -102,12 +84,18 @@ game_states = {
     update_states = {
         play_update = function()
 			player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-            if (btnp (⬆️) and can_jump <= 2 and can_jump > 0) controller.up()
-            if (btnp (⬇️)) controller.down()
-            if (btn (⬅️) and direction_flag ~= "right") controller.left()
-            if (btn (➡️) and direction_flag ~= "right") controller.right()
+            if (btnp (2) and can_jump <= 2 and can_jump > 0) controller.up()
+            if (btnp (3)) controller.down()
+            if (btn (0) and direction_flag ~= "right") then
+                player.flip_x = true
+                controller.left()
+            end
+            if (btn (1) and direction_flag ~= "right") then
+                player.flip_x = false
+                controller.right()
+            end
 
-            player_states.states_x[player_state_x_flag]()
+            player.player_states.states_x[player_state_x_flag]()
             -- player_states.states_y[player_state_y_flag]()
             hit(player, 1, "height", function()
                 can_jump = 2
@@ -157,6 +145,7 @@ game_states = {
                 player_state_x_flag = "fast_back"
             end
             snow.update()
+            timer.update()
 
         end,
 
@@ -172,12 +161,20 @@ game_states = {
             map(0, 0)
 
             for v in all(object_table) do
-                spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+                if v.flip_x then
+                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
+                else
+                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+                end
             end
             Update_Trigger()
 			print(player.vecter.x)
             print(player.state)
             snow.draw()
+            chest.draw()
+            -- enemy.draw()
+            global_pinecone.draw()
+            draw_pinecone_ui()
             map_col.update_trg()
         end,
         game_over_draw = function()
