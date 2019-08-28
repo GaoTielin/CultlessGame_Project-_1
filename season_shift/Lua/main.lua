@@ -65,7 +65,7 @@ function _init()
 
     snow = init_snow()
     chest = init_chest()
-    -- enemy = init_enemy()
+    catepiller = init_catepiller()
     -- pinecones of whole level
     global_pinecone = init_global_pinecone()
     max_pinecone_num = 6
@@ -162,6 +162,7 @@ game_states = {
             snow.update()
             timer.update()
             tail.update()
+            catepiller.update()
         end,
 
         game_over_update = function()
@@ -187,7 +188,7 @@ game_states = {
             print(player.state)
             snow.draw()
             chest.draw()
-            -- enemy.draw()
+            catepiller.draw()
             global_pinecone.draw()
             draw_pinecone_ui()
             map_col.update_trg()
