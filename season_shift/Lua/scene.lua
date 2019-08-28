@@ -25,7 +25,7 @@ function init_snow(speed, num, hit_spr_flag)
     local function update()
         for s in all(snows) do
             if not s.landed then
-                s.y +  = s.speed
+                s.y += s.speed
             end
             if is_land(s) and not s.landed then
                 -- s.y = 100

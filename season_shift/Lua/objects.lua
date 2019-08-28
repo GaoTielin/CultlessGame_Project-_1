@@ -11,22 +11,18 @@ end
 function init_catepiller ()
     local e = init_spr("catepiller", 22, 60, 48, 1, 1, true, 0, 0)
     local max_range = 16
-    local flip_x = false
+    e.flip_x = false
     e.update = function ()
-        if not flip_x and e.pos_x > 60 + max_range then
-            flip_x = true
+        if not e.flip_x and e.pos_x > 60 + max_range then
+            e.flip_x = true
         end
-        if flip_x and e.pos_x < 60 - max_range then
-            flip_x = false
+        if e.flip_x and e.pos_x < 60 - max_range then
+            e.flip_x = false
         end
-        if flip_x then
-            e.pos_x -= 0.5
-        else
-            e.pos_x += 0.5
-        end
+        e.pos_x = e.pos_x + (e.flip_x and -0.5 or 0.5)
     end
     e.draw = function ()
-        spr(e.sp, e.pos_x, e.pos_y, 1, 1, flip_x)
+        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
     end
     return e
 end
