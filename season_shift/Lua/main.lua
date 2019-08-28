@@ -21,6 +21,7 @@ controller = {
 		if player.state ~= "run" and player.state ~= "jump" then
 			player.state = "run"
 			change_animation(player, "run")
+            change_animation(tail, "run")
 		end
     end,
     right = function()
@@ -31,6 +32,7 @@ controller = {
 		if player.state ~= "run" and player.state ~= "jump" then
 			player.state = "run"
 			change_animation(player, "run")
+            change_animation(tail, "run")
 		end
     end,
 }
@@ -53,6 +55,7 @@ function _init()
     player_max_v = 2
 
     player = init_player()
+    tail = init_tail()
 
     map_col = map_hit(player)
 
@@ -103,9 +106,11 @@ game_states = {
 					if player.vecter.x == 0 then
 						player.state = "nomal"
 						change_animation(player, "nomal")
+                        change_animation(tail, "nomal")
 					else
 						player.state = "run"
 						change_animation(player, "run")
+                        change_animation(tail, "run")
 					end
 				end
             end)
@@ -146,7 +151,7 @@ game_states = {
             end
             snow.update()
             timer.update()
-
+            tail.update()
         end,
 
         game_over_update = function()

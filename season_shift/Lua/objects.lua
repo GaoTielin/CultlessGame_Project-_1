@@ -48,7 +48,6 @@ end
 function init_player()
     local player = init_spr("player", 192, 50, 30, 2, 2, true)
 	player.state = "nomal"
-    player.flip_x = false
     player.player_states = {
         states_x = {
             nomal = function()
@@ -79,7 +78,7 @@ function init_player()
     }
 
     init_animation(player, 192, 194, 10, "nomal", true)
-    init_animation(player, 192, 200, 10, "run", true)
+    init_animation(player, 232, 238, 10, "run", true)
     init_animation(player, 224, 236, 10, "jump", true)
     return player
 end
@@ -88,5 +87,13 @@ function init_tail()
     if not player then
         return
     end
-    local tail = init_spr("tail", )
+    local tail = init_spr("tail", 224, player.pos_x - 16, player.pos_y, 2, 2, false, 0, 0)
+    tail.update = function()
+        tail.flip_x = player.flip_x
+        tail.pos_x = player.pos_x + (tail.flip_x and 16 or -16)
+        tail.pos_y = player.pos_y
+    end
+    init_animation(tail, 137, 139, 10, "nomal", true)
+    init_animation(tail, 224, 230, 10, "run", true)
+    return tail
 end
