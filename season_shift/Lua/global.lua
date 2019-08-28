@@ -235,6 +235,9 @@ function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
     local h = sprit.height * 8 - 1
     local next_last_x = next_x + w
     local next_last_y = next_y + h
+    -- if hit_spr_flag == 1 then
+    --     next_y = next_y - 8
+    -- end
 
     local function h_func()
         for i = sprit.pos_x, sprit.pos_x + w, w do

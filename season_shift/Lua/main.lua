@@ -8,6 +8,7 @@ controller = {
 		if player.state ~= "jump" then
 			player.state = "jump"
 			change_animation(player, "jump")
+            change_animation(tail, "jump")
 		end
     end,
     down = function()

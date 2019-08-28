@@ -46,7 +46,7 @@ function draw_pinecone_ui()
 end
 
 function init_player()
-    local player = init_spr("player", 192, 50, 30, 2, 2, true)
+    local player = init_spr("player", 192, 50, 30, 1, 1, true)
 	player.state = "nomal"
     player.player_states = {
         states_x = {
@@ -78,8 +78,8 @@ function init_player()
     }
 
     init_animation(player, 192, 194, 10, "nomal", true)
-    init_animation(player, 232, 238, 10, "run", true)
-    init_animation(player, 224, 236, 10, "jump", true)
+    init_animation(player, 215, 218, 10, "run", true)
+    init_animation(player, 199, 202, 10, "jump", true)
     return player
 end
 
@@ -87,13 +87,14 @@ function init_tail()
     if not player then
         return
     end
-    local tail = init_spr("tail", 224, player.pos_x - 16, player.pos_y, 2, 2, false, 0, 0)
+    local tail = init_spr("tail", 224, player.pos_x - 8, player.pos_y, 1, 1, false, 0, 0)
     tail.update = function()
         tail.flip_x = player.flip_x
-        tail.pos_x = player.pos_x + (tail.flip_x and 16 or -16)
+        tail.pos_x = player.pos_x + (tail.flip_x and 8 or -8)
         tail.pos_y = player.pos_y
     end
     init_animation(tail, 137, 139, 10, "nomal", true)
-    init_animation(tail, 224, 230, 10, "run", true)
+    init_animation(tail, 211, 214, 10, "run", true)
+    init_animation(tail, 195, 198, 10, "jump", true)
     return tail
 end
