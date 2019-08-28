@@ -8,10 +8,25 @@ function init_chest ()
     return c
 end
 
-function init_enemy ()
-    local e = init_spr("enemy", 221, 60, 40, 1, 1, false, 0, 0)
+function init_catepiller ()
+    local e = init_spr("catepiller", 22, 60, 48, 1, 1, true, 0, 0)
+    local max_range = 16
+    local flip_x = false
+    e.update = function ()
+        if not flip_x and e.pos_x > 60 + max_range then
+            flip_x = true
+        end
+        if flip_x and e.pos_x < 60 - max_range then
+            flip_x = false
+        end
+        if flip_x then
+            e.pos_x -= 0.5
+        else
+            e.pos_x += 0.5
+        end
+    end
     e.draw = function ()
-        spr(enemy.sp, enemy.pos_x, enemy.pos_y)
+        spr(e.sp, e.pos_x, e.pos_y, 1, 1, flip_x)
     end
     return e
 end
