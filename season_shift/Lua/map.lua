@@ -1,4 +1,8 @@
 -->map-3
+function get_map_flage(m_x, m_y)
+  return fget(mget(m_x/8,m_y/8))
+end
+
 function map_hit(obj)
     local map_hit_trg = {
         hit_3 = function(x, y)

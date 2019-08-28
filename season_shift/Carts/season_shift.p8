@@ -4,207 +4,196 @@ __lua__
 -->main-0
 --------------ÊüÖæÔ∏èßÂ‚òâ∂Â‚ñ•®----------------
 controller = {
-    up = function()
-        player.vecter.y -= 3
-        direction_flag.y = "up"
-        can_jump -= 1
-		if player.state ~= "jump" then
-			player.state = "jump"
-			change_animation(player, "jump")
-            change_animation(tail, "jump")
-		end
-    end,
-    down = function()
-        player.new_ground = 1
-    end,
-    left = function()
-        -- change_animation(player, "go")
-        player_state_x_flag = "fast_go_left"
-        if player.vecter.x <= -player_max_v then
-            player_state_x_flag = "fast_go_stay"
-        end
-		if player.state ~= "run" and player.state ~= "jump" then
-			player.state = "run"
-			change_animation(player, "run")
-            change_animation(tail, "run")
-		end
-    end,
-    right = function()
-        player_state_x_flag = "fast_go_right"
-        if player.vecter.x >= player_max_v then
-            player_state_x_flag = "fast_go_stay"
-        end
-		if player.state ~= "run" and player.state ~= "jump" then
-			player.state = "run"
-			change_animation(player, "run")
-            change_animation(tail, "run")
-		end
-    end,
+  jump = function ()
+    if player.state == "climb" then
+      player.climb_jump()
+    else
+      player.vecter.y -= 3
+      direction_flag.y = "up"
+      can_jump -= 1
+      if player.state ~= "jump" then
+        player.state = "jump"
+        change_animation(player, "jump")
+        change_animation(tail, "jump")
+      end
+    end
+  end,
+
+  up = function()
+    if player.state == "climb" then
+      local map_x = player.pos_x + (player.flip_x and -8 or (player.width*8 + 5))
+      if get_map_flage(map_x, player.pos_y) ~= 1 then
+        player.state = "jump"
+        change_animation(player, "jump")
+        player.is_physic = true
+      end
+      player.pos_y -= 2
+    end
+  end,
+  down = function()
+    player.new_ground = 1
+    if player.state == "climb" then
+      local map_y = player.pos_y + player.height + 10
+      player.pos_y += 2
+      if get_map_flage(player.pos_x, map_y) == 1 then
+        player.state = "jump"
+        change_animation(player, "jump")
+        player.is_physic = true
+      end
+    end
+  end,
+  left = function()
+    if player.state ~= "climb" then
+      player.flip_x = true
+      player_state_x_flag = "fast_go_left"
+      if player.vecter.x <= -player_max_v then
+        player_state_x_flag = "fast_go_stay"
+      end
+      if player.state ~= "run" and player.state ~= "jump" then
+        player.state = "run"
+        change_animation(player, "run")
+        change_animation(tail, "run")
+      end
+    end
+  end,
+  right = function()
+    if player.state ~= "climb" then
+      player.flip_x = false
+      player_state_x_flag = "fast_go_right"
+      if player.vecter.x >= player_max_v then
+        player_state_x_flag = "fast_go_stay"
+      end
+      if player.state ~= "run" and player.state ~= "jump" then
+        player.state = "run"
+        change_animation(player, "run")
+        change_animation(tail, "run")
+      end
+    end
+  end,
 }
 
 function _init()
-    cls()
-    direction_flag = {
-        x,
-        y,
-    } --Ê‚àßπÂ‚Ä¶‚û°Ô∏èÊ†‚ô•Á≠æ
-    game_state_flag = "play"--Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊ†‚ô•Á≠æ
-    gravity = 0.4-- È‚ô•‚ô™Â‚åÇõ
-    update_state_flag = "play"
-    draw_state_flage = "play"
-    can_jump = 2
-    player = {}
-    game_state_flag = "play"
-    player_state_x_flag = "nomal"
-    player_acceleration = 0.1
-    player_max_v = 2
+  cls()
+  direction_flag = {
+    x,
+    y,
+  } --Ê‚àßπÂ‚Ä¶‚û°Ô∏èÊ†‚ô•Á≠æ
+  game_state_flag = "play"--Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊ†‚ô•Á≠æ
+  gravity = 0.4-- È‚ô•‚ô™Â‚åÇõ
+  update_state_flag = "play"
+  draw_state_flage = "play"
+  can_jump = 2
+  player_state_x_flag = "nomal"
+  player_acceleration = 0.1
+  player_max_v = 2
 
-    player = init_player()
-    tail = init_tail()
+  player = init_player()
+  tail = init_tail()
 
-    map_col = map_hit(player)
+  map_col = map_hit(player)
 
-    -- oncllision(player, text_obj)
+  -- oncllision(player, text_obj)
 
-    snow = init_snow()
-    chest = init_chest()
-    -- enemy = init_enemy()
-    -- pinecones of whole level
-    global_pinecone = init_global_pinecone()
-    max_pinecone_num = 6
-    player_pinecone = 3
-    timer = newtimer()
-    -- register collision
-    -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
-    ontrigger_stay(player, chest, function()
-        if btnp(5) then
-            if player_pinecone ~= 0 then
-                player_pinecone -= 1
-                chest.pinecone += 1
-            end
-        end
-    end, 'chest_store')
+  snow = init_snow()
+  chest = init_chest()
+  catepiller = init_catepiller()
+  -- pinecones of whole level
+  global_pinecone = init_global_pinecone()
+  max_pinecone_num = 6
+  player_pinecone = 3
+  timer = newtimer()
+  -- register collision
+  -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
+  ontrigger_stay(player, chest, function()
+    if btnp(5) then
+      if player_pinecone ~= 0 then
+        player_pinecone -= 1
+        chest.pinecone += 1
+      end
+    end
+  end, 'chest_store')
 end
 
 ------------Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊú∫-----------------
 game_states = {
-    ----------updateÁ‚åÇ∂Ê‚ñà‚ñíÊú∫--------------
-    update_states = {
-        play_update = function()
-			player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-            if (btnp (2) and can_jump <= 2 and can_jump > 0) controller.up()
-            if (btnp (3)) controller.down() then
-                controller.down()
-            end
-            if (btn (0) and direction_flag ~= "right") then
-                player.flip_x = true
-                controller.left()
-            end
-            if (btn (1) and direction_flag ~= "right") then
-                player.flip_x = false
-                controller.right()
-            end
+----------updateÁ‚åÇ∂Ê‚ñà‚ñíÊú∫--------------
+update_states = {
+  play_update = function()
+    player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
+    if (btnp (5) and can_jump <= 2 and can_jump > 0) controller.jump()
+    if (btn (2)) controller.up()
+    if (btn (3)) controller.down()
+    if (btn (0) and direction_flag ~= "right") controller.left()
+    if (btn (1) and direction_flag ~= "right") controller.right()
 
-            player.player_states.states_x[player_state_x_flag]()
-            -- player_states.states_y[player_state_y_flag]()
-            hit(player, 1, "height", function()
-                can_jump = 2
-				if player.state ~= "nomal" then
-					if player.vecter.x == 0 then
-						player.state = "nomal"
-						change_animation(player, "nomal")
-                        change_animation(tail, "nomal")
-					else
-						player.state = "run"
-						change_animation(player, "run")
-                        change_animation(tail, "run")
-					end
-				end
-            end)
-            for v in all(object_table) do
-				if v.name ~= "player" then
-	                v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
-	                hit(v, 1, "height", function()
-	                    v.vecter.y = 0
-	                end)
-	                hit(v, 1, "width", function()
-	                    v.vecter.x = 0
-	                end)
-	                v.pos_x = v.pos_x + v.vecter.x
-	                v.pos_y = v.pos_y + v.vecter.y
-				end
-            end
+    player.player_states.states_x[player_state_x_flag]()
+    -- player_states.states_y[player_state_y_flag]()
+    player.hit()
 
+    for v in all(object_table) do
+      if v.name ~= "player" then
+        v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+        hit(v, 1, "height", function()
+          v.vecter.y = 0
+        end)
+        hit(v, 1, "width", function()
+          v.vecter.x = 0
+        end)
+        v.pos_x = v.pos_x + v.vecter.x
+        v.pos_y = v.pos_y + v.vecter.y
+      end
+    end
 
-			hit(player, 1, "height", function()
-                player.new_ground = 2
-				player.vecter.y = 0
-			end, function()
-				if player.state ~= "jump" then
-					can_jump = 1
-				end
-			end)
-			hit(player, 1, "width", function()
-				player.vecter.x = 0
-			end)
-            hit(player, player.new_ground, "height", function()
-				player.vecter.y = 0
-			end, function()
-				if player.state ~= "jump" then
-					can_jump = 1
-				end
-			end)
-			hit(player, player.new_ground, "width", function()
-				player.vecter.x = 0
-			end)
-			update_cllision()
-			player.pos_x = player.pos_x + player.vecter.x
-			player.pos_y = player.pos_y + player.vecter.y
+      update_cllision()
+      player.pos_x = player.pos_x + player.vecter.x
+      player.pos_y = player.pos_y + player.vecter.y
 
-            update_animation()
-            if abs(player.vecter.x) < player_acceleration then
-                player_state_x_flag = "nomal"
-            else
-                player_state_x_flag = "fast_back"
-            end
-            snow.update()
-            timer.update()
-            tail.update()
-        end,
+      update_animation()
+      if abs(player.vecter.x) < player_acceleration then
+        player_state_x_flag = "nomal"
+      else
+        player_state_x_flag = "fast_back"
+      end
+      snow.update()
+      timer.update()
+      tail.update()
+      catepiller.update()
+    end,
 
-        game_over_update = function()
+    game_over_update = function()
 
-        end,
-    },
-    ---------------------------------
+    end,
+  },
+  ---------------------------------
 
-    -----------drawÁ‚åÇ∂Ê‚ñà‚ñíÊú∫-------------
-    draw_states = {
-        play_draw = function()
-            map(0, 0)
+  -----------drawÁ‚åÇ∂Ê‚ñà‚ñíÊú∫-------------
+  draw_states = {
+    play_draw = function()
+      map(0, 0)
 
-            for v in all(object_table) do
-                if v.flip_x then
-                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
-                else
-                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
-                end
-            end
-            update_trigger()
-			print(player.vecter.x)
-            print(player.state)
-            snow.draw()
-            chest.draw()
-            -- enemy.draw()
-            global_pinecone.draw()
-            draw_pinecone_ui()
-            map_col.update_trg()
-        end,
-        game_over_draw = function()
-            -- map(16, 0)
-        end,
-    },
-    -------------------------------
+      for v in all(object_table) do
+        if v.flip_x then
+          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
+        else
+          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+        end
+      end
+      update_trigger()
+      print(can_jump)
+      print(player.state)
+      print(player.is_physic)
+      snow.draw()
+      chest.draw()
+      catepiller.draw()
+      global_pinecone.draw()
+      draw_pinecone_ui()
+      map_col.update_trg()
+    end,
+    game_over_draw = function()
+      -- map(16, 0)
+    end,
+  },
+  -------------------------------
 }
 -----------------------------------
 
@@ -446,9 +435,9 @@ function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
     local h = sprit.height * 8 - 1
     local next_last_x = next_x + w
     local next_last_y = next_y + h
-    if hit_spr_flag == 1 then
-        next_y = next_y - 8
-    end
+    -- if hit_spr_flag == 1 then
+    --     next_y = next_y - 8
+    -- end
 
     local function h_func()
         for i = sprit.pos_x, sprit.pos_x + w, w do
@@ -584,208 +573,275 @@ end
 -->8
 -->scene-2
 function init_snow(speed, num, hit_spr_flag)
-  if not speed then speed = 1 end
-  if not hit_spr_flag then hit_spr_flag = 1 end
-  if not num then num = 128 end
-  local snows = {}
-  for i=1, num do
-      local s = {
-          n = i,
-          landed=false,
-          x=rnd(128),
-          y=rnd(128),
-          speed=rnd(2)+speed
-      }
-      add(snows, s)
-  end
-  local timer = newtimer()
-
-  local function is_land(sp)
-    if fget(mget(sp.x/8, (sp.y+speed)/8)) == hit_spr_flag then
-      sp.y = flr((sp.y+speed)/8)*8 - 1
-      return true
+    if not speed then speed = 1 end
+    if not hit_spr_flag then hit_spr_flag = 1 end
+    if not num then num = 128 end
+    local snows = {}
+    for i = 1, num do
+        local s = {
+            n = i,
+            x = rnd(128),
+            y = rnd(128),
+            speed = rnd(2) + speed
+        }
+        add(snows, s)
     end
-  end
+    local timer = newtimer()
 
-  local function update()
-    for s in all(snows) do
-        if not s.landed then
-            s.y += s.speed
-        end
-        if is_land(s) and not s.landed then
-            -- s.y = 100
-            s.landed = true
-            timer.add_timeout('snow_melt'..s.n, 1, function()
-                s.landed = false
-                s.y = 0
-                s.x = rnd(128)
-            end)
+    local function is_land(sp)
+        if fget(mget(sp.x / 8, (sp.y + speed) / 8)) == hit_spr_flag then
+            sp.y = flr((sp.y + speed) / 8) * 8 - 1
+            return true
         end
     end
-    timer.update()
-  end
 
-  local function draw()
-    for s in all(snows) do
-        pset(s.x, s.y, 6)
+    local function update()
+        for s in all(snows) do
+            if not s.landed then
+                s.y += s.speed
+            end
+            if is_land(s) and not s.landed then
+                -- s.y = 100
+                s.landed = true
+                timer.add_timeout('snow_melt'..s.n, 1, function()
+                    s.landed = false
+                    s.y = 0
+                    s.x = rnd(128)
+                end)
+            end
+        end
+        timer.update()
     end
-  end
 
-  return {
-    update = update,
-    draw = draw,
-  }
+    local function draw()
+        for s in all(snows) do
+            pset(s.x, s.y, 6)
+        end
+    end
+
+    return {
+        update = update,
+        draw = draw,
+    }
 end
 
 -->8
 -->map-3
-function map_hit(obj)
-	local map_hit_trg = {
-		hit_3 = function(x, y)
-			mset(x, y, 0)
-		end,
-		hit_5 = function(x, y)
-
-		end
-	}
-	local map_hit_cls = {
-		hit_2 = function(x, y)
-
-		end,
-		hit_4 = function(x, y)
-
-		end
-	}
-
-	local function update_cls()
-		local cllision_flage
-
-		if map_hit_cls["hit_" .. cllision_flage] then	map_hit_cls["hit_" .. cllision_flage]() end
-	end
-	local trigger_flage
-
-	local function update_trg()
-		local x1 = obj.pos_x
-		local w1 = obj.width*8
-		local y1 = obj.pos_y
-		local h1 = obj.height*8
-		for i = x1, (x1 + w1 - 1), (w1-1) do
-			for j = y1, (y1 + h1 -1), (h1-1) do
-				local m_x, m_y = i/8, j/8
-				trigger_flage = fget(mget(m_x, m_y))
-				if trigger_flage ~= 0 and trigger_flage ~= nil then
-					if map_hit_trg["hit_" .. trigger_flage] then
-						map_hit_trg["hit_" .. trigger_flage](m_x, m_y) end
-					return
-				end
-			end
-		end
-	end
-	return{
-		update_trg = update_trg,
-		update_cls = update_cls,
-	}
+function get_map_flage(m_x, m_y)
+  return fget(mget(m_x/8,m_y/8))
 end
+
+function map_hit(obj)
+    local map_hit_trg = {
+        hit_3 = function(x, y)
+            mset(x, y, 0)
+        end,
+        hit_5 = function(x, y)
+
+        end
+    }
+    local map_hit_cls = {
+        hit_2 = function(x, y)
+
+        end,
+        hit_4 = function(x, y)
+
+        end
+    }
+
+    local function update_cls()
+        local cllision_flage
+
+        if map_hit_cls["hit_" .. cllision_flage] then map_hit_cls["hit_" .. cllision_flage]() end
+    end
+    local trigger_flage
+
+    local function update_trg()
+        local x1 = obj.pos_x
+        local w1 = obj.width * 8
+        local y1 = obj.pos_y
+        local h1 = obj.height * 8
+        for i = x1, (x1 + w1 - 1), (w1 - 1) do
+            for j = y1, (y1 + h1 - 1), (h1 - 1) do
+                local m_x, m_y = i / 8, j / 8
+                trigger_flage = fget(mget(m_x, m_y))
+                if trigger_flage ~= 0 and trigger_flage ~= nil then
+                    if map_hit_trg["hit_" .. trigger_flage] then
+                        map_hit_trg["hit_" .. trigger_flage](m_x, m_y) end
+                        return
+                    end
+                end
+            end
+        end
+        return{
+            update_trg = update_trg,
+            update_cls = update_cls,
+        }
+    end
+
 -->8
 -- objects
 function init_chest ()
-    local c = init_spr("chest", 4, 10, 50, 1, 1, false, 0, 0)
-    c.pinecone = 0
-    c.draw = function ()
-        print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
-    end
-    return c
+  local c = init_spr("chest", 4, 10, 50, 1, 1, false, 0, 0)
+  c.pinecone = 0
+  c.draw = function ()
+    print(c.pinecone..'/'..10, c.pos_x - 4, c.pos_y - 4)
+  end
+  return c
 end
 
-function init_enemy ()
-    local e = init_spr("enemy", 221, 60, 40, 1, 1, false, 0, 0)
-    e.draw = function ()
-        spr(enemy.sp, enemy.pos_x, enemy.pos_y)
+function init_catepiller ()
+  local e = init_spr("catepiller", 22, 60, 48, 1, 1, true, 0, 0)
+  local max_range = 16
+  e.flip_x = false
+  e.update = function ()
+    if not e.flip_x and e.pos_x > 60 + max_range then
+      e.flip_x = true
     end
-    return e
+    if e.flip_x and e.pos_x < 60 - max_range then
+      e.flip_x = false
+    end
+    e.pos_x = e.pos_x + (e.flip_x and - 0.5 or 0.5)
+  end
+  e.draw = function ()
+    spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
+  end
+  return e
 end
 
 function init_global_pinecone ()
-    local g = {
-        pinecone_list = {}
-    }
-    g.draw = function ()
-        for p in all(g.pinecone_list) do
-            if p.is_dropped then
-                -- hack way to let pinecone flcik
-                if time() % 0.5 < 0.25 then
-                    spr(p.sp, p.pos_x, p.pos_y)
-                end
-            else
-                spr(p.sp, p.pos_x, p.pos_y)
-            end
+  local g = {
+    pinecone_list = {}
+  }
+  g.draw = function ()
+    for p in all(g.pinecone_list) do
+      if p.is_dropped then
+        -- hack way to let pinecone flcik
+        if time() % 0.5 < 0.25 then
+          spr(p.sp, p.pos_x, p.pos_y)
         end
+      else
+        spr(p.sp, p.pos_x, p.pos_y)
+      end
     end
-    return g
+  end
+  return g
 end
 
 function draw_pinecone_ui()
-    for i=1, max_pinecone_num do
-        if i <= player_pinecone then
-            spr(4, 80+6*i, 3)
-        else
-            spr(3, 80+6*i, 3)
-        end
+  for i = 1, max_pinecone_num do
+    if i <= player_pinecone then
+      spr(4, 80 + 6 * i, 3)
+    else
+      spr(3, 80 + 6 * i, 3)
     end
+  end
 end
 
 function init_player()
-    local player = init_spr("player", 192, 50, 30, 1, 1, true)
-	player.state = "nomal"
-    player.player_states = {
-        states_x = {
-            nomal = function()
-                player.vecter.x = 0
-            end,
-            fast_go_left = function()
-                player.vecter.x -= player_acceleration
-            end,
-            fast_back = function()
-                if abs(player.vecter.x) < player_acceleration then
-                    player_state_x_flag = "nomal"
-                else
-                    if (player.vecter.x > 0) then
-                        player.vecter.x -= player_acceleration
-                    elseif (player.vecter.x < 0) then
-                        player.vecter.x += player_acceleration
-                    end
-                end
-            end,
-            fast_go_right = function()
-                player.vecter.x += player_acceleration
-            end,
-            fast_go_stay = function()
-                player.vecter.x = player.vecter.x > 0 and player_max_v or (-1 * player_max_v)
-            end
-        },
-        states_y = {},
-    }
+  local player = init_spr("player", 192, 100, 10, 1, 1, true)
+  player.state = "nomal"
+  player.ground = 1
+  player.new_ground = 2
+  player.player_states = {
+    states_x = {
+      nomal = function()
+        player.vecter.x = 0
+      end,
+      fast_go_left = function()
+        player.vecter.x -= player_acceleration
+      end,
+      fast_back = function()
+        if abs(player.vecter.x) < player_acceleration then
+          player_state_x_flag = "nomal"
+        else
+          if (player.vecter.x > 0) then
+            player.vecter.x -= player_acceleration
+          elseif (player.vecter.x < 0) then
+            player.vecter.x += player_acceleration
+          end
+        end
+      end,
+      fast_go_right = function()
+        player.vecter.x += player_acceleration
+      end,
+      fast_go_stay = function()
+        player.vecter.x = player.vecter.x > 0 and player_max_v or (-1 * player_max_v)
+      end
+    },
+    states_y = {},
+  }
 
-    init_animation(player, 192, 194, 10, "nomal", true)
-    init_animation(player, 215, 218, 10, "run", true)
-    init_animation(player, 199, 202, 10, "jump", true)
-    return player
+  player.hit = function()
+    hit(player, 1, "height", function()
+      can_jump = 2
+      if player.state ~= "nomal" then
+        if player.vecter.x == 0 then
+          player.state = "nomal"
+          change_animation(player, "nomal")
+          change_animation(tail, "nomal")
+        else
+          player.state = "run"
+          change_animation(player, "run")
+          change_animation(tail, "run")
+        end
+      end
+      player.new_ground = 2
+      player.vecter.y = 0
+    end, function()
+      if player.state ~= "jump" then
+        can_jump = 1
+      end
+    end)
+    hit(player, 1, "width", function()
+      player.vecter.x = 0
+      local map_y = player.pos_y + player.height + player.height*8+5
+      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
+        player.state = "climb"
+        player.is_physic = false
+        player.vecter.y = 0
+      end
+    end)
+    hit(player, player.new_ground, "height", function()
+      can_jump = 2
+      player.vecter.y = 0
+    end)
+    hit(player, player.new_ground, "width", function()
+      player.vecter.x = 0
+    end)
+  end
+  player.climb_jump = function()
+    player.state = "jump"
+    change_animation(player, "jump")
+
+    player.flip_x = not player.flip_x
+    player.vecter.x = player.vecter.x + (player.flip_x and -2 or 2)
+    player.vecter.y = -3
+    player.is_physic = true
+  end
+
+  -- player.
+
+  init_animation(player, 192, 194, 10, "nomal", true)
+  init_animation(player, 215, 218, 10, "run", true)
+  init_animation(player, 199, 202, 10, "jump", true)
+  return player
 end
 
 function init_tail()
-    if not player then
-        return
-    end
-    local tail = init_spr("tail", 224, player.pos_x - 8, player.pos_y, 1, 1, false, 0, 0)
-    tail.update = function()
-        tail.flip_x = player.flip_x
-        tail.pos_x = player.pos_x + (tail.flip_x and 8 or -8)
-        tail.pos_y = player.pos_y
-    end
-    init_animation(tail, 137, 139, 10, "nomal", true)
-    init_animation(tail, 211, 214, 10, "run", true)
-    init_animation(tail, 195, 198, 10, "jump", true)
-    return tail
+  if not player then
+    return
+  end
+  local tail = init_spr("tail", 224, player.pos_x - 8, player.pos_y, 1, 1, false, 0, 0)
+  tail.update = function()
+    tail.flip_x = player.flip_x
+    tail.pos_x = player.pos_x + (tail.flip_x and 8 or - 8)
+    tail.pos_y = player.pos_y
+  end
+  init_animation(tail, 137, 139, 10, "nomal", true)
+  init_animation(tail, 211, 214, 10, "run", true)
+  init_animation(tail, 195, 198, 10, "jump", true)
+  return tail
 end
 
 __gfx__
@@ -908,9 +964,9 @@ __map__
 3131525354553257023102310202313131313131313131313131313102313102313131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 3261626364656667033102310302313131313131313131313132313102313103313131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 7071727374757677313102313103313131313131313131313131313102313131313131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-8081828384858687313102313112121231313131313131313131313102311212123131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-9091929394959697313103313131313131313131313131313131313103313131313131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-31a1a2a3a4a5a631313131313115130431313131310431220431313131313131313131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0422b2b3b4b5b631141531311111111111111111111111111111060706070607060706070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+8081828384858687313102310112121231313131313131313131313102311212123131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+9091929394959697313103312131313131313131313131313131313103313131313131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+31a1a2a3a4a5a631313131312115130431313131310431220431313131313131313131310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0422b2b3b4b5b631141531312111111111111111111111111111060706070607060706070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 1111111111111111111122142121212121212121212121212121161716171617161716170000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 2121212121212121212111112121212121212121212121212121212121212121212121210000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
