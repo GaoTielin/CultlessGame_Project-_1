@@ -62,6 +62,8 @@ function init_player()
   player.state = "nomal"
   player.ground = 1
   player.new_ground = 2
+  player.max_jump = 1
+  player.can_jump = 1
   player.player_states = {
     states_x = {
       nomal = function()
@@ -96,7 +98,7 @@ function init_player()
       player.vecter.x = 0
     end)
     hit(player, 1, "height", function()
-      can_jump = 2
+      player.can_jump = player.max_jump
       if player.state ~= "nomal" then
         if player.vecter.x == 0 then
           player.state = "nomal"
@@ -110,16 +112,13 @@ function init_player()
       end
       player.new_ground = 2
       player.vecter.y = 0
-    end, function()
-      if player.state ~= "jump" then
-        can_jump = 1
-      end
     end)
     hit(player, 1, "width", function()
       player.vecter.x = 0
       local map_y = player.pos_y + player.height + player.height*8+5
       if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
         player.state = "climb"
+        player.can_jump = 1
         change_animation(player, "climb")
         change_animation(tail, "climb")
         player.is_physic = false
@@ -127,7 +126,7 @@ function init_player()
       end
     end)
     hit(player, player.new_ground, "height", function()
-      can_jump = 2
+      player.can_jump = player.max_jump
       player.vecter.y = 0
     end)
     hit(player, player.new_ground, "width", function()
