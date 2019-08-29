@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
---------------�🅾️��☉��▥�----------------
+--------------�🅾️��☉��▥�----------------
 map_location ={
     x = 0,
     y = 0,
@@ -81,9 +81,9 @@ function _init()
   direction_flag = {
     x,
     y,
-  } --�∧��…➡️��♥签
-  game_state_flag = "play"--游�☉◆�⌂��█▒��♥签
-  gravity = 0.4-- �♥♪�⌂�
+  } --�∧��…➡️�♥签
+  game_state_flag = "play"--游�☉◆�⌂��█▒�♥签
+  gravity = 0.4-- �♥♪�⌂�
   update_state_flag = "play"
   draw_state_flage = "play"
   can_jump = 2
@@ -92,7 +92,7 @@ function _init()
   player_max_v = 2
 
   player = init_player()
-  -- mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
+  mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   tail = init_tail()
 
   -- map_col = map_hit(player)
@@ -119,9 +119,9 @@ function _init()
   end, 'chest_store')
 end
 
-------------游�☉◆�⌂��█▒机-----------------
+------------游�☉◆�⌂��█▒机-----------------
 game_states = {
-----------update�⌂��█▒机--------------
+----------update�⌂��█▒机--------------
 update_states = {
   play_update = function()
     player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
@@ -159,7 +159,7 @@ update_states = {
       else
         player_state_x_flag = "fast_back"
       end
-      -- mogu_hit()
+
       snow.update()
       timer.update()
       tail.update()
@@ -172,7 +172,7 @@ update_states = {
   },
   ---------------------------------
 
-  -----------draw�⌂��█▒机-------------
+  -----------draw�⌂��█▒机-------------
   draw_states = {
     play_draw = function()
       map(map_location.x, map_location.y)
@@ -187,12 +187,13 @@ update_states = {
       update_trigger()
       print(can_jump)
       print(player.state)
-      print(player.is_physic)
+      print(enter)
       snow.draw()
       chest.draw()
       catepiller.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
+      mogu_hit()
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
@@ -715,17 +716,17 @@ function map_trigger(obj, flag, direction)
         y2 = y + h
     end
 
-    x1 /= 8
-    y1 /= 8
-    x2 /= 8
-    y2 /= 8
-    if fget(mget(x1, y1), flag) or fget(mget(x2, y2), flag)
-        or fget(mget(x1, y2), flag) or fget(mget(x2, y1), flag) then
+
+    -- printh("x1 = " .. x1 .. ",y2 = " .. y2 .." flag = " .. get_map_flage(x1, y2), "logging_name")
+    -- printh("x2 = " .. x2 .. ",y2 = " .. y2 .." flag = " .. get_map_flage(x2, y2), "logging_name")
+    if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
+        or get_map_flage(x1, y2) == flag or get_map_flage(x2, y1) == flag then
             return true
     end
     return false
 end
 
+enter = false
 function map_trigger_enter(obj, map_flag, enter_func, direction)
     local entered = false
     local is_trigger = false
@@ -738,6 +739,7 @@ function map_trigger_enter(obj, map_flag, enter_func, direction)
         if entered and not is_trigger then
             entered = false
         end
+        enter = is_trigger
     end
 
     return trigger_enter
@@ -823,9 +825,9 @@ end
 function draw_pinecone_ui()
   for i = 1, max_pinecone_num do
     if i <= player_pinecone then
-      spr(206, 125 - 6 * i, 2)
+      spr(142, 125 - 6 * i, 2)
     else
-      spr(207, 125 - 6 * i, 2)
+      spr(143, 125 - 6 * i, 2)
     end
   end
 end
@@ -916,11 +918,10 @@ function init_player()
       player.vecter.y = -3
   end
 
-  -- player.
-
   init_animation(player, 128, 130, 10, "nomal", true)
   init_animation(player, 151, 154, 10, "run", true)
   init_animation(player, 135, 138, 10, "jump", true)
+  -- init_animation(player, )
   return player
 end
 
@@ -1036,7 +1037,7 @@ __map__
 48494a4b4c4d4e4f104010101010351010101010101010101010331033101010101010101010053310100533331010101010101010101010301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 58595a5b5c5d5e5f1010101010343434101010101010101010103310331010101010103434101010101005333310101010101010241010101010106d6e10101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 68696a6b6c6d6e424310103333331010331010103434341010103310331010101010103310101010100405333310101010101034343434343434107d7e10101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-78797a7b7c7d7e52531333101010101010151333331010050533331033221035102204333513101033333315133410131015333333102210333333333310101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+78797a7b7c7d7e52531304101010101010151333331010050533331033221035102204333513101033333315133410131015333333102210333333333310101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1111111111111111111111060606060611111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121161616161621212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
