@@ -133,10 +133,6 @@ function init_player()
     hit(player, player.new_ground, "width", function()
       player.vecter.x = 0
     end)
-
-    collide_map(player, 'down', 2, function()
-        player.vecter.y -= 2
-    end)
   end
   player.climb_jump = function()
     player.state = "jump"
