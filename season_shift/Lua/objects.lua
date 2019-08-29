@@ -48,13 +48,14 @@ function init_global_pinecone ()
 end
 
 function draw_pinecone_ui()
-  for i = 1, max_pinecone_num do
-    if i <= player_pinecone then
-      spr(142, 125 - 6 * i, 2)
-    else
-      spr(143, 125 - 6 * i, 2)
+    local ui_x = player.pos_x > 64 and player.pos_x + 64 or 125
+    for i = 1, max_pinecone_num do
+        if i <= player_pinecone then
+            spr(142, ui_x - 6 * i, 2)
+        else
+            spr(143, ui_x - 6 * i, 2)
+        end
     end
-  end
 end
 
 function init_player()

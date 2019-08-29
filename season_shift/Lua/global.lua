@@ -361,6 +361,30 @@ function handle_player_hit ()
     end
 end
 
+function move_camera ()
+    local map_start = 0
+    local map_end = 1024
+    local cam_x = (player.pos_x - 64) + (player.width * 8) / 2
+    if cam_x < map_start then
+        cam_x = map_start
+    end
+    if cam_x > map_end - 128 then
+        cam_x = map_end - 128
+    end
+    camera(cam_x, 0)
+end
+
+
+function load_level (cart_name)
+    -- local spritesheet
+    reload(0x0, 0x0, 0x1000, cart_name)
+	reload(0x1000, 0x1000, 0x1000, cart_name)
+    -- load map
+	reload(0x2000, 0x2000, 0x1000, cart_name)
+    -- load flag
+	reload(0x3000, 0x3000, 0x0100, cart_name)
+end
+
 function _update()
     update_state_flag = game_state_flag .. "_update"
     game_states.update_states[update_state_flag]()
