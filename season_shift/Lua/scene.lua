@@ -13,7 +13,6 @@ function init_snow(speed, num, hit_spr_flag)
         }
         add(snows, s)
     end
-    local timer = newtimer()
 
     local function is_land(sp)
         if get_map_flage(sp.x, (sp.y + speed)) == hit_spr_flag then
@@ -37,7 +36,6 @@ function init_snow(speed, num, hit_spr_flag)
                 end)
             end
         end
-        timer.update()
     end
 
     local function draw()

@@ -96,6 +96,7 @@ end
 
 function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
     local entered = false
+    local is_trigger = false
     local function trigger_enter ()
         is_trigger = Trigger(sprit_1, sprit_2)
         if not entered and is_trigger then
@@ -117,7 +118,6 @@ function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
 end
 
 function OnTrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
-    local entered = false
     local function trigger_stay()
         if Trigger(sprit_1, sprit_2) then
             stay_func()
@@ -134,6 +134,7 @@ end
 
 function OnTrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     local entered = false
+    local is_trigger = false
     local function trigger_exit()
         is_trigger = Trigger(sprit_1, sprit_2)
         if not entered and is_trigger then
