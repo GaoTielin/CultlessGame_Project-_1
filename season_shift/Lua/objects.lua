@@ -1,19 +1,11 @@
 -- objects
 function init_chest ()
     local c = init_spr("chest", 18, 10, 48, 1, 1, true, 0, 0)
-<<<<<<< HEAD
-    c.pinecone = 0
-    c.draw = function ()
-        print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
-    end
-    return c
-=======
      c.pinecone = 0
      c.draw = function ()
          print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
      end
      return c
->>>>>>> 25bb4bf82d5d132203a7c2bb9525d891bca90855
 end
 
 function init_catepiller ()
