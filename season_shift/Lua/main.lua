@@ -184,6 +184,7 @@ update_states = {
       Update_Trigger()
       print(can_jump)
       print(player.state)
+      move_camera()
       snow.draw()
       chest.draw()
       catepiller.draw()
