@@ -57,6 +57,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
             object_table[obj_idx] = nil
         end,
         flip_x = false,
+        flip_y = false,
     }
 
     add(object_table, spr_obj)
@@ -96,6 +97,7 @@ end
 
 function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
     local entered = false
+    local is_trigger = false
     local function trigger_enter ()
         is_trigger = Trigger(sprit_1, sprit_2)
         if not entered and is_trigger then
@@ -117,7 +119,6 @@ function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
 end
 
 function OnTrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
-    local entered = false
     local function trigger_stay()
         if Trigger(sprit_1, sprit_2) then
             stay_func()
@@ -134,6 +135,7 @@ end
 
 function OnTrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     local entered = false
+    local is_trigger = false
     local function trigger_exit()
         is_trigger = Trigger(sprit_1, sprit_2)
         if not entered and is_trigger then
@@ -241,7 +243,7 @@ function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
 
     local function h_func()
         for i = sprit.pos_x, sprit.pos_x + w, w do
-            if (fget(mget(i / 8, (next_y) / 8)) == hit_spr_flag) or (fget(mget(i / 8, (next_last_y) / 8)) == hit_spr_flag) then
+            if (get_map_flage(i, (next_y)) == hit_spr_flag) or (get_map_flage(i, (next_last_y)) == hit_spr_flag) then
                 return true
             end
         end
@@ -250,8 +252,8 @@ function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
 
     local function w_func()
         for i = sprit.pos_y, sprit.pos_y + h, h do
-            if (fget(mget((next_x) / 8, i / 8)) == hit_spr_flag) or (fget(mget((next_last_x) / 8, i / 8)) == hit_spr_flag) then
-                x = fget(mget((next_x) / 8, i / 8))
+            if ((get_map_flage((next_x), i)) == hit_spr_flag) or (get_map_flage((next_last_x), i) == hit_spr_flag) then
+                -- x = fget(mget((next_x) / 8, i / 8))
                 return true
             end
         end

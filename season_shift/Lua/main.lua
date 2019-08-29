@@ -1,5 +1,9 @@
 -->main-0
 --------------控制器----------------
+map_location ={
+    x = 0,
+    y = 0,
+}
 controller = {
   jump = function ()
     if player.state == "climb" then
@@ -85,9 +89,10 @@ function _init()
   player_max_v = 2
 
   player = init_player()
+  mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   tail = init_tail()
 
-  map_col = map_hit(player)
+  -- map_col = map_hit(player)
 
   -- OnCllision(player, text_obj)
 
@@ -151,6 +156,7 @@ update_states = {
       else
         player_state_x_flag = "fast_back"
       end
+
       snow.update()
       timer.update()
       tail.update()
@@ -166,7 +172,7 @@ update_states = {
   -----------draw状态机-------------
   draw_states = {
     play_draw = function()
-      map(0, 0)
+      map(map_location.x, map_location.y)
 
       for v in all(object_table) do
         if v.flip_x then
@@ -178,13 +184,14 @@ update_states = {
       Update_Trigger()
       print(can_jump)
       print(player.state)
-      print(player.is_physic)
       snow.draw()
       chest.draw()
       catepiller.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
-      map_col.update_trg()
+      mogu_hit()
+      -- map_col.update_trg()
+      -- camera(player.pos_x-64, 0)
     end,
     game_over_draw = function()
       -- map(16, 0)

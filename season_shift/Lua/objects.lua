@@ -1,15 +1,24 @@
 -- objects
 function init_chest ()
     local c = init_spr("chest", 18, 10, 48, 1, 1, true, 0, 0)
+<<<<<<< HEAD
     c.pinecone = 0
     c.draw = function ()
         print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
     end
     return c
+=======
+     c.pinecone = 0
+     c.draw = function ()
+         print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
+     end
+     return c
+>>>>>>> 25bb4bf82d5d132203a7c2bb9525d891bca90855
 end
 
 function init_catepiller ()
-  local e = init_spr("catepiller", 22, 60, 48, 1, 1, true, 0, 0)
+  local e = init_spr("catepiller", 203, 60, 48, 1, 1, true, 0, 0)
+  init_animation(e, 203, 204, 10, "move", true)
   local max_range = 16
   e.flip_x = false
   e.update = function ()
@@ -49,15 +58,15 @@ end
 function draw_pinecone_ui()
   for i = 1, max_pinecone_num do
     if i <= player_pinecone then
-      spr(4, 80 + 6 * i, 3)
+      spr(142, 125 - 6 * i, 2)
     else
-      spr(3, 80 + 6 * i, 3)
+      spr(143, 125 - 6 * i, 2)
     end
   end
 end
 
 function init_player()
-  local player = init_spr("player", 192, 100, 10, 1, 1, true)
+  local player = init_spr("player", 192, 30, 10, 1, 1, true)
   player.state = "nomal"
   player.ground = 1
   player.new_ground = 2
@@ -116,6 +125,8 @@ function init_player()
       local map_y = player.pos_y + player.height + player.height*8+5
       if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
         player.state = "climb"
+        change_animation(player, "climb")
+        change_animation(tail, "climb")
         player.is_physic = false
         player.vecter.y = 0
       end
@@ -135,6 +146,7 @@ function init_player()
   player.climb_jump = function()
     player.state = "jump"
     change_animation(player, "jump")
+    change_animation(tail, "jump")
 
     player.flip_x = not player.flip_x
     player.vecter.x = player.vecter.x + (player.flip_x and -2 or 2)
@@ -142,11 +154,15 @@ function init_player()
     player.is_physic = true
   end
 
-  -- player.
+  player.mogu_hit = function()
+      player.vecter.y = -3
+  end
 
-  init_animation(player, 192, 194, 10, "nomal", true)
-  init_animation(player, 215, 218, 10, "run", true)
-  init_animation(player, 199, 202, 10, "jump", true)
+  init_animation(player, 128, 130, 10, "nomal", true)
+  init_animation(player, 151, 154, 10, "run", true)
+  init_animation(player, 135, 138, 10, "jump", true)
+  init_animation(player, 144, 145, 10, "climb", true)
+  -- init_animation(player, )
   return player
 end
 
@@ -160,8 +176,9 @@ function init_tail()
     tail.pos_x = player.pos_x + (tail.flip_x and 8 or - 8)
     tail.pos_y = player.pos_y
   end
-  init_animation(tail, 137, 139, 10, "nomal", true)
-  init_animation(tail, 211, 214, 10, "run", true)
-  init_animation(tail, 195, 198, 10, "jump", true)
+  init_animation(tail, 0, 0, 10, "nomal", true)
+  init_animation(tail, 147, 150, 10, "run", true)
+  init_animation(tail, 131, 134, 10, "jump", true)
+  init_animation(tail, 0, 0, 10, "climb", true)
   return tail
 end
