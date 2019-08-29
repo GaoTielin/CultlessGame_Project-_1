@@ -241,7 +241,7 @@ function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
 
     local function h_func()
         for i = sprit.pos_x, sprit.pos_x + w, w do
-            if (fget(mget(i / 8, (next_y) / 8)) == hit_spr_flag) or (fget(mget(i / 8, (next_last_y) / 8)) == hit_spr_flag) then
+            if (get_map_flage(i, (next_y)) == hit_spr_flag) or (get_map_flage(i, (next_last_y)) == hit_spr_flag) then
                 return true
             end
         end
@@ -250,8 +250,8 @@ function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
 
     local function w_func()
         for i = sprit.pos_y, sprit.pos_y + h, h do
-            if (fget(mget((next_x) / 8, i / 8)) == hit_spr_flag) or (fget(mget((next_last_x) / 8, i / 8)) == hit_spr_flag) then
-                x = fget(mget((next_x) / 8, i / 8))
+            if ((get_map_flage((next_x), i)) == hit_spr_flag) or (get_map_flage((next_last_x), i) == hit_spr_flag) then
+                -- x = fget(mget((next_x) / 8, i / 8))
                 return true
             end
         end

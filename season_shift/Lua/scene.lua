@@ -16,7 +16,7 @@ function init_snow(speed, num, hit_spr_flag)
     local timer = newtimer()
 
     local function is_land(sp)
-        if fget(mget(sp.x / 8, (sp.y + speed) / 8)) == hit_spr_flag then
+        if get_map_flage(sp.x, (sp.y + speed)) == hit_spr_flag then
             sp.y = flr((sp.y + speed) / 8) * 8 - 1
             return true
         end

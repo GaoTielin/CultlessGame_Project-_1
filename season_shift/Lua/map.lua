@@ -1,6 +1,6 @@
 -->map-3
 function get_map_flage(m_x, m_y)
-  return fget(mget(m_x/8,m_y/8))
+  return fget(mget(m_x/8+map_location.x,m_y/8+map_location.y))
 end
 
 function map_hit(obj)
@@ -36,7 +36,7 @@ function map_hit(obj)
         for i = x1, (x1 + w1 - 1), (w1 - 1) do
             for j = y1, (y1 + h1 - 1), (h1 - 1) do
                 local m_x, m_y = i / 8, j / 8
-                trigger_flage = fget(mget(m_x, m_y))
+                trigger_flage = fget(mget(m_x+map_location.x, m_y+map_location.y))
                 if trigger_flage ~= 0 and trigger_flage ~= nil then
                     if map_hit_trg["hit_" .. trigger_flage] then
                         map_hit_trg["hit_" .. trigger_flage](m_x, m_y) end

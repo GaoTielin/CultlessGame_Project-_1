@@ -1,5 +1,9 @@
 -->main-0
 --------------控制器----------------
+map_location ={
+    x = 0,
+    y = 0,
+}
 controller = {
   jump = function ()
     if player.state == "climb" then
@@ -166,7 +170,7 @@ update_states = {
   -----------draw状态机-------------
   draw_states = {
     play_draw = function()
-      map(0, 0)
+      map(map_location.x, map_location.y)
 
       for v in all(object_table) do
         if v.flip_x then
