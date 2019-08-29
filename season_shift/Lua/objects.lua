@@ -1,11 +1,11 @@
 -- objects
 function init_chest ()
-  local c = init_spr("chest", 4, 10, 50, 1, 1, false, 0, 0)
-  c.pinecone = 0
-  c.draw = function ()
-    print(c.pinecone..'/'..10, c.pos_x - 4, c.pos_y - 4)
-  end
-  return c
+    local c = init_spr("chest", 18, 10, 48, 1, 1, true, 0, 0)
+    c.pinecone = 0
+    c.draw = function ()
+        print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
+    end
+    return c
 end
 
 function init_catepiller ()
@@ -126,6 +126,10 @@ function init_player()
     end)
     hit(player, player.new_ground, "width", function()
       player.vecter.x = 0
+    end)
+
+    collide_map(player, 'down', 2, function()
+        player.vecter.y -= 2
     end)
   end
   player.climb_jump = function()
