@@ -100,6 +100,9 @@ function init_player()
   }
 
   player.hit = function()
+    hit(player, 1, "all", function()
+      player.vecter.x = 0
+    end)
     hit(player, 1, "height", function()
       can_jump = 2
       if player.state ~= "nomal" then

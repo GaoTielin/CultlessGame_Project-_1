@@ -866,6 +866,17 @@ function init_player()
   }
 
   player.hit = function()
+    hit(player, 1, "all", function()
+      player.vecter.x = 0
+      -- local map_y = player.pos_y + player.height + player.height*8+5
+      -- if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
+      --   player.state = "climb"
+      --   change_animation(player, "climb")
+      --   change_animation(tail, "climb")
+      --   player.is_physic = false
+      --   player.vecter.y = 0
+      -- end
+    end)
     hit(player, 1, "height", function()
       can_jump = 2
       if player.state ~= "nomal" then
