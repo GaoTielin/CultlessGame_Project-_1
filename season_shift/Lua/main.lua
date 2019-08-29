@@ -22,10 +22,10 @@ controller = {
 
   up = function()
     if player.state == "climb" then
-      local map_x = player.pos_x + (player.flip_x and -8 or (player.width*8 + 5))
+      local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
       if get_map_flage(map_x, player.pos_y) ~= 1 then
-        player.state = "jump"
-        change_animation(player, "jump")
+        player.state = "nomal"
+        change_animation(player, "nomal")
         player.is_physic = true
       end
       player.pos_y -= 2
