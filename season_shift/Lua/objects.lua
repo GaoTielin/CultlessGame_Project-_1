@@ -117,6 +117,8 @@ function init_player()
       local map_y = player.pos_y + player.height + player.height*8+5
       if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
         player.state = "climb"
+        change_animation(player, "climb")
+        change_animation(tail, "climb")
         player.is_physic = false
         player.vecter.y = 0
       end
@@ -132,6 +134,7 @@ function init_player()
   player.climb_jump = function()
     player.state = "jump"
     change_animation(player, "jump")
+    change_animation(tail, "jump")
 
     player.flip_x = not player.flip_x
     player.vecter.x = player.vecter.x + (player.flip_x and -2 or 2)
@@ -146,6 +149,7 @@ function init_player()
   init_animation(player, 128, 130, 10, "nomal", true)
   init_animation(player, 151, 154, 10, "run", true)
   init_animation(player, 135, 138, 10, "jump", true)
+  init_animation(player, 144, 145, 10, "climb", true)
   -- init_animation(player, )
   return player
 end
@@ -163,5 +167,6 @@ function init_tail()
   init_animation(tail, 0, 0, 10, "nomal", true)
   init_animation(tail, 147, 150, 10, "run", true)
   init_animation(tail, 131, 134, 10, "jump", true)
+  init_animation(tail, 0, 0, 10, "climb", true)
   return tail
 end

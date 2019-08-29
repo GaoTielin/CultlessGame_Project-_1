@@ -57,6 +57,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
             object_table[obj_idx] = nil
         end,
         flip_x = false,
+        flip_y = false,
     }
 
     add(object_table, spr_obj)
