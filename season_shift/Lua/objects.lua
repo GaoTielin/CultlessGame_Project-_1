@@ -50,9 +50,9 @@ end
 function draw_pinecone_ui()
   for i = 1, max_pinecone_num do
     if i <= player_pinecone then
-      spr(206, 125 - 6 * i, 2)
+      spr(142, 125 - 6 * i, 2)
     else
-      spr(207, 125 - 6 * i, 2)
+      spr(143, 125 - 6 * i, 2)
     end
   end
 end
@@ -143,11 +143,10 @@ function init_player()
       player.vecter.y = -3
   end
 
-  -- player.
-
   init_animation(player, 128, 130, 10, "nomal", true)
   init_animation(player, 151, 154, 10, "run", true)
   init_animation(player, 135, 138, 10, "jump", true)
+  -- init_animation(player, )
   return player
 end
 

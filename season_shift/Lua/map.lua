@@ -79,12 +79,8 @@ function map_trigger(obj, flag, direction)
         y2 = y + h
     end
 
-    x1 /= 8
-    y1 /= 8
-    x2 /= 8
-    y2 /= 8
-    if fget(mget(x1, y1), flag) or fget(mget(x2, y2), flag)
-        or fget(mget(x1, y2), flag) or fget(mget(x2, y1), flag) then
+    if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
+        or get_map_flage(x1, y2) == flag or get_map_flage(x2, y1) == flag then
             return true
     end
     return false

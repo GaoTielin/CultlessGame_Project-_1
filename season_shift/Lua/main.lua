@@ -156,7 +156,7 @@ update_states = {
       else
         player_state_x_flag = "fast_back"
       end
-      mogu_hit()
+
       snow.update()
       timer.update()
       tail.update()
@@ -184,12 +184,12 @@ update_states = {
       Update_Trigger()
       print(can_jump)
       print(player.state)
-      print(player.is_physic)
       snow.draw()
       chest.draw()
       catepiller.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
+      mogu_hit()
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
