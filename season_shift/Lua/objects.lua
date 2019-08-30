@@ -125,7 +125,7 @@ function init_player()
     hit(player, 1, "width", function()
       -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       player.vecter.x = 0
-      local map_y = player.pos_y + player.height*8+5
+      local map_y = player.pos_y + player.height*8+7
       if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
         local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
