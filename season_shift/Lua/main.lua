@@ -104,6 +104,8 @@ function _init()
   max_pinecone_num = 6
   player_pinecone = 3
   timer = newtimer()
+
+  map_ani = init_map_animation(15, 2)
   -- register collision
   -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
@@ -121,46 +123,47 @@ game_states = {
 ----------update状态机--------------
 update_states = {
   play_update = function()
-    player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-    if (btnp (5) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
-    if (btn (2)) controller.up()
-    if (btn (3)) controller.down()
-    if (btn (0) and direction_flag ~= "right") controller.left()
-    if (btn (1) and direction_flag ~= "right") controller.right()
+        map_ani.update()
+        player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
+        if (btnp (5) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
+        if (btn (2)) controller.up()
+        if (btn (3)) controller.down()
+        if (btn (0) and direction_flag ~= "right") controller.left()
+        if (btn (1) and direction_flag ~= "right") controller.right()
 
-    player.player_states.states_x[player_state_x_flag]()
-    -- player_states.states_y[player_state_y_flag]()
-    player.hit()
+        player.player_states.states_x[player_state_x_flag]()
+        -- player_states.states_y[player_state_y_flag]()
+        player.hit()
 
-    for v in all(object_table) do
-      if v.name ~= "player" then
-        v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
-        hit(v, 1, "height", function()
-          v.vecter.y = 0
-        end)
-        hit(v, 1, "width", function()
-          v.vecter.x = 0
-        end)
-        v.pos_x = v.pos_x + v.vecter.x
-        v.pos_y = v.pos_y + v.vecter.y
-      end
-    end
+        for v in all(object_table) do
+          if v.name ~= "player" then
+            v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+            hit(v, 1, "height", function()
+              v.vecter.y = 0
+            end)
+            hit(v, 1, "width", function()
+              v.vecter.x = 0
+            end)
+            v.pos_x = v.pos_x + v.vecter.x
+            v.pos_y = v.pos_y + v.vecter.y
+          end
+        end
 
-      Update_Cllision()
-      player.pos_x = player.pos_x + player.vecter.x
-      player.pos_y = player.pos_y + player.vecter.y
+        Update_Cllision()
+        player.pos_x = player.pos_x + player.vecter.x
+        player.pos_y = player.pos_y + player.vecter.y
 
-      update_animation()
-      if abs(player.vecter.x) < player_acceleration then
-        player_state_x_flag = "nomal"
-      else
-        player_state_x_flag = "fast_back"
-      end
+        update_animation()
+        if abs(player.vecter.x) < player_acceleration then
+            player_state_x_flag = "nomal"
+        else
+            player_state_x_flag = "fast_back"
+        end
 
-      snow.update()
-      timer.update()
-      tail.update()
-      catepiller.update()
+        snow.update()
+        timer.update()
+        tail.update()
+        catepiller.update()
     end,
 
     game_over_update = function()
@@ -185,7 +188,7 @@ update_states = {
       print(player.can_jump)
       print(player.state)
       move_camera()
-      snow.draw()
+      -- snow.draw()
       chest.draw()
       catepiller.draw()
       global_pinecone.draw()
