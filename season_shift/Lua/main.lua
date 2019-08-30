@@ -22,11 +22,13 @@ controller = {
 
   up = function()
     if player.state == "climb" then
-      local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
-      if get_map_flage(map_x, player.pos_y) ~= 1 then
+      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
+      local max_y = player.pos_y + player.height*8 - 1
+      if get_map_flage(map_x, max_y) ~= 1 then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
+        player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
       end
       player.pos_y -= 2
     end
@@ -125,7 +127,7 @@ update_states = {
   play_update = function()
         map_ani.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-        if (btnp (5) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
+        if (btnp (4) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
         if (btn (2)) controller.up()
         if (btn (3)) controller.down()
         if (btn (0) and direction_flag ~= "right") controller.left()
@@ -187,6 +189,7 @@ update_states = {
       Update_Trigger()
       print(player.can_jump)
       print(player.state)
+      print(player.is_physic)
       move_camera()
       -- snow.draw()
       chest.draw()
