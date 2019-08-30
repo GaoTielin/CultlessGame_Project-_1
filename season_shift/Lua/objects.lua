@@ -105,7 +105,7 @@ function init_player()
     end)
     hit(player, 1, "height", function()
       player.can_jump = player.max_jump
-      if player.state ~= "nomal" then
+      if player.state ~= "nomal" and player.vecter.y > 0 then
         if player.vecter.x == 0 then
           player.state = "nomal"
           change_animation(player, "nomal")

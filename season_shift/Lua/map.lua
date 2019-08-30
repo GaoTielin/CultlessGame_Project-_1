@@ -3,54 +3,6 @@ function get_map_flage(m_x, m_y)
   return fget(mget(m_x/8+map_location.x,m_y/8+map_location.y))
 end
 
--- function map_hit(obj)
---     local map_hit_trg = {
---         hit_3 = function(x, y)
---             mset(x, y, 0)
---         end,
---         hit_5 = function(x, y)
---
---         end
---     }
---     local map_hit_cls = {
---         hit_2 = function(x, y)
---
---         end,
---         hit_4 = function(x, y)
---
---         end
---     }
---
---     local function update_cls()
---         local cllision_flage
---
---         if map_hit_cls["hit_" .. cllision_flage] then map_hit_cls["hit_" .. cllision_flage]() end
---     end
---     local trigger_flage
---
---     local function update_trg()
---         local x1 = obj.pos_x
---         local w1 = obj.width * 8
---         local y1 = obj.pos_y
---         local h1 = obj.height * 8
---         for i = x1, (x1 + w1 - 1), (w1 - 1) do
---             for j = y1, (y1 + h1 - 1), (h1 - 1) do
---                 local m_x, m_y = i / 8, j / 8
---                 trigger_flage = fget(mget(m_x+map_location.x, m_y+map_location.y))
---                 if trigger_flage ~= 0 and trigger_flage ~= nil then
---                     if map_hit_trg["hit_" .. trigger_flage] then
---                         map_hit_trg["hit_" .. trigger_flage](m_x, m_y)
---                     end
---                         return
---                     end
---                 end
---             end
---         end
---     return{
---         update_trg = update_trg,
---         update_cls = update_cls,
---     }
--- end
 function map_trigger(obj, flag, direction)
     local x = obj.pos_x
     local y = obj.pos_y
@@ -128,4 +80,40 @@ function map_trigger_exit(obj, map_flag, exit_func, direction)
     end
 
     return trigger_exit
+end
+
+function init_map_animation(update_time, max_sp)
+    local time = 0
+    local map_ani_table = {}
+    local timer = 1
+    for x=0, 127 do
+        for y=0, 31 do
+            if fget((mget(x, y)), 7) then
+                local one = {
+                    x = x,
+                    y = y,
+                    sp = mget(x, y),
+                }
+                add(map_ani_table, one)
+            end
+        end
+    end
+    local function update()
+        if timer <= update_time then
+            timer = timer + 1
+            return
+        end
+        for s in all(map_ani_table) do
+            -- s.sp = s.sp + (time == 0 and 1 or -1)
+            mset(s.x, s.y, s.sp + time)
+        end
+        time = time + 1
+        timer = 1
+        if time == max_sp then
+            time = 0
+        end
+    end
+    return {
+        update = update,
+    }
 end
