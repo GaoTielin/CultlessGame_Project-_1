@@ -82,13 +82,14 @@ function map_trigger_exit(obj, map_flag, exit_func, direction)
     return trigger_exit
 end
 
-function init_map_animation(update_time, max_sp)
+function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
     local time = 0
+    max_sp = max_sp*(is_flip and -1 or 1)
     local map_ani_table = {}
     local timer = 1
     for x=0, 127 do
         for y=0, 31 do
-            if fget((mget(x, y)), 7) then
+            if fget((mget(x, y)), map_ani_flag) then
                 local one = {
                     x = x,
                     y = y,
@@ -107,7 +108,7 @@ function init_map_animation(update_time, max_sp)
             -- s.sp = s.sp + (time == 0 and 1 or -1)
             mset(s.x, s.y, s.sp + time)
         end
-        time = time + 1
+        time = time + (is_flip and -1 or 1)
         timer = 1
         if time == max_sp then
             time = 0

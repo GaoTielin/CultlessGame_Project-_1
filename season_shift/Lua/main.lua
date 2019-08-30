@@ -9,7 +9,7 @@ controller = {
     if player.state == "climb" then
       player.climb_jump()
     else
-      player.vecter.y -= 3
+      player.vecter.y -= cfg_jump_speed
       direction_flag.y = "up"
       player.can_jump =  player.can_jump - 1
       if player.state ~= "jump" then
@@ -22,10 +22,10 @@ controller = {
 
   up = function()
     if player.state == "climb" then
-       player.pos_y -= 2
+       player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
-      local max_y = player.pos_y + player.height*8 - 1
-      if get_map_flage(map_x, max_y) ~= 1 then
+      local map_y = player.pos_y + player.height*8 - 1
+      if get_map_flage(map_x, map_y) ~= 1 then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -36,9 +36,10 @@ controller = {
   down = function()
     player.new_ground = 1
     if player.state == "climb" then
-        player.pos_y += 2
+        player.pos_y += cfg_climb_speed
       local map_y = player.pos_y + player.height + 10
-      if get_map_flage(player.pos_x, map_y) == 1 then
+      local map_x = player.pos_x  + (player.flip_x and -1 or (player.width*8))
+      if get_map_flage(player.pos_x, map_y) == 1 or get_map_flage(map_x, map_y) ~= 1 then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -51,6 +52,7 @@ controller = {
       player_state_x_flag = "fast_go_left"
       if player.vecter.x <= -player_max_v then
         player_state_x_flag = "fast_go_stay"
+        -- player.vecter.x = player_max_v
       end
       if player.state ~= "run" and player.state ~= "jump" then
         player.state = "run"
@@ -65,6 +67,7 @@ controller = {
       player_state_x_flag = "fast_go_right"
       if player.vecter.x >= player_max_v then
         player_state_x_flag = "fast_go_stay"
+        -- player.vecter.x = player_max_v
       end
       if player.state ~= "run" and player.state ~= "jump" then
         player.state = "run"
@@ -82,12 +85,13 @@ function _init()
     y,
   } --方向标签
   game_state_flag = "play"--游戏状态标签
-  gravity = 0.4-- 重力
+  gravity = cfg_gravity-- 重力
   update_state_flag = "play"
   draw_state_flage = "play"
   player_state_x_flag = "nomal"
-  player_acceleration = 0.1
-  player_max_v = 2
+  player_acceleration_fast = cfg_player_acceleration_fast--加速度
+  player_acceleration_low = cfg_player_acceleration_low
+  player_max_v = cfg_player_max_v
 
   player = init_player()
   player.can_jump = player.max_jump
@@ -107,7 +111,8 @@ function _init()
   player_pinecone = 3
   timer = newtimer()
 
-  map_ani = init_map_animation(15, 2)
+  map_ani_1 = init_map_animation(7, 15, 2, false)
+  map_ani_2 = init_map_animation(6, 15, 2, true)
   -- register collision
   -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
@@ -125,7 +130,8 @@ game_states = {
 ----------update状态机--------------
 update_states = {
   play_update = function()
-        map_ani.update()
+        map_ani_1.update()
+        map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
         if (btnp (4) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
         if (btn (2)) controller.up()
@@ -156,16 +162,19 @@ update_states = {
         player.pos_y = player.pos_y + player.vecter.y
 
         update_animation()
-        if abs(player.vecter.x) < player_acceleration then
+        if abs(player.vecter.x) < player_acceleration_low then
             player_state_x_flag = "nomal"
+        -- elseif abs(player.vecter.x) == player_max_v then
+        --     player_state_x_flag = "fast_go_stay"
         else
             player_state_x_flag = "fast_back"
         end
-
+        if (player.pos_x < 0) player.pos_x = 1
         snow.update()
         timer.update()
         tail.update()
         catepiller.update()
+        -- move_camera()
     end,
 
     game_over_update = function()
@@ -190,7 +199,9 @@ update_states = {
       print(player.can_jump)
       print(player.state)
       print(player.is_physic)
-      move_camera()
+      print(player_state_x_flag)
+      print(player.vecter.x)
+      -- move_camera()
       -- snow.draw()
       chest.draw()
       catepiller.draw()

@@ -71,21 +71,21 @@ function init_player()
         player.vecter.x = 0
       end,
       fast_go_left = function()
-        player.vecter.x -= player_acceleration
+        player.vecter.x -= player_acceleration_fast
       end,
       fast_back = function()
-        if abs(player.vecter.x) < player_acceleration then
+        if abs(player.vecter.x) < player_acceleration_low then
           player_state_x_flag = "nomal"
         else
           if (player.vecter.x > 0) then
-            player.vecter.x -= player_acceleration
+            player.vecter.x -= player_acceleration_low
           elseif (player.vecter.x < 0) then
-            player.vecter.x += player_acceleration
+            player.vecter.x += player_acceleration_low
           end
         end
       end,
       fast_go_right = function()
-        player.vecter.x += player_acceleration
+        player.vecter.x += player_acceleration_fast
       end,
       fast_go_stay = function()
         player.vecter.x = player.vecter.x > 0 and player_max_v or (-1 * player_max_v)
@@ -125,7 +125,7 @@ function init_player()
     hit(player, 1, "width", function()
       -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       player.vecter.x = 0
-      local map_y = player.pos_y + player.height + player.height*8+5
+      local map_y = player.pos_y + player.height*8+5
       if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
         local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
