@@ -67,6 +67,8 @@ function init_player()
   player.state = "nomal"
   player.ground = 1
   player.new_ground = 2
+  player.max_jump = 1
+  player.can_jump = 1
   player.player_states = {
     states_x = {
       nomal = function()
@@ -98,10 +100,11 @@ function init_player()
 
   player.hit = function()
     hit(player, 1, "all", function()
-      player.vecter.x = 0
+      -- player.vecter.x = 0
+      -- player.vecter.y = 0
     end)
     hit(player, 1, "height", function()
-      can_jump = 2
+      player.can_jump = player.max_jump
       if player.state ~= "nomal" then
         if player.vecter.x == 0 then
           player.state = "nomal"
@@ -114,17 +117,24 @@ function init_player()
         end
       end
       player.new_ground = 2
+
+      player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+      -- if player.vecter.y>0 then
+      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8
+      -- elseif player.vecter.y<0 then
+      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8 + 8-1
+      -- end
       player.vecter.y = 0
-    end, function()
-      if player.state ~= "jump" then
-        can_jump = 1
-      end
     end)
     hit(player, 1, "width", function()
+      -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       player.vecter.x = 0
       local map_y = player.pos_y + player.height + player.height*8+5
       if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
+        local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
+
         player.state = "climb"
+        player.can_jump = 1
         change_animation(player, "climb")
         change_animation(tail, "climb")
         player.is_physic = false
@@ -132,7 +142,7 @@ function init_player()
       end
     end)
     hit(player, player.new_ground, "height", function()
-      can_jump = 2
+      player.can_jump = player.max_jump
       player.vecter.y = 0
     end)
     hit(player, player.new_ground, "width", function()

@@ -11,7 +11,7 @@ controller = {
     else
       player.vecter.y -= 3
       direction_flag.y = "up"
-      can_jump -= 1
+      player.can_jump =  player.can_jump - 1
       if player.state ~= "jump" then
         player.state = "jump"
         change_animation(player, "jump")
@@ -22,10 +22,10 @@ controller = {
 
   up = function()
     if player.state == "climb" then
-      local map_x = player.pos_x + (player.flip_x and -8 or (player.width*8 + 5))
+      local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
       if get_map_flage(map_x, player.pos_y) ~= 1 then
-        player.state = "jump"
-        change_animation(player, "jump")
+        player.state = "nomal"
+        change_animation(player, "nomal")
         player.is_physic = true
       end
       player.pos_y -= 2
@@ -83,12 +83,12 @@ function _init()
   gravity = 0.4-- 重力
   update_state_flag = "play"
   draw_state_flage = "play"
-  can_jump = 2
   player_state_x_flag = "nomal"
   player_acceleration = 0.1
   player_max_v = 2
 
   player = init_player()
+  player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   tail = init_tail()
 
@@ -122,7 +122,7 @@ game_states = {
 update_states = {
   play_update = function()
     player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-    if (btnp (5) and can_jump <= 2 and can_jump > 0) controller.jump()
+    if (btnp (5) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
     if (btn (2)) controller.up()
     if (btn (3)) controller.down()
     if (btn (0) and direction_flag ~= "right") controller.left()
@@ -182,7 +182,7 @@ update_states = {
         end
       end
       Update_Trigger()
-      print(can_jump)
+      print(player.can_jump)
       print(player.state)
       move_camera()
       snow.draw()
