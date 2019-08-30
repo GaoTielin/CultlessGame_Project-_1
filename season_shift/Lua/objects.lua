@@ -157,7 +157,7 @@ function init_player()
   end
 
   player.mogu_hit = function()
-      player.vecter.y = -3
+      player.vecter.y = -1*cfg_mogu_jump
   end
 
   init_animation(player, 128, 130, 10, "nomal", true)
