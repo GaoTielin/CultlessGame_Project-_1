@@ -12,7 +12,7 @@ controller = {
     if player.state == "climb" then
       player.climb_jump()
     else
-      player.vecter.y -= 3
+      player.vecter.y -= cfg_jump_speed
       direction_flag.y = "up"
       player.can_jump =  player.can_jump - 1
       if player.state ~= "jump" then
@@ -25,10 +25,10 @@ controller = {
 
   up = function()
     if player.state == "climb" then
-       player.pos_y -= 2
+       player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
-      local max_y = player.pos_y + player.height*8 - 1
-      if get_map_flage(map_x, max_y) ~= 1 then
+      local map_y = player.pos_y + player.height*8 - 1
+      if get_map_flage(map_x, map_y) ~= 1 then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -39,9 +39,10 @@ controller = {
   down = function()
     player.new_ground = 1
     if player.state == "climb" then
-        player.pos_y += 2
+        player.pos_y += cfg_climb_speed
       local map_y = player.pos_y + player.height + 10
-      if get_map_flage(player.pos_x, map_y) == 1 then
+      local map_x = player.pos_x  + (player.flip_x and -1 or (player.width*8))
+      if get_map_flage(player.pos_x, map_y) == 1 or get_map_flage(map_x, map_y) ~= 1 then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -54,6 +55,7 @@ controller = {
       player_state_x_flag = "fast_go_left"
       if player.vecter.x <= -player_max_v then
         player_state_x_flag = "fast_go_stay"
+        -- player.vecter.x = player_max_v
       end
       if player.state ~= "run" and player.state ~= "jump" then
         player.state = "run"
@@ -68,6 +70,7 @@ controller = {
       player_state_x_flag = "fast_go_right"
       if player.vecter.x >= player_max_v then
         player_state_x_flag = "fast_go_stay"
+        -- player.vecter.x = player_max_v
       end
       if player.state ~= "run" and player.state ~= "jump" then
         player.state = "run"
@@ -85,12 +88,13 @@ function _init()
     y,
   } --Ê‚àßπÂ‚Ä¶‚û°Ô∏èÊ†‚ô•Á≠æ
   game_state_flag = "play"--Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊ†‚ô•Á≠æ
-  gravity = 0.4-- È‚ô•‚ô™Â‚åÇõ
+  gravity = cfg_gravity-- È‚ô•‚ô™Â‚åÇõ
   update_state_flag = "play"
   draw_state_flage = "play"
   player_state_x_flag = "nomal"
-  player_acceleration = 0.1
-  player_max_v = 2
+  player_acceleration_fast = cfg_player_acceleration_fast--Â‚åÇ†È‚ñàüÂ∫¶
+  player_acceleration_low = cfg_player_acceleration_low
+  player_max_v = cfg_player_max_v
 
   player = init_player()
   player.can_jump = player.max_jump
@@ -110,7 +114,8 @@ function _init()
   player_pinecone = 3
   timer = newtimer()
 
-  map_ani = init_map_animation(15, 2)
+  map_ani_1 = init_map_animation(7, 15, 2, false)
+  map_ani_2 = init_map_animation(6, 15, 2, true)
   -- register collision
   -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
@@ -128,7 +133,8 @@ game_states = {
 ----------updateÁ‚åÇ∂Ê‚ñà‚ñíÊú∫--------------
 update_states = {
   play_update = function()
-        map_ani.update()
+        map_ani_1.update()
+        map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
         if (btnp (4) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
         if (btn (2)) controller.up()
@@ -159,16 +165,19 @@ update_states = {
         player.pos_y = player.pos_y + player.vecter.y
 
         update_animation()
-        if abs(player.vecter.x) < player_acceleration then
+        if abs(player.vecter.x) < player_acceleration_low then
             player_state_x_flag = "nomal"
+        -- elseif abs(player.vecter.x) == player_max_v then
+        --     player_state_x_flag = "fast_go_stay"
         else
             player_state_x_flag = "fast_back"
         end
-
+        if (player.pos_x < 0) player.pos_x = 1
         snow.update()
         timer.update()
         tail.update()
         catepiller.update()
+        -- move_camera()
     end,
 
     game_over_update = function()
@@ -193,7 +202,9 @@ update_states = {
       print(player.can_jump)
       print(player.state)
       print(player.is_physic)
-      move_camera()
+      print(player_state_x_flag)
+      print(player.vecter.x)
+      -- move_camera()
       -- snow.draw()
       chest.draw()
       catepiller.draw()
@@ -214,7 +225,7 @@ update_states = {
 -->8
 --> global-1
 object_table = {}
----------------ËÆ°Ê‚ùé∂Â‚ñ•®-------------------
+---------------ËÆ°ÔøΩ‚ùéÔøΩÔøΩ‚ñ•ÔøΩ-------------------
 newtimer = function ()
     local o = {
         timers = {}
@@ -254,7 +265,7 @@ end
 
 ----------------------------------------
 
-----------------ÂÆû‰æ‚¨ÖÔ∏èÂüòê‚àßÂØπË±°---------------
+----------------ÂÆûÔøΩÔøΩ‚¨ÖÔ∏èÔøΩüòê‚àßÂØπË±°---------------
 --sp(ÂõæÔøΩÏõÉ‚ô•Á¥¢ÔøΩÀá)--pos_x,pos_y(ÂÆûÔøΩ‚¨ÖÔ∏èÔøΩüòê‚àßÔøΩ‚Ä¶ÔøΩ‚ô•)--width,height(ÂõæÔøΩÏõÉ‚ô•ÔøΩ‚ñ§Â∫¶ÔøΩüòêÂÆΩÂ∫¶)--
 function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
     if not v_x then v_x = 0 end
@@ -279,7 +290,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
--------------Áõ‚òÖ‰Ω‚ßóÁ¢∞Ê‚òÖûÔº‚òâËß¶Â‚óÜ‚û°Ô∏èÂû‚¨ÖÔ∏èÔºÏõÉ--------------
+-------------ÔøΩÔøΩ‚òÖÔøΩÔøΩ‚ßóÁ¢∞ÔøΩ‚òÖÔøΩÔøΩÔøΩ‚òâËß¶ÔøΩ‚óÜ‚û°Ô∏èÔøΩÔøΩ‚¨ÖÔ∏èÔøΩÔøΩÏõÉ--------------
 trigger_table = {}
 
 function update_trigger()
@@ -369,7 +380,7 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     return trigger_exit
 end
 
--------------Áõ‚òÖ‰Ω‚ßóÁ¢∞Ê‚òÖûÔº‚òâÁ¢∞Ê‚òÖûÂû‚¨ÖÔ∏èÔºÏõÉ--------------
+-------------ÔøΩÔøΩ‚òÖÔøΩÔøΩ‚ßóÁ¢∞ÔøΩ‚òÖÔøΩÔøΩÔøΩ‚òâÁ¢∞ÔøΩ‚òÖÔøΩÔøΩÔøΩ‚¨ÖÔ∏èÔøΩÔøΩÏõÉ--------------
 cllision_table = {}
 function update_cllision()
     for k, v in pairs(cllision_table) do
@@ -442,7 +453,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
 end
 ---------------------------------------
 
---------------Âú∞ÂΩ¢Á¢∞Ê‚òÖû-------------------
+--------------Âú∞ÂΩ¢Á¢∞ÔøΩ‚òÖÔøΩ-------------------
 --sprit_flag: palyer = 1, map = 2
 function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
     local next_x = sprit.pos_x + sprit.vecter.x
@@ -504,7 +515,7 @@ end
 ------------------------------------------
 
 
-----------------------Â‚òâõÂª∫Â‚åÇ®Á‚¨ÜÔ∏èª-------------------
+----------------------ÔøΩ‚òâÔøΩÂª∫ÔøΩ‚åÇÔøΩÔøΩ‚¨ÜÔ∏èÔøΩ-------------------
 function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     local update_time = 0
     local sp = first_spr
@@ -536,12 +547,12 @@ function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     end
 end
 
--------------Â‚òâ‚ô•Ê‚ô™¢Â‚åÇ®Á‚¨ÜÔ∏èª----------------
+-------------ÔøΩ‚òâ‚ô•ÔøΩ‚ô™ÔøΩÔøΩ‚åÇÔøΩÔøΩ‚¨ÜÔ∏èÔøΩ----------------
 function change_animation(spr_obj, ani_flag)
     spr_obj.animation = spr_obj.animation_table[ani_flag]
 end
 
------------Â‚åÇ®Á‚¨ÜÔ∏èªÊ‚òÖ≠Ê‚¨ÜÔ∏èæ---------------
+-----------ÔøΩ‚åÇÔøΩÔøΩ‚¨ÜÔ∏èÔøΩÔøΩ‚òÖÔøΩÔøΩ‚¨ÜÔ∏èÔøΩ---------------
 function update_animation()
     for v in all(object_table) do
         if v.animation then
@@ -550,7 +561,7 @@ function update_animation()
     end
 end
 
-------------Â‚òâ‚ô•Ê‚ô™¢ÂØπË±°---------------
+------------ÔøΩ‚òâ‚ô•ÔøΩ‚ô™ÔøΩÂØπË±°---------------
 function exchange_obj(obj_1, obj_2)
     local mid_obj = obj_1
     return obj_2, mid_obj
@@ -748,13 +759,14 @@ function map_trigger_exit(obj, map_flag, exit_func, direction)
     return trigger_exit
 end
 
-function init_map_animation(update_time, max_sp)
+function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
     local time = 0
+    max_sp = max_sp*(is_flip and -1 or 1)
     local map_ani_table = {}
     local timer = 1
     for x=0, 127 do
         for y=0, 31 do
-            if fget((mget(x, y)), 7) then
+            if fget((mget(x, y)), map_ani_flag) then
                 local one = {
                     x = x,
                     y = y,
@@ -773,7 +785,7 @@ function init_map_animation(update_time, max_sp)
             -- s.sp = s.sp + (time == 0 and 1 or -1)
             mset(s.x, s.y, s.sp + time)
         end
-        time = time + 1
+        time = time + (is_flip and -1 or 1)
         timer = 1
         if time == max_sp then
             time = 0
@@ -858,21 +870,21 @@ function init_player()
         player.vecter.x = 0
       end,
       fast_go_left = function()
-        player.vecter.x -= player_acceleration
+        player.vecter.x -= player_acceleration_fast
       end,
       fast_back = function()
-        if abs(player.vecter.x) < player_acceleration then
+        if abs(player.vecter.x) < player_acceleration_low then
           player_state_x_flag = "nomal"
         else
           if (player.vecter.x > 0) then
-            player.vecter.x -= player_acceleration
+            player.vecter.x -= player_acceleration_low
           elseif (player.vecter.x < 0) then
-            player.vecter.x += player_acceleration
+            player.vecter.x += player_acceleration_low
           end
         end
       end,
       fast_go_right = function()
-        player.vecter.x += player_acceleration
+        player.vecter.x += player_acceleration_fast
       end,
       fast_go_stay = function()
         player.vecter.x = player.vecter.x > 0 and player_max_v or (-1 * player_max_v)
@@ -912,8 +924,8 @@ function init_player()
     hit(player, 1, "width", function()
       -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       player.vecter.x = 0
-      local map_y = player.pos_y + player.height + player.height*8+5
-      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
+      local map_y = player.pos_y + player.height*8+7
+      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and 
         local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
         player.state = "climb"
@@ -944,7 +956,7 @@ function init_player()
   end
 
   player.mogu_hit = function()
-      player.vecter.y = -3
+      player.vecter.y = -1*cfg_mogu_jump
   end
 
   init_animation(player, 128, 130, 10, "nomal", true)
@@ -972,6 +984,17 @@ function init_tail()
   return tail
 end
 
+-->8
+-->game_cfg
+
+cfg_player_acceleration_fast = 0.2 -- Ë∑‚û°Ô∏èÊ≠•Â‚åÇ†È‚ñàüÂ∫¶
+cfg_player_acceleration_low = 0.3 -- Ë∑‚û°Ô∏èÊ≠•Â‚ô•‚óÜÈ‚ñàüÂ∫¶
+cfg_jump_speed = 3 -- Ë∑≥Ë∑‚¨áÔ∏èÈ‚ñàüÂ∫¶
+cfg_climb_speed = 2 -- Á‚òâ¨Â¢‚ñ•È‚ñàüÂ∫¶
+cfg_gravity = 0.4 -- È‚ô•‚ô™Â‚åÇõ(Â‚Ä¶‚û°Ô∏è‰∏‚¨ÖÔ∏èÁö‚ñëÂ‚åÇ†È‚ñàüÂ∫¶)
+cfg_player_max_v = 1.6 -- Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
+cfg_mogu_jump = 3 -- È‚ô•‚ô•Ë‚ñ§‚û°Ô∏èË‚óÜ‚ô•Ë∑≥Ë∑‚¨áÔ∏èÈ‚ñàüÂ∫¶
+
 __gfx__
 0000000033333333faff3bff66666666ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 0000000044444444bffff3bf6dddddd67fff7fff7fff7fffff7fff7fff7fff7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
@@ -979,64 +1002,64 @@ __gfx__
 0000000044444444f3b3333b6ddd6dd6cc7ccc7ccc7ccc7c7ccc7ccc7ccc7cccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 0000000045544444ffb3ffaf6dd6ddd6cccc7ccccccccccccc7cccccccccccccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 0000000044444444ffb3ffff6d6dd6d6cccccccccccccc7ccccccccccccc7cccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-0000000044444554fbfbfb3f6dddddd6ccccccccc7ccccccccccccc7ccccccccfffffffffffffffffffffffffffff99fffffffffffffffffffffffffffffffff
-00000000444444443ff3bffb66666666ccccccc7ccccccccccccc7ccccccccccfffffffffffffffffffffffffff99999ffffffffffffffffffffffffffffffff
-ffffffff33333333ffffffff00000000ccccccccccccccccccccccccccccccccffffffffffffffffffffffff9999999999999fffffffffffffffffffffffffff
-ffffffff33353333ffffffff00000000cc7ccccccccccccc7cccccccccccccccffffffffffffffffffffff999999999999999999ffffffffffffffffffffffff
-ffffffff53545353ffffffff00000000ccccccccccccccccccccccccccccccc7fffffffffffffffffffff9999999999999999999ffffffffffffff9fffffffff
-ffffffff45445355ffffffff00000000ccccccccccccccccccccccccccccccccffffffffffffffffffff999999999999999f99999ffffffffffff99fffffffff
-ffffffff44444544fff8ffff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffff99999999999999999999999ffffffffffffffffffffff
-ffffffff44444444ff878fff00000000ccccc7ccccccccccccc7ccccccccccccffffffffffffffffff999999999999999999999999ffffffffffffffffffffff
-ffffffff45444444f88888ff00000000ccccccccccccccccccccccccccccccccfffffffffffffffff999999f9999999999999999999fffffffffffffffffffff
-ffffffff44444454ff777fff00000000ccccccccccccccccccccccccccccccccfffffffffffffffff99999ff99999999999999999999ffffffffffffffffffff
-0000000044444444ffffffffffffffffbfffffffbfffffffffffffffffffffffffffffffffffffff999999999999999999999999999fffffffffffffffffffff
-0000000044444444ffffffffffffffff3fffffff3ffffffffffffffffffffffffffffffffffffffff999999999999999999999999999ffffffffffffffffffff
-0000000044444544ffffffffffffffffbffffffffbfffffffffffffffffffffffffffffffffffffff999999999999999999999999999ffffffffffff7fffffff
-0000000044444444ffffffffffffffff3fffffffff3fffffffffffffffffffffffffffffff7fffffff999999999999999999999999999fffffffffffffffffff
-0000000044444444ffffffffffffffffbffffffffbffffffff3ffffffff3fffffffffffff77fffffff9999999999999999999999999f99ffffffffffffffffff
-0000000045444444ffffffffffff3fffbfffffffbffffffffff333fffff3ffffffffffffffffffffff99999999999999f99999999999999999ffffffffffffff
-0000000044444444fffffffffffbfbffbfffffffbffffffffff3f3fffff33ffffffffffffffffffff99999999949999ff9994999999999999999999fffffffff
-0000000044444444bbbb3b3bfbbfff3bbffffffffffffffffff3fffffff3f3fffffffffffffffffff999999999449999999449999999999999999999ffffffff
-ffffffffffffffffffffffff977777773333333300000000fffffffffff8ffffffffffffffffffffff9999999944449999444999999999999999999999ffffff
-76fff67f666fff6676fff67fd99999973233323300000000f8fffffffffffff8fffffffffffffff9f999999999944449444449999999949999999999999fffff
-776f677f7776f677776f677fd99999972d232d2700000000ffaf8fffffff8fffffffffffffffff9f999999999994444444449999999944499999999f999fffff
-f76f67fff7779c4cf76f67ffd99999972dddddd700000000ffff88fffff888ffffffffffffffff9999999999999944444499999999999444999999ff9999ffff
-ff79c4cffff55fffff79c4cfd99999972dddddd700000000f8f8988fff88888fffffffffffff999999999999999994444449999999999444999999999999ffff
-ff55fffffff99fffff55ffffd99999972dddddd700000000f889a98ff8899988ffffffffffff9999994999999999994444499999999999444999999999999fff
-ff99ffffffff5ffffff99fffd99999972dddddd700000000889aaa98889aa998fffffffff9999999944999999999944444499999999999444999999999999fff
-fff57ffffffff7fffffff57fd99999972dddddd70000000089aaaaa8899aaa98fffffffff9999999944999999999944444444999999999444499999999999fff
-fffffffffffffffffffffffffffffffffff33fffffaa33ffffffffffffffffffffffffff99999999944449999994444444444499994444444449999999999fff
-ffffffffffffffffff777f999ffffffff999f3ffffaa9f3ffffffffffffffffffffffff9999999999444444944444444444444994444444444444444499999ff
-fffffffffffffffffff7999999fffffffaa9f3ffff999ff34ffffffffffffffffffffff9999999994444445444944444444444444944444444444444999999ff
-faaadffffffffffffff79997999ffffffaa9f3ffffffff3ff44f44ff4fff444fffffff99999999444544445444444444444d54444444454444444499999999ff
-faaadffffaaadffffff999777999fffffffff3ffffffff3ffff4444ff44444fffffff999f9999444454445544444444444d554444444554444444999999999ff
-fffadffffffadfffff99977777999ffffffff3fffffff3fffff44fffffff4ffffffff999999944444d544555444444444d555444444d554444449999999999ff
-ffafffffffaadffff9997777777999ffffff333fffff333fff4ffffffff4fffffffff9999999999444d5455544444444d5554444444d554444449999999f99ff
-fffffffffaffffff999777777777999ffff33333fff33333ffffffffffffffffffff999999999994444d55555444444d5555444444d5554444999999999999ff
-ffffffffffffffff997777777777799ffffffffffffffffffffffffffffffffffffff999999999944444dd555544455d555444444d5555444449999999999fff
-ffffffffffffffffff77e87777777ffffff88ffffffffffffffffffffffffffffffff9999999999944444455555dd555555555ddd5555444444999999999ffff
-ffffffffffffffffff77887777777fffff8878fffff88fffffffffffffffffffffffff9999999994449444d5555555555555555555555544444499999999ffff
-ff9f9ffffff9f9ffff77777755577ffff878888fff8878ffffffffffffffffffffffff99999994444444444d55555555555555555555555555444444999fffff
-fff7ffffffff7fffff77777755577fff88888788f878888fff2f2ffffff2f2ffffffff99f994444444444444d55555555555555555555555555444449fffffff
-ff939ffffff939ffff77777755577ffffff77fff88888788fff9ffffffff9ffffffffff999444444444999999ddd55555555555555554444444444999fffffff
-fff3ffffffff3ffff7777777559777fffff77fffff7776ffff232ffffff232ffffffffff99999999999999999999d555555555555554444999999999ffffffff
-fff3fffffff3fffff7777777555777fffff77ffffff76ffffff3fffffff3ffffffffffffff99999999999999ff999d555555555555999999999999ffffffffff
-ffff3fffffff3fffffff3fffffff3fff00000000000000000000000000000000ffffffffffff999999999fffffffffd555555555ffffffffffffffffffffffff
-ffff3fffffff3ffffff33ffffff33fff00000000000000000000000000000000ffffffffffffffffffffffffffffff555555555fffffffffffffffffffffffff
-fff3333fff3333ffffff3ffffffff3ff00000000000000000000000000000000fffffffffffffffffffffffffffffd55555555ffffffffffffffffffffffffff
-ffff3ffffff3ffffffffbffffffffbff00000000000000000000000000000000fffffffffffffffffffffffffffff55555555fffffffffffffffffffffffffff
-ffb33ffffb33ffffffffffffffffffff00000000000000000000000000000000ffffffffffffffffffffffffffffd5555555ffffffffffffffffffffffffffff
-ffff3bffffff3bffffffffffffffffff00000000000000000000000000000000fffffffffffffffffffffffffffd5555555ffffff444444444ffffffffffffff
-ffff3fffffff3fffffffffffffffffff00000000000000000000000000000000fffffffffffffffffffffffffd55555555fffffff444454444ffffffffffffff
-fff33f3ffff33f3fffffffffffffffff00000000000000000000000000000000fffffffffffffffffffffffd555555555ffffffff444555444ffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffd555555555fffffffff444999444ffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000fffffffffffffffffffffd555555555ffffffffff444494444ffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffd5555555555ffffffffff444444444ffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffd5555555555ffffffffffffff4ffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffd5555555555ffffffffffffff4ffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffd5555555555ffffffffffffff4ffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffd555555555555ffffffffffff4ffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000fffffffffffffffffffd555555555555555555fffffff4ffffffffffffffffff
+0000000044444554fbfbfb3f6dddddd6ccccccccc7ccccccccccccc7ccccccccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+00000000444444443ff3bffb66666666ccccccc7ccccccccccccc7ccccccccccffffffffffffffffff9fffffaaaaafffffffffffffffffffffffffffffffffff
+ffffffff33333333ffffffff00000000ccccccccccccccccccccccccccccccccfffffffffffffffff99ffffaaa7aaaffffffffffffffffffffffffffffffffff
+ffffffff33353333ffffffff00000000cc7ccccccccccccc7cccccccccccccccffffffffffffffffffffffaaa77aaaafffffafffffffffff22ffffffffffffff
+ffffffff53545353ffffffff00000000ccccccccccccccccccccccccccccccc7ffffffffffffffffffffffaa777aa9aaaffaaafffffffff2282fffffffffffff
+ffffffff45445355ffffffff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffffaaaaa777aa9aaaaaaaaaffffff22222ffffffffffffff
+ffffffff44444544fff8ffff00000000ccccccccccccccccccccccccccccccccffffffffffffffffffafaaa7777aaa9aaaaaaaaaffffff2222ffffffffffffff
+ffffffff44444444ff878fff00000000ccccc7ccccccccccccc7ccccccccccccfffffffffffffffffffffaaa777aaa9aaa777aaaafaffffaa2ffffffffffffff
+ffffffff45444444f88888ff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffffffaaaaa7a9aaaaaa7aaaaaaaffffaaaffffffffffffff
+ffffffff44444454ff777fff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffaffaaaaaaaaa9aaaaaaaaaaaaaaaaaaaaffffffffffffff
+0000000044444444ffffffffffffffffbfffffffbffffffffffffffffffffffffffffffafffffffffaaaaaaaaaaaa999aaaaaaaa9aaaaaffaaffffffffffffff
+0000000044444444ffffffffffffffff3fffffff3fffffffffffffffffffffffffffffaaafffffaaaaaaaaa777aaaa9a99aaaaa9aaaaaaaaaaffffffffffffff
+0000000044444544ffffffffffffffffbffffffffbfffffffffffffffffffffffffffffffffff9aaaaa9aaaa77aaaaaa999aa99aaa7aaaaaaaafffffffafffff
+0000000044444444ffffffffffffffff3fffffffff3ffffffffffffffffffffffffffffffffffa999999aaaaa7aaaaaaa999999aaa7a99aaaaaffffffaafffff
+0000000044444444ffffffffffffffffbffffffffbffffffff3ffffffff3fffffffffffffffaaa99999aaaaa9aaaa9aaaa9999aaaa77aaaa9aaaffffffffffff
+0000000045444444ffffffffffff3fffbfffffffbffffffffff333fffff3ffffffffffffffaaaa9999aaaaaaa9999aaaaaa9aaaaaaaa9aa999aaafffffffffff
+0000000044444444fffffffffffbfbffbfffffffbffffffffff3f3fffff33ffffffffffffaaaaaaa9999aaaaaaaaaaaaaaaaaaaaaaaaa9a99a99999fffffffff
+0000000044444444bbbb3b3bfbbfff3bbffffffffffffffffff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
+ffffffffffffffffffffffff977777773333333300000000fffffffffff8ffffffffffffaaaaaaaaaa779aaaaa99aaaaaaaaaaaaa9aa999999997799ffffffff
+76fff67f666fff6676fff67fd99999973233323300000000f8fffffffffffff8ffffffffaaaaaaaaaaa77aaaa9999aaaaaaaaaaaaa999999999999999fffffff
+776f677f7776f677776f677fd99999972d232d2700000000ffaf8fffffff8fffffffffffaaaaaaaaaaa77aaa999999aa7777aaaa99999999999a9a9999ffffff
+f76f67fff7779c4cf76f67ffd99999972dddddd700000000ffff88fffff888ffffffffff99aaaaaaaaaaaaa99999999aaa99aaaa999999999aaaa9999fffffff
+ff79c4cffff55fffff79c4cfd99999972dddddd700000000f8f8988fff88888ffffffffff99aaaaaaaaaaa999992999999aaaaa999999999aaaaa9999fffffff
+ff55fffffff99fffff55ffffd99999972dddddd700000000f889a98ff8899988fffffffff99aaaa99aaaaaaaa922a999aaaaa999997799999999a999ffffffff
+ff99ffffffff5ffffff99fffd99999972dddddd700000000889aaa98889aa998ffffffffff99aa9aaaaaaaaaa222aaaaaaaa9a9a777799999a999999ffffffff
+fff57ffffffff7fffffff57fd99999972dddddd70000000089aaaaa8899aaa98fffffff999999aaaaaaaa77999e2997777a9aaa7227999999a99999fffffffff
+fffffffffffffffffffffffffffffffffff33fffffaa33fffffffffffffffffffffffff9999a99aaaaaaa779999e22277a999a72e779999999aa9fffffffffff
+ffffffffffffffffff777f999ffffffff999f3ffffaa9f3fffffffffffffffffffffffaaaaaaa9aa9999799999aee292279992eaee999eee99aa99ffffffffff
+fffffffffffffffffff7999999fffffffaa9f3ffff999ff34fffffffffffffffffffffaaaaaaaaa29999999999aaee9222eee22e99aa99ee9a99999fffffffff
+faaadffffffffffffff79997999ffffffaa9f3ffffffff3ff44f44ff4fff444ffffffaaaaaaaaa992999999999aaaa99222ee2ee999aaa999929999fffffffff
+faaadffffaaadffffff999777999fffffffff3ffffffff3ffff4444ff44444fffffffaaaaaaaa99922999999999999aa9222e2ee9e9aaaaa9299a9999fffffff
+fffadffffffadfffff99977777999ffffffff3fffffff3fffff44fffffff4fffffffffaaa9aaa999aaee9a999999929ae22222eeeee9aaaa29999a7999ffffff
+ffafffffffaadffff9997777777999ffffff333fffff333fff4ffffffff4ffffffffffaaa9aaa9aaaaeeeaaaaa99992ae22222ee2222222299aaaa77999fffff
+fffffffffaffffff999777777777999ffff33333fff33333ffffffffffffffffffffff999aa999997799222ee9999922e2222ee29ee2ee9999aaaa77999fffff
+ffffffffffffffff997777777777799fffffffffffffffffffffffffffffffffffff9999999aaa777779e222eeeee99222222229999999999aaaaaa7799fffff
+ffffffffffffffffff77e87777777ffffff88ffffffffffffffffffffffffffffffaaaaa99a997777777e22222eee992222222e99999999999aaaa9a999fffff
+ffffffffffffffffff77887777777fffff8878fffff88fffffffffffffffffffffaaaaaaaa99999777999922222eee9e22222e7999999999999aa99999ffffff
+ff9f9ffffff9f9ffff77777755577ffff878888fff8878ffffffffffffffffffffaaaaaaaaaa9999999e92999922779e22222e7aaaa99a99777a999999ffffff
+fff7ffffffff7fffff77777755577fff88888788f878888fff2f2ffffff2f2fffffaaaaaaaaa999999e229999922277e22222e7777aaa999977a9aa99fffffff
+ff939ffffff939ffff77777755577ffffff77fff88888788fff9ffffffff9fffffffaaaaaaa99999ee22299aa9e22eee222222222eeeaa99997999a99fffffff
+fff3ffffffff3ffff7777777559777fffff77fffff7776ffff232ffffff232ffffffa9aaaaa99999229999aaeeee222222222222222222eeef999999ffffffff
+fff3fffffff3fffff7777777555777fffff77ffffff76ffffff3fffffff3fffffffffa999aa9999999999aaeee9e92222222299999eeee9ffff9ee99ffffffff
+ffff3fffffff3fffffff3fffffff3ffff44444fff44444fffff3fffff9faaf9fffffff999999999999999eeee9999f2222222999ff9e99ffff999999ffffffff
+ffff3fffffff3ffffff33ffffff33fff4455544f4455544ffff3ffffffaaaaffffffff9999999f9999999e9e99fffff222222fffff999fffffff999fffffffff
+fff3333fff3333ffffff3ffffffff3ff4449444f4449444ff3f3fffffaa99aaffffffff99999fff9999fffff99fffff222222ffffffffffffffff9ffffffffff
+ffff3ffffff3ffffffffbffffffffbfff44444fff44444ffff33fffffaa99aaffffffffff999f9f999fffffffffffff222222fffffffffffffffffffffffffff
+ffb33ffffb33fffffffffffffffffffffff4fffffff4fffffff3f3ffffaaaaffffffffffffffffff9ffffffffffffff222222fffffffffffffffffffffffffff
+ffff3bffffff3bfffffffffffffffffffff4fffffff4fffffff33ffff9faaf9ffffffffffffffffffffffffffffffffe22222ffffff22fffffffffffffffffff
+ffff3fffffff3fffffffffffffffffffaaa4fffffff4fffffff3fffffff3ffffffffffffffffffafffffffaffffffffe22222fffff2fffffffffffffffffffff
+fff33f3ffff33f3fffffffffffffffff99949999fff4fffffff3fffffff3fffffffffffffffffaafffffffffffffff2222222fffffffafffffffffffffffffff
+0000000000000000000000000000000000000000000000000000000000000000fffffffffffffafffffffffffffff22222222fffffffaaffffffffffffffffff
+0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffff222222222fffffffffffffffffffffffffff
+0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffe222222222ffffffffffffffffffffffffff
+0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffff222222e2222222ffffffffffffffffffffffffff
+0000000000000000000000000000000000000000000000000000000000000000fffffffffffffffffffffffeee922e9992299e229aaaaaaaafffffffffffffff
+0000000000000000000000000000000000000000000000000000000000000000fffffffffffaafffffff999999299999229999ee229999999fffffffffffffff
+0000000000000000000000000000000000000000000000000000000000000000fff9aaaa9aaaaa9999999aa9229999992999999999999aaaaaaaffffffffffff
+0000000000000000000000000000000000000000000000000000000000000000ff999999aaaa9999999999999999999999999999999a99999999aaaaafffffff
 00040000000994000009400000000000000000000000000000000000000004000000040000000000000000000000000000000000000000000000000000000000
 09400400049400000094994000000000004444000444400000000000000049900000499004440400000000000000000000000000000000000006600000066000
 94000990494004000940000400444000049999404009994040000000000497790049977949994990044000000000000000000000000000000069760000600600
@@ -1070,21 +1093,21 @@ d00d16100d0d161dd00000000000d100001d000000d00010010000d00ddd0110d11d0d000dd00110
 0010d1100010d100d11dd11d00000000000000000000000000000000166011001106166111661000116610000fe7000000000000000000000000000000000000
 000d0001000d0011dd661dd00000000000000000000000000000000001d0d01d0d0001d0d01101d0011d01d000eee00000000000000000000000000000000000
 __gff__
-0001000200000000000000000000000000010000000000000000000000000000000100000000808000000000000000000000000101008080000000000000000080800000808080800000000000000000808000000300808000000000000000008080808000000000000000000000000000000000030000000000000000000000
+0001000200000000000000000000000000010000000000000000000000000000000100000000808000000000000000000000000101008040000000000000000080400000804080400000000000000000804000000300804000000000000000000000000000000000000000000000000000000000030000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
-1010101060101010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101040101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-08090a0b0c0d600f101010101060101010101010411010101060101010101040101010101010101010101010101010101010101010601041101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-18191a1b1c1d1e1f401010101010101041101010101010101010101010101010101010101010023410101010101010101010104010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-28292a2b2c2d2e2f101010101010101010101010101033101010231010101010101010103010023310101010101010101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-38393a3b3c3d3e3f101010101010101010101033101033101010343434101010101010101010023310100234341010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-48494a4b4c4d4e4f104010101010441010101010101033101010331033101010101010101010023310100233331010101010101010101010301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-58595a5b5c5d5e5f1010101010343434101010101010331010103310331010101010103434101010101002333310101010101010231010101010106d6e10101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-68696a6b6c6d6e424310103333331010331010103434341010103310331010101010103310101010105402333310101010101034343434343434107d7e10101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-78797a7b7c7d7e52535654101010101010505633331010020233331033121044101254334456101033333350563410561050333333101210333333333310101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+1010101062106010101010101060101010101010101010601060101010101010101010101010106710101010101040101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+08090a0b0c0d630f101010101062101010101010411010101060101010101040101010101010106610101010101010101010101010601041101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+18191a1b1c1d1e1f411010101010101041101010101010101010101010101010101010101010023410101010101010101010104010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+28292a2b2c2d2e2f101010101010101010101010101010101010231010101010101010103010023310101010101010101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+38393a3b3c3d3e3f101010101010101010101010101010101010343434101010101010101010023310100234341010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+48494a4b4c4d4e4f104010101010441010101010101067101010331033101010101010101010023310100233331010101010101010101010301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+58595a5b5c5d5e5f101010101034343410101010101066101010331033101010101010343410101010100233331010101010101023101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+68696a6b6c6d6e42431010333333101033101010343434101010331033101010101010331010101010540233331010101010103434343434343410651010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+78797a7b7c7d6452535654101010101010505633331010020233331033121044101254334456101033333350563410561050333333101210333333333310101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1111111111111111111111060606060611111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121161616161621212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
