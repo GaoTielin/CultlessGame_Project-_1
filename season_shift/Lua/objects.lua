@@ -3,21 +3,25 @@ function init_chest ()
     local c = init_spr("chest", 18, 10, 48, 1, 1, true, 0, 0)
      c.pinecone = 0
      c.draw = function ()
-         print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
+         print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-6, 4)
      end
      return c
 end
 
-function init_catepiller ()
-  local e = init_spr("catepiller", 203, 60, 48, 1, 1, true, 0, 0)
-  init_animation(e, 203, 204, 10, "move", true)
+function init_catepiller (pos_x, pos_y)
+  local e = init_spr("catepiller", 48, pos_x, pos_y, 1, 1, false, 0, 0)
+  init_animation(e, 48, 50, 10, "move", true)
+  ontrigger_enter(e, player, function()
+      e.vecter.x = e.flip_x and 1 or -1
+  end, 'bee_hit')
+
   local max_range = 16
   e.flip_x = false
   e.update = function ()
-    if not e.flip_x and e.pos_x > 60 + max_range then
+    if not e.flip_x and e.pos_x > pos_x + max_range then
       e.flip_x = true
     end
-    if e.flip_x and e.pos_x < 60 - max_range then
+    if e.flip_x and e.pos_x < pos_x - max_range then
       e.flip_x = false
     end
     e.pos_x = e.pos_x + (e.flip_x and - 0.5 or 0.5)
@@ -147,7 +151,7 @@ function init_player()
   end
 
   player.mogu_hit = function()
-      player.vecter.y = -3
+      player.vecter.y = -4
   end
 
   init_animation(player, 128, 130, 10, "nomal", true)

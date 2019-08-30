@@ -98,14 +98,14 @@ function _init()
 
   snow = init_snow()
   chest = init_chest()
-  catepiller = init_catepiller()
+  catepiller = init_catepiller(36*8, 6*8)
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
   max_pinecone_num = 6
   player_pinecone = 3
   timer = newtimer()
   -- register collision
-  -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
+  ontrigger_enter(player, catepiller, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
     if btnp(5) then
       if player_pinecone ~= 0 then
