@@ -48,7 +48,7 @@ function init_global_pinecone ()
 end
 
 function draw_pinecone_ui()
-    local ui_x = player.pos_x > 64 and player.pos_x + 64 or 125
+    local ui_x = 125
     for i = 1, max_pinecone_num do
         if i <= player_pinecone then
             spr(142, ui_x - 6 * i, 2)
@@ -126,7 +126,7 @@ function init_player()
       -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       player.vecter.x = 0
       local map_y = player.pos_y + player.height*8+7
-      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then
+      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
         local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
         player.state = "climb"
@@ -146,13 +146,27 @@ function init_player()
     end)
   end
   player.climb_jump = function()
-    player.state = "jump"
-    change_animation(player, "jump")
-    change_animation(tail, "jump")
+    local btn_num = player.flip_x and 1 or 0
+    local not_btn = player.flip_x and 0 or 1
+    -- if btn(btn_num) then
+    --   player.state = "jump"
+    --   change_animation(player, "jump")
+    --   change_animation(tail, "jump")
+    --   player.vecter.y = -3
+    --   player.vecter.x = player.vecter.x + (player.flip_x and -2 or 2)
+    if btn(not_btn) then
+      player.state = "nomal"
+      change_animation(player, "nomal")
+      change_animation(tail, "nomal")
+    else
+      player.state = "jump"
+      change_animation(player, "jump")
+      change_animation(tail, "jump")
+      player.vecter.y = -3
 
+      player.vecter.x = player.vecter.x + (player.flip_x and 2 or -2)
+    end
     player.flip_x = not player.flip_x
-    player.vecter.x = player.vecter.x + (player.flip_x and -2 or 2)
-    player.vecter.y = -3
     player.is_physic = true
   end
 

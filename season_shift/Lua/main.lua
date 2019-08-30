@@ -136,8 +136,8 @@ update_states = {
         if (btnp (4) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
         if (btn (2)) controller.up()
         if (btn (3)) controller.down()
-        if (btn (0) and direction_flag ~= "right") controller.left()
-        if (btn (1) and direction_flag ~= "right") controller.right()
+        if (btn (0) ) controller.left()
+        if (btn (1) ) controller.right()
 
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()
@@ -201,7 +201,6 @@ update_states = {
       print(player.is_physic)
       print(player_state_x_flag)
       print(player.vecter.x)
-      -- move_camera()
       -- snow.draw()
       chest.draw()
       catepiller.draw()
