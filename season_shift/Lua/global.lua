@@ -347,17 +347,12 @@ function handle_player_hit ()
         -- todo change scene to gameover
     else
         player_pinecone -= 1
-        local p = {sp=207, pos_x=player.pos_x+8, pos_y=player.pos_y+8, is_dropped=true}
+        local p = {sp=141, pos_x=player.pos_x+8, pos_y=player.pos_y+8, is_dropped=true}
         add(global_pinecone.pinecone_list, p)
         timer.add_timeout('remove_pinecone'..player_pinecone, 3, function()
             del(global_pinecone.pinecone_list, p)
         end)
-
-        if not player.flip_x then
-            player.pos_x -= 32
-        else
-            player.pos_x += 32
-        end
+        player.vecter.x = player.flip_x and 2 or -2
     end
 end
 
@@ -376,7 +371,7 @@ end
 
 
 function load_level (cart_name)
-    -- local spritesheet
+    -- load spritesheet
     reload(0x0, 0x0, 0x1000, cart_name)
 	reload(0x1000, 0x1000, 0x1000, cart_name)
     -- load map

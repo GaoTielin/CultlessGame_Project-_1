@@ -104,7 +104,7 @@ function _init()
 
   snow = init_snow()
   chest = init_chest()
-  catepiller = init_catepiller()
+  enemies = init_enemies(cfg_levels_autumn.level1.enemys)
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
   max_pinecone_num = 6
@@ -114,7 +114,7 @@ function _init()
   map_ani_1 = init_map_animation(7, 15, 2, false)
   map_ani_2 = init_map_animation(6, 15, 2, true)
   -- register collision
-  -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
+  -- ontrigger_enter(player, bee, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
     if btnp(5) then
       if player_pinecone ~= 0 then
@@ -173,7 +173,7 @@ update_states = {
         snow.update()
         timer.update()
         tail.update()
-        catepiller.update()
+        enemies.update()
         -- move_camera()
     end,
 
@@ -203,7 +203,7 @@ update_states = {
       print(player.vecter.x)
       -- snow.draw()
       chest.draw()
-      catepiller.draw()
+      enemies.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
       mogu_hit()
