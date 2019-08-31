@@ -1,11 +1,25 @@
 -- objects
 function init_chest ()
-    local c = init_spr("chest", 18, 10, 48, 1, 1, true, 0, 0)
+    local c = init_spr("chest", 139, 9, 48, 2, 2, true, 0, 0)
      c.pinecone = 0
      c.draw = function ()
          print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-6, 4)
      end
      return c
+end
+
+function init_songzis(songzi_config)
+  for i=1,#songzi_config do
+      local e = songzi_config[i]
+      local pos_x, pos_y = e[1], e[2]
+      local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
+      init_animation(b, 141, 142, 5, "move", true)
+      ontrigger_enter(b, player, function()
+        b.destroy()
+        player_pinecone = player_pinecone + 1
+        songzi_config[i] = nil
+      end)
+  end
 end
 
 -- enemy could be bee or catepiller, depends on type args
@@ -94,9 +108,9 @@ function draw_pinecone_ui()
     local ui_x = 125
     for i = 1, max_pinecone_num do
         if i <= player_pinecone then
-            spr(142, ui_x - 6 * i, 2)
+            spr(142, ui_x - 6 * i + camera_location.x, 2)
         else
-            spr(143, ui_x - 6 * i, 2)
+            spr(143, ui_x - 6 * i + camera_location.x, 2)
         end
     end
 end
@@ -214,13 +228,15 @@ function init_player()
   player.check_position = function()
     if player.pos_x + 3 >= camera_location.x + 128 then
 
+
+      change_level(game_level+1)
       game_level = game_level + 1
-      change_level(game_level)
     end
     if  player.pos_x + 8 <= camera_location.x then
-      game_level = game_level - 1
+
       -- printh("game_level- = " .. game_level, "dri")
-      change_level(game_level)
+      change_level(game_level-1)
+      game_level = game_level - 1
     end
   end
 

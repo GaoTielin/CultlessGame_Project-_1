@@ -29,6 +29,11 @@ function map_trigger(obj, flag, direction)
         y1 = y + h
         x2 = x + w
         y2 = y + h
+    elseif direction == 'all' then
+        x1 = x
+        y1 = y
+        x2 = x + w
+        y2 = y + h
     end
 
     if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag

@@ -121,6 +121,16 @@ function _init()
   player = init_player()
   player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
+  jinji_hit = map_trigger_enter(player, 7, game_over, "all")
+  lupai_hit = map_trigger_stay(player, 6, function()
+    print("X", player.pos_x, player.pos_y + 3, 4)
+    if btnp(5) then
+      change_level(1)
+      player.pos_x = 48
+      player.pos_y = 80
+    end
+  end, "all")
+
   tail = init_tail()
   -- map_col = map_hit(player)
 
@@ -132,6 +142,10 @@ function _init()
   chest = init_chest()
   thief = init_thief()
   enemies = init_enemies(cfg_levels.level1.enemys)
+  this_songzi_cfg = cfg_levels.level1.songzi
+  if this_songzi_cfg then
+    init_songzis(cfg_levels.level1.songzi)
+  end
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
   max_pinecone_num = 6
@@ -140,6 +154,7 @@ function _init()
 
   map_ani_1 = init_map_animation(7, 15, 2, false)
   map_ani_2 = init_map_animation(6, 15, 2, true)
+
   -- register collision
   -- ontrigger_enter(player, bee, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
@@ -163,6 +178,8 @@ update_states = {
   end,
 
   play_update = function()
+        Update_Trigger()
+
         player.check_position()
         map_ani_1.update()
         map_ani_2.update()
@@ -211,7 +228,7 @@ update_states = {
         enemies.update()
         move_camera()
         thief.draw_run1()
-        Update_Trigger()
+
     end,
 
     game_over_update = function()
@@ -245,6 +262,7 @@ update_states = {
       global_pinecone.draw()
       draw_pinecone_ui()
       mogu_hit()
+      jinji_hit()
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
@@ -272,6 +290,8 @@ update_states = {
       global_pinecone.draw()
       draw_pinecone_ui()
       mogu_hit()
+      jinji_hit()
+      lupai_hit()
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,

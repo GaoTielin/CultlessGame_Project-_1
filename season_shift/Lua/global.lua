@@ -53,12 +53,26 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         is_physic = is_physic,
         animation_table = animation_table,
         animation = animation,
-        destroy = function()
-            object_table[obj_idx] = nil
-        end,
+        -- destroy = function()
+        --     -- spr_obj = nil
+        --     spr_obj.trigger_enter = nil
+        --     object_table[obj_idx] = nil
+        -- end,
         flip_x = false,
         flip_y = false,
     }
+    spr_obj.destroy = function()
+      if spr_obj.destroy_trigger_enter then
+        spr_obj.destroy_trigger_enter()
+      end
+      if spr_obj.destroy_trigger_stay then
+        spr_obj.destroy_trigger_enter()
+      end
+      if spr_obj.destroy_trigger_stay then
+        spr_obj.destroy_trigger_enter()
+      end
+      object_table[obj_idx] = nil
+    end
 
     add(object_table, spr_obj)
     return spr_obj
@@ -76,20 +90,20 @@ end
 
 local function Trigger(sprit_1, sprit_2)
     local hit = false
-    local x1 = sprit_1.pos_x
-    local x2 = sprit_2.pos_x
-    local w1 = sprit_1.width * 8
-    local w2 = sprit_2.width * 8
-    local y1 = sprit_1.pos_y
-    local y2 = sprit_2.pos_y
-    local h1 = sprit_1.height * 8
-    local h2 = sprit_2.height * 8
-    local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
-    local xs = w1 * 0.5 + w2 * 0.5
-    local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
-    local ys = h1 / 2 + h2 / 2
-    if xd < xs and
-    yd < ys then
+    -- local x1 = sprit_1.pos_x
+    -- local x2 = sprit_2.pos_x
+    -- local w1 = sprit_1.width * 8
+    -- local w2 = sprit_2.width * 8
+    -- local y1 = sprit_1.pos_y
+    -- local y2 = sprit_2.pos_y
+    -- local h1 = sprit_1.height * 8
+    -- local h2 = sprit_2.height * 8
+    -- local xd = abs((sprit_1.pos_x + (sprit_1.width * 8 / 2)) - (sprit_2.pos_x + (sprit_2.width * 8 / 2)))
+    -- local xs = sprit_1.width * 8 * 0.5 + sprit_2.width * 8 * 0.5
+    -- local yd = abs((sprit_1.pos_y + (sprit_1.height * 8 / 2)) - (sprit_2.pos_y + (sprit_2.height * 8 / 2)))
+    -- local ys = sprit_1.height * 8 / 2 + sprit_2.height * 8 / 2
+    if abs((sprit_1.pos_x + (sprit_1.width * 8 / 2)) - (sprit_2.pos_x + (sprit_2.width * 8 / 2))) < sprit_1.width * 8 * 0.5 + sprit_2.width * 8 * 0.5 and
+    abs((sprit_1.pos_y + (sprit_1.height * 8 / 2)) - (sprit_2.pos_y + (sprit_2.height * 8 / 2))) < sprit_1.height * 8 / 2 + sprit_2.height * 8 / 2 then
         hit = true
     end
     return hit
@@ -109,10 +123,14 @@ function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
         end
     end
 
-    if trigger_name then
-        Trigger_table[trigger_name] = trigger_enter
-    else
-        add(Trigger_table, trigger_enter)
+    local idx = #Trigger_table + 1
+    add(Trigger_table, trigger_enter)
+    sprit_1.destroy_trigger_enter = function()
+      Trigger_table[idx] = nil
+    end
+
+    sprit_2.destroy_trigger_enter = function()
+      Trigger_table[idx] = nil
     end
 
     return trigger_enter
@@ -124,10 +142,15 @@ function OnTrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
             stay_func()
         end
     end
-    if trigger_name then
-        Trigger_table[trigger_name] = trigger_stay
-    else
-        add(Trigger_table, trigger_stay)
+
+    local idx = #Trigger_table + 1
+    add(Trigger_table, trigger_stay)
+    sprit_1.destroy_trigger_stay = function()
+      Trigger_table[idx] = nil
+    end
+
+    sprit_2.destroy_trigger_stay = function()
+      Trigger_table[idx] = nil
     end
 
     return trigger_stay
@@ -146,10 +169,15 @@ function OnTrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
             entered = false
         end
     end
-    if trigger_name then
-        Trigger_table[trigger_name] = trigger_exit
-    else
-        add(Trigger_table, trigger_exit)
+
+    local idx = #Trigger_table + 1
+    add(Trigger_table, trigger_exit)
+    sprit_1.destroy_trigger_exit = function()
+      Trigger_table[idx] = nil
+    end
+
+    sprit_2.destroy_trigger_exit = function()
+      Trigger_table[idx] = nil
     end
 
     return trigger_exit
@@ -331,7 +359,6 @@ end
 function update_animation()
     for v in all(object_table) do
         if v.animation then
-            print(ani_flag, v.pos_x, v.y)
             v.animation()
         end
     end
@@ -434,12 +461,19 @@ function game_over()
 end
 
 function change_level(level)
+  -- if game_level ~= level then
+  --   cfg_levels["level" .. game_level].songzi = this_songzi_cfg
+  -- end
   game_state_flag = "change_level"
   for v in all(enemies.enemies) do
       v.destroy()
   end
   local level_cfg = cfg_levels["level" .. level]
   enemies = init_enemies(level_cfg.enemys)
+  this_songzi_cfg = level_cfg.songzi
+  if level_cfg.songzi then
+    init_songzis(level_cfg.songzi)
+  end
   local camera_pos_x = level_cfg.camera_pos.x*8
   local camera_pos_y = level_cfg.camera_pos.y*8
   player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
