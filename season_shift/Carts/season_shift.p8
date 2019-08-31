@@ -62,6 +62,16 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
+    elseif player.state == "climb" and player.flip_x then
+     player.pos_y -= cfg_climb_speed
+     local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
+     local map_y = player.pos_y + player.height*8 - 1
+     if get_map_flage(map_x, map_y) ~= 1 then
+       player.state = "nomal"
+       change_animation(player, "nomal")
+       player.is_physic = true
+       player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
+     end
     end
   end,
   right = function()
@@ -77,12 +87,27 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
+    elseif player.state == "climb" and not player.flip_x then
+     player.pos_y -= cfg_climb_speed
+     local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
+     local map_y = player.pos_y + player.height*8 - 1
+     if get_map_flage(map_x, map_y) ~= 1 then
+       player.state = "nomal"
+       change_animation(player, "nomal")
+       player.is_physic = true
+       player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
+     end
     end
   end,
 }
 
 function _init()
   cls()
+  game_level = 1
+  camera_location = {
+    x = 0,
+    y = 0,
+  }
   direction_flag = {
     x,
     y,
@@ -100,14 +125,15 @@ function _init()
   player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   tail = init_tail()
-
   -- map_col = map_hit(player)
 
   -- oncllision(player, text_obj)
+  cfg_levels = cfg_levels_autumn
+  change_camera = init_change_camera()
 
   snow = init_snow()
   chest = init_chest()
-  catepiller = init_catepiller()
+  enemies = init_enemies(cfg_levels.level1.enemys)
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
   max_pinecone_num = 6
@@ -117,7 +143,7 @@ function _init()
   map_ani_1 = init_map_animation(7, 15, 2, false)
   map_ani_2 = init_map_animation(6, 15, 2, true)
   -- register collision
-  -- ontrigger_enter(player, enemy, handle_player_hit, 'player_hit')
+  -- ontrigger_enter(player, bee, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
     if btnp(5) then
       if player_pinecone ~= 0 then
@@ -132,15 +158,23 @@ end
 game_states = {
 ----------updateçâŒ‚¶æâ–ˆâ–’æœº--------------
 update_states = {
+  change_level_update = function()
+    if change_camera.update() then
+      game_state_flag = "play"
+    end
+  end,
+
   play_update = function()
+        player.check_position()
         map_ani_1.update()
         map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
         if (btnp (4) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
         if (btn (2)) controller.up()
         if (btn (3)) controller.down()
-        if (btn (0) and direction_flag ~= "right") controller.left()
-        if (btn (1) and direction_flag ~= "right") controller.right()
+        if (btn (0) ) controller.left()
+        if (btn (1) ) controller.right()
+        -- if (btnp (5)) change_level(2)
 
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()
@@ -176,8 +210,9 @@ update_states = {
         snow.update()
         timer.update()
         tail.update()
-        catepiller.update()
-        -- move_camera()
+        enemies.update()
+        move_camera()
+        update_trigger()
     end,
 
     game_over_update = function()
@@ -187,7 +222,34 @@ update_states = {
   ---------------------------------
 
   -----------drawçâŒ‚¶æâ–ˆâ–’æœº-------------
+
   draw_states = {
+    change_level_draw = function()
+      map(map_location.x, map_location.y)
+
+      for v in all(object_table) do
+        if v.flip_x then
+          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
+        else
+          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+        end
+      end
+
+      print(player.can_jump)
+      print(player.state)
+      print(player.is_physic)
+      print(player_state_x_flag)
+      print(player.vecter.x)
+      -- snow.draw()
+      chest.draw()
+      enemies.draw()
+      global_pinecone.draw()
+      draw_pinecone_ui()
+      mogu_hit()
+      -- map_col.update_trg()
+      -- camera(player.pos_x-64, 0)
+    end,
+
     play_draw = function()
       map(map_location.x, map_location.y)
 
@@ -198,16 +260,15 @@ update_states = {
           spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
         end
       end
-      update_trigger()
+
       print(player.can_jump)
       print(player.state)
       print(player.is_physic)
       print(player_state_x_flag)
       print(player.vecter.x)
-      -- move_camera()
       -- snow.draw()
       chest.draw()
-      catepiller.draw()
+      enemies.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
       mogu_hit()
@@ -216,6 +277,7 @@ update_states = {
     end,
     game_over_draw = function()
       -- map(16, 0)
+
     end,
   },
   -------------------------------
@@ -225,7 +287,7 @@ update_states = {
 -->8
 --> global-1
 object_table = {}
----------------è®¡ï¿½âŽï¿½ï¿½â–¥ï¿½-------------------
+---------------è®¡æâŽ¶åâ–¥¨-------------------
 newtimer = function ()
     local o = {
         timers = {}
@@ -265,7 +327,7 @@ end
 
 ----------------------------------------
 
-----------------å®žï¿½ï¿½â¬…ï¸ï¿½ðŸ˜âˆ§å¯¹è±¡---------------
+----------------å®žä¾â¬…ï¸åðŸ˜âˆ§å¯¹è±¡---------------
 --sp(å›¾ï¿½ì›ƒâ™¥ç´¢ï¿½Ë‡)--pos_x,pos_y(å®žï¿½â¬…ï¸ï¿½ðŸ˜âˆ§ï¿½â€¦ï¿½â™¥)--width,height(å›¾ï¿½ì›ƒâ™¥ï¿½â–¤åº¦ï¿½ðŸ˜å®½åº¦)--
 function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
     if not v_x then v_x = 0 end
@@ -290,7 +352,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
--------------ï¿½ï¿½â˜…ï¿½ï¿½â§—ç¢°ï¿½â˜…ï¿½ï¿½ï¿½â˜‰è§¦ï¿½â—†âž¡ï¸ï¿½ï¿½â¬…ï¸ï¿½ï¿½ì›ƒ--------------
+-------------ç›â˜…ä½â§—ç¢°æâ˜…žï¼â˜‰è§¦åâ—†âž¡ï¸åžâ¬…ï¸ï¼ì›ƒ--------------
 trigger_table = {}
 
 function update_trigger()
@@ -380,7 +442,7 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     return trigger_exit
 end
 
--------------ï¿½ï¿½â˜…ï¿½ï¿½â§—ç¢°ï¿½â˜…ï¿½ï¿½ï¿½â˜‰ç¢°ï¿½â˜…ï¿½ï¿½ï¿½â¬…ï¸ï¿½ï¿½ì›ƒ--------------
+-------------ç›â˜…ä½â§—ç¢°æâ˜…žï¼â˜‰ç¢°æâ˜…žåžâ¬…ï¸ï¼ì›ƒ--------------
 cllision_table = {}
 function update_cllision()
     for k, v in pairs(cllision_table) do
@@ -453,7 +515,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
 end
 ---------------------------------------
 
---------------åœ°å½¢ç¢°ï¿½â˜…ï¿½-------------------
+--------------åœ°å½¢ç¢°æâ˜…ž-------------------
 --sprit_flag: palyer = 1, map = 2
 function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
     local next_x = sprit.pos_x + sprit.vecter.x
@@ -515,7 +577,7 @@ end
 ------------------------------------------
 
 
-----------------------ï¿½â˜‰ï¿½å»ºï¿½âŒ‚ï¿½ï¿½â¬†ï¸ï¿½-------------------
+----------------------åâ˜‰›å»ºåâŒ‚¨çâ¬†ï¸»-------------------
 function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     local update_time = 0
     local sp = first_spr
@@ -547,12 +609,12 @@ function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     end
 end
 
--------------ï¿½â˜‰â™¥ï¿½â™ªï¿½ï¿½âŒ‚ï¿½ï¿½â¬†ï¸ï¿½----------------
+-------------åâ˜‰â™¥æâ™ª¢åâŒ‚¨çâ¬†ï¸»----------------
 function change_animation(spr_obj, ani_flag)
     spr_obj.animation = spr_obj.animation_table[ani_flag]
 end
 
------------ï¿½âŒ‚ï¿½ï¿½â¬†ï¸ï¿½ï¿½â˜…ï¿½ï¿½â¬†ï¸ï¿½---------------
+-----------åâŒ‚¨çâ¬†ï¸»æâ˜…­æâ¬†ï¸¾---------------
 function update_animation()
     for v in all(object_table) do
         if v.animation then
@@ -561,7 +623,7 @@ function update_animation()
     end
 end
 
-------------ï¿½â˜‰â™¥ï¿½â™ªï¿½å¯¹è±¡---------------
+------------åâ˜‰â™¥æâ™ª¢å¯¹è±¡---------------
 function exchange_obj(obj_1, obj_2)
     local mid_obj = obj_1
     return obj_2, mid_obj
@@ -572,17 +634,12 @@ function handle_player_hit ()
         -- todo change scene to gameover
     else
         player_pinecone -= 1
-        local p = {sp=207, pos_x=player.pos_x+8, pos_y=player.pos_y+8, is_dropped=true}
+        local p = {sp=141, pos_x=player.pos_x+8, pos_y=player.pos_y+8, is_dropped=true}
         add(global_pinecone.pinecone_list, p)
         timer.add_timeout('remove_pinecone'..player_pinecone, 3, function()
             del(global_pinecone.pinecone_list, p)
         end)
-
-        if not player.flip_x then
-            player.pos_x -= 32
-        else
-            player.pos_x += 32
-        end
+        player.vecter.x = player.flip_x and 2 or -2
     end
 end
 
@@ -601,13 +658,75 @@ end
 
 
 function load_level (cart_name)
-    -- local spritesheet
+    -- load spritesheet
     reload(0x0, 0x0, 0x1000, cart_name)
 	reload(0x1000, 0x1000, 0x1000, cart_name)
     -- load map
 	reload(0x2000, 0x2000, 0x1000, cart_name)
     -- load flag
 	reload(0x3000, 0x3000, 0x0100, cart_name)
+end
+
+function init_change_camera()
+  local old_camera_pos_x = cfg_levels.level1.camera_pos.x*8
+  local old_camera_pos_y = cfg_levels.level1.camera_pos.y*8
+  local now_camera_pos_x = cfg_levels.level1.camera_pos.x*8
+  local now_camera_pos_y = cfg_levels.level1.camera_pos.y*8
+  local flip_x = false
+  local flip_y = false
+  local fix_driction = 0
+  local function change(level)
+    now_camera_pos_x = cfg_levels["level" .. level].camera_pos.x*8
+    now_camera_pos_y = cfg_levels["level" .. level].camera_pos.y*8
+    flip_x = old_camera_pos_x > now_camera_pos_x
+    flip_y = old_camera_pos_y > now_camera_pos_y
+    fix_driction_x = now_camera_pos_x - old_camera_pos_x
+    fix_driction_y = now_camera_pos_y - old_camera_pos_y
+  end
+  local function update()
+    local changed_x = false
+    local changed_y = false
+    if fix_driction_x * (flip_x and -1 or 1) > 0 then
+      old_camera_pos_x = old_camera_pos_x + cfg_camera_move_speed.x * (flip_x and -1 or 1)
+      fix_driction_x = fix_driction_x + cfg_camera_move_speed.x * (flip_x and 1 or -1)
+    else
+      changed_x = true
+    end
+    if fix_driction_y * (flip_x and -1 or 1) > 0 then
+      old_camera_pos_y = old_camera_pos_y + cfg_camera_move_speed.y * (flip_y and -1 or 1)
+      fix_driction_y = fix_driction_y + cfg_camera_move_speed.y * (flip_y and 1 or -1)
+    else
+      changed_y = true
+    end
+    camera_location.x = old_camera_pos_x
+    camera_location.y = old_camera_pos_y
+    if changed_x and changed_y then
+      old_camera_pos_x = now_camera_pos_x
+      old_camera_pos_y = now_camera_pos_y
+      return true
+    else
+      return false
+    end
+  end
+  return {
+    change = change,
+    update = update,
+  }
+end
+
+function change_level(level)
+  game_state_flag = "change_level"
+  for v in all(enemies.enemies) do
+      v.destroy()
+  end
+  local level_cfg = cfg_levels["level" .. level]
+  enemies = init_enemies(level_cfg.enemys)
+  local camera_pos_x = level_cfg.camera_pos.x*8
+  local camera_pos_y = level_cfg.camera_pos.y*8
+  player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
+  player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+
+  change_camera.change(level)
 end
 
 function _update()
@@ -617,6 +736,7 @@ end
 
 function _draw()
     cls()
+    camera(camera_location.x, camera_location.y)
     draw_state_flage = game_state_flag .. "_draw"
     game_states.draw_states[draw_state_flage]()
 end
@@ -802,29 +922,74 @@ function init_chest ()
     local c = init_spr("chest", 18, 10, 48, 1, 1, true, 0, 0)
      c.pinecone = 0
      c.draw = function ()
-         print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-4)
+         print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-6, 4)
      end
      return c
 end
 
-function init_catepiller ()
-  local e = init_spr("catepiller", 203, 60, 48, 1, 1, true, 0, 0)
-  init_animation(e, 203, 204, 10, "move", true)
-  local max_range = 16
-  e.flip_x = false
-  e.update = function ()
-    if not e.flip_x and e.pos_x > 60 + max_range then
-      e.flip_x = true
+-- enemy could be bee or catepiller, depends on type args
+function init_enemy (pos_x, pos_y, max_range, speed, type)
+    local e
+    if type == 'bee' then
+        e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
+        init_animation(e, 48, 50, 10, "move", true)
+    elseif type == 'catepiller' then
+        e = init_spr("catepiller", 34, pos_x, pos_y, 1, 1, true, 0, 0)
+        init_animation(e, 34, 35, 10, "move", true)
     end
-    if e.flip_x and e.pos_x < 60 - max_range then
-      e.flip_x = false
+    ontrigger_enter(e, player, function()
+        e.vecter.x = e.flip_x and 1 or -1
+    end, 'enemy_hit')
+
+    e.flip_x = false
+    e.update = function ()
+        if not e.flip_x and e.pos_x > pos_x + max_range then
+            e.flip_x = true
+        end
+        if e.flip_x and e.pos_x < pos_x - max_range then
+            e.flip_x = false
+        end
+        e.pos_x = e.pos_x + (e.flip_x and -speed or speed)
     end
-    e.pos_x = e.pos_x + (e.flip_x and - 0.5 or 0.5)
-  end
-  e.draw = function ()
-    spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
-  end
-  return e
+    e.draw = function ()
+        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
+    end
+    return e
+end
+
+function init_enemies (enemy_config)
+    local o = {
+        enemies = {}
+    }
+    if enemy_config.bees then
+      for i=1,#enemy_config.bees do
+          local e = enemy_config.bees[i]
+          local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
+          local b = init_enemy(pos_x, pos_y, max_range, speed, 'bee')
+          add(o.enemies, b)
+      end
+    end
+    if enemy_config.catepillers then
+      for i=1,#enemy_config.catepillers do
+          local e = enemy_config.catepillers[i]
+          local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
+          local c = init_enemy(pos_x, pos_y, max_range, speed, 'catepiller')
+          add(o.enemies, c)
+      end
+    end
+    o.update = function ()
+        for i=1,#o.enemies do
+            local e = o.enemies[i]
+            e.update()
+        end
+    end
+    o.draw = function ()
+        for i=1,#o.enemies do
+            local e = o.enemies[i]
+            e.draw()
+        end
+    end
+    return o
 end
 
 function init_global_pinecone ()
@@ -847,7 +1012,7 @@ function init_global_pinecone ()
 end
 
 function draw_pinecone_ui()
-    local ui_x = player.pos_x > 64 and player.pos_x + 64 or 125
+    local ui_x = 125
     for i = 1, max_pinecone_num do
         if i <= player_pinecone then
             spr(142, ui_x - 6 * i, 2)
@@ -925,7 +1090,7 @@ function init_player()
       -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       player.vecter.x = 0
       local map_y = player.pos_y + player.height*8+7
-      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and 
+      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
         local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
         player.state = "climb"
@@ -945,18 +1110,39 @@ function init_player()
     end)
   end
   player.climb_jump = function()
-    player.state = "jump"
-    change_animation(player, "jump")
-    change_animation(tail, "jump")
+    local btn_num = player.flip_x and 1 or 0
+    local not_btn = player.flip_x and 0 or 1
+    if btn(not_btn) then
+      player.state = "nomal"
+      change_animation(player, "nomal")
+      change_animation(tail, "nomal")
+    else
+      player.state = "jump"
+      change_animation(player, "jump")
+      change_animation(tail, "jump")
+      player.vecter.y = -3
 
+      player.vecter.x = player.vecter.x + (player.flip_x and 2 or -2)
+    end
     player.flip_x = not player.flip_x
-    player.vecter.x = player.vecter.x + (player.flip_x and -2 or 2)
-    player.vecter.y = -3
     player.is_physic = true
   end
 
   player.mogu_hit = function()
       player.vecter.y = -1*cfg_mogu_jump
+  end
+
+  player.check_position = function()
+    if player.pos_x + 3 >= camera_location.x + 128 then
+
+      game_level = game_level + 1
+      change_level(game_level)
+    end
+    if  player.pos_x + 8 <= camera_location.x then
+      game_level = game_level - 1
+      -- printh("game_level- = " .. game_level, "dri")
+      change_level(game_level)
+    end
   end
 
   init_animation(player, 128, 130, 10, "nomal", true)
@@ -989,11 +1175,118 @@ end
 
 cfg_player_acceleration_fast = 0.2 -- è·âž¡ï¸æ­¥åâŒ‚ éâ–ˆŸåº¦
 cfg_player_acceleration_low = 0.3 -- è·âž¡ï¸æ­¥åâ™¥â—†éâ–ˆŸåº¦
-cfg_jump_speed = 3 -- è·³è·â¬‡ï¸éâ–ˆŸåº¦
+cfg_jump_speed = 3.1 -- è·³è·â¬‡ï¸éâ–ˆŸåº¦
 cfg_climb_speed = 2 -- çâ˜‰¬å¢â–¥éâ–ˆŸåº¦
 cfg_gravity = 0.4 -- éâ™¥â™ªåâŒ‚›(åâ€¦âž¡ï¸ä¸â¬…ï¸çšâ–‘åâŒ‚ éâ–ˆŸåº¦)
 cfg_player_max_v = 1.6 -- æœâ–ˆå¤§éâ–ˆŸåº¦
 cfg_mogu_jump = 3 -- éâ™¥â™¥èâ–¤âž¡ï¸èâ—†â™¥è·³è·â¬‡ï¸éâ–ˆŸåº¦
+cfg_camera_move_speed = { -- åâ˜‰â™¥æâ™ª¢åœ°å›¾æâŽ¶éË‡œå¤´ç§»åâŒ‚¨éâ–ˆŸåº¦
+  x = 5,
+  y = 5,
+}
+
+cfg_levels_autumn = {
+  level1 = {
+    player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 0,
+      y = 3,
+    },
+    camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 0,
+      y = 0,
+    },
+    level_type = "noaml", -- éâœ½â™ªç½®åœ°å›¾ç±»åžâ¬…ï¸ï¼â˜‰åâ—†¯åâ–’šåâ˜‰°ä¸â™ªåâ€¦ðŸ˜åœ°å›¾ä½¿çâ¬†ï¸¨ä¸â™ªåâ€¦ðŸ˜çšâ–‘åœ°å½¢éâœ½â™ªç½®ï¼ì›ƒ
+    enemys = { -- æË‡ðŸ˜äººéâœ½â™ªç½®ï¼ðŸ˜åâ—†ðŸ±æË‡°åâ˜‰â—åâ˜‰«ä¸ºxåâ€¦æ â™¥ï¼ðŸ˜yåâ€¦æ â™¥ï¼ðŸ˜ç§»åâŒ‚¨æœâ–ˆè¿œè·ç¦», éâ–ˆŸåº¦
+      bees = {
+        {6*8, 6*8, 16, 0.5},
+        -- {56*8, 8*8, 16, 0.5}
+      },
+      catepillers = {
+        {10, 10, 16, 0.5}
+      }
+    },
+  },
+  level2 = {
+    player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒps:ç›¸å¯¹äºðŸ…¾ï¸æâž¡ï¸â–‘åâ¬‡ï¸â—†æœº
+      x = 0,
+      y = 3,
+    },
+    camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 16,
+      y = 0,
+    },
+    level_type = "noaml", -- éâœ½â™ªç½®åœ°å›¾ç±»åžâ¬…ï¸ï¼â˜‰åâ—†¯åâ–’šåâ˜‰°ä¸â™ªåâ€¦ðŸ˜åœ°å›¾ä½¿çâ¬†ï¸¨ä¸â™ªåâ€¦ðŸ˜çšâ–‘åœ°å½¢éâœ½â™ªç½®ï¼ì›ƒ
+    enemys = { -- æË‡ðŸ˜äººéâœ½â™ªç½®
+      caterpillar ={},
+      bees = {
+        {26*8, 6*8, 16, 0.5},
+      },
+      catepillers = {
+
+      },
+    },
+  },
+  level3 = {
+    player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 0,
+      y = 3,
+    },
+    camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 32,
+      y = 0,
+    },
+    level_type = "noaml", -- éâœ½â™ªç½®åœ°å›¾ç±»åžâ¬…ï¸ï¼â˜‰åâ—†¯åâ–’šåâ˜‰°ä¸â™ªåâ€¦ðŸ˜åœ°å›¾ä½¿çâ¬†ï¸¨ä¸â™ªåâ€¦ðŸ˜çšâ–‘åœ°å½¢éâœ½â™ªç½®ï¼ì›ƒ
+    enemys = { -- æË‡ðŸ˜äººéâœ½â™ªç½®
+      caterpillar ={},
+      bees = {
+        -- {26*8, 6*8, 16, 0.5},
+      },
+      catepillers = {
+
+      },
+    },
+  },
+  level4 = {
+    player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 0,
+      y = 3,
+    },
+    camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 48,
+      y = 0,
+    },
+    level_type = "noaml", -- éâœ½â™ªç½®åœ°å›¾ç±»åžâ¬…ï¸ï¼â˜‰åâ—†¯åâ–’šåâ˜‰°ä¸â™ªåâ€¦ðŸ˜åœ°å›¾ä½¿çâ¬†ï¸¨ä¸â™ªåâ€¦ðŸ˜çšâ–‘åœ°å½¢éâœ½â™ªç½®ï¼ì›ƒ
+    enemys = { -- æË‡ðŸ˜äººéâœ½â™ªç½®
+      caterpillar ={},
+      bees = {
+        -- {26*8, 6*8, 16, 0.5},
+      },
+      catepillers = {
+
+      },
+    },
+  },
+  level5 = {
+    player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 0,
+      y = 3,
+    },
+    camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
+      x = 64,
+      y = 0,
+    },
+    level_type = "noaml", -- éâœ½â™ªç½®åœ°å›¾ç±»åžâ¬…ï¸ï¼â˜‰åâ—†¯åâ–’šåâ˜‰°ä¸â™ªåâ€¦ðŸ˜åœ°å›¾ä½¿çâ¬†ï¸¨ä¸â™ªåâ€¦ðŸ˜çšâ–‘åœ°å½¢éâœ½â™ªç½®ï¼ì›ƒ
+    enemys = { -- æË‡ðŸ˜äººéâœ½â™ªç½®
+      caterpillar ={},
+      bees = {
+        -- {26*8, 6*8, 16, 0.5},
+      },
+      catepillers = {
+
+      },
+    },
+  },
+}
 
 __gfx__
 0000000033333333faff3bff66666666ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
@@ -1012,22 +1305,22 @@ ffffffff44444544fff8ffff00000000ccccccccccccccccccccccccccccccccffffffffffffffff
 ffffffff44444444ff878fff00000000ccccc7ccccccccccccc7ccccccccccccfffffffffffffffffffffaaa777aaa9aaa777aaaafaffffaa2ffffffffffffff
 ffffffff45444444f88888ff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffffffaaaaa7a9aaaaaa7aaaaaaaffffaaaffffffffffffff
 ffffffff44444454ff777fff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffaffaaaaaaaaa9aaaaaaaaaaaaaaaaaaaaffffffffffffff
-0000000044444444ffffffffffffffffbfffffffbffffffffffffffffffffffffffffffafffffffffaaaaaaaaaaaa999aaaaaaaa9aaaaaffaaffffffffffffff
-0000000044444444ffffffffffffffff3fffffff3fffffffffffffffffffffffffffffaaafffffaaaaaaaaa777aaaa9a99aaaaa9aaaaaaaaaaffffffffffffff
-0000000044444544ffffffffffffffffbffffffffbfffffffffffffffffffffffffffffffffff9aaaaa9aaaa77aaaaaa999aa99aaa7aaaaaaaafffffffafffff
-0000000044444444ffffffffffffffff3fffffffff3ffffffffffffffffffffffffffffffffffa999999aaaaa7aaaaaaa999999aaa7a99aaaaaffffffaafffff
-0000000044444444ffffffffffffffffbffffffffbffffffff3ffffffff3fffffffffffffffaaa99999aaaaa9aaaa9aaaa9999aaaa77aaaa9aaaffffffffffff
-0000000045444444ffffffffffff3fffbfffffffbffffffffff333fffff3ffffffffffffffaaaa9999aaaaaaa9999aaaaaa9aaaaaaaa9aa999aaafffffffffff
-0000000044444444fffffffffffbfbffbfffffffbffffffffff3f3fffff33ffffffffffffaaaaaaa9999aaaaaaaaaaaaaaaaaaaaaaaaa9a99a99999fffffffff
-0000000044444444bbbb3b3bfbbfff3bbffffffffffffffffff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
-ffffffffffffffffffffffff977777773333333300000000fffffffffff8ffffffffffffaaaaaaaaaa779aaaaa99aaaaaaaaaaaaa9aa999999997799ffffffff
-76fff67f666fff6676fff67fd99999973233323300000000f8fffffffffffff8ffffffffaaaaaaaaaaa77aaaa9999aaaaaaaaaaaaa999999999999999fffffff
-776f677f7776f677776f677fd99999972d232d2700000000ffaf8fffffff8fffffffffffaaaaaaaaaaa77aaa999999aa7777aaaa99999999999a9a9999ffffff
-f76f67fff7779c4cf76f67ffd99999972dddddd700000000ffff88fffff888ffffffffff99aaaaaaaaaaaaa99999999aaa99aaaa999999999aaaa9999fffffff
-ff79c4cffff55fffff79c4cfd99999972dddddd700000000f8f8988fff88888ffffffffff99aaaaaaaaaaa999992999999aaaaa999999999aaaaa9999fffffff
-ff55fffffff99fffff55ffffd99999972dddddd700000000f889a98ff8899988fffffffff99aaaa99aaaaaaaa922a999aaaaa999997799999999a999ffffffff
-ff99ffffffff5ffffff99fffd99999972dddddd700000000889aaa98889aa998ffffffffff99aa9aaaaaaaaaa222aaaaaaaa9a9a777799999a999999ffffffff
-fff57ffffffff7fffffff57fd99999972dddddd70000000089aaaaa8899aaa98fffffff999999aaaaaaaa77999e2997777a9aaa7227999999a99999fffffffff
+00000000444444440000000000000000b0000000b0000000fffffffffffffffffffffffafffffffffaaaaaaaaaaaa999aaaaaaaa9aaaaaffaaffffffffffffff
+000000004444444400000000000000003000000030000000ffffffffffffffffffffffaaafffffaaaaaaaaa777aaaa9a99aaaaa9aaaaaaaaaaffffffffffffff
+00000000444445440000000000000000b00000000b000000fffffffffffffffffffffffffffff9aaaaa9aaaa77aaaaaa999aa99aaa7aaaaaaaafffffffafffff
+000000004444444400000000000000003000000000300000fffffffffffffffffffffffffffffa999999aaaaa7aaaaaaa999999aaa7a99aaaaaffffffaafffff
+00000000444444440000000000000000b00000000b000000ff3ffffffff3fffffffffffffffaaa99999aaaaa9aaaa9aaaa9999aaaa77aaaa9aaaffffffffffff
+00000000454444440000000000003000b0000000b0000000fff333fffff3ffffffffffffffaaaa9999aaaaaaa9999aaaaaa9aaaaaaaa9aa999aaafffffffffff
+000000004444444400000000000b0b00b0000000b0000000fff3f3fffff33ffffffffffffaaaaaaa9999aaaaaaaaaaaaaaaaaaaaaaaaa9a99a99999fffffffff
+0000000044444444bbbb3b3b0bb0003bb000000000000000fff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
+000000000000000000000000977777773333333300000000fffffffffff8ffffffffffffaaaaaaaaaa779aaaaa99aaaaaaaaaaaaa9aa999999997799ffffffff
+760006706660006676000670d99999973233323300000000f8fffffffffffff8ffffffffaaaaaaaaaaa77aaaa9999aaaaaaaaaaaaa999999999999999fffffff
+776067707776067777606770d99999972d232d2700000000ffaf8fffffff8fffffffffffaaaaaaaaaaa77aaa999999aa7777aaaa99999999999a9a9999ffffff
+0760670007779c4c07606700d99999972dddddd700000000ffff88fffff888ffffffffff99aaaaaaaaaaaaa99999999aaa99aaaa999999999aaaa9999fffffff
+0079c4c0000550000079c4c0d99999972dddddd700000000f8f8988fff88888ffffffffff99aaaaaaaaaaa999992999999aaaaa999999999aaaaa9999fffffff
+005500000009900000550000d99999972dddddd700000000f889a98ff8899988fffffffff99aaaa99aaaaaaaa922a999aaaaa999997799999999a999ffffffff
+009900000000500000099000d99999972dddddd700000000889aaa98889aa998ffffffffff99aa9aaaaaaaaaa222aaaaaaaa9a9a777799999a999999ffffffff
+000570000000070000000570d99999972dddddd70000000089aaaaa8899aaa98fffffff999999aaaaaaaa77999e2997777a9aaa7227999999a99999fffffffff
 fffffffffffffffffffffffffffffffffff33fffffaa33fffffffffffffffffffffffff9999a99aaaaaaa779999e22277a999a72e779999999aa9fffffffffff
 ffffffffffffffffff777f999ffffffff999f3ffffaa9f3fffffffffffffffffffffffaaaaaaa9aa9999799999aee292279992eaee999eee99aa99ffffffffff
 fffffffffffffffffff7999999fffffffaa9f3ffff999ff34fffffffffffffffffffffaaaaaaaaa29999999999aaee9222eee22e99aa99ee9a99999fffffffff
@@ -1060,12 +1353,12 @@ fff33f3ffff33f3fffffffffffffffff99949999fff4fffffff3fffffff3fffffffffffffffffaaf
 0000000000000000000000000000000000000000000000000000000000000000fffffffffffaafffffff999999299999229999ee229999999fffffffffffffff
 0000000000000000000000000000000000000000000000000000000000000000fff9aaaa9aaaaa9999999aa9229999992999999999999aaaaaaaffffffffffff
 0000000000000000000000000000000000000000000000000000000000000000ff999999aaaa9999999999999999999999999999999a99999999aaaaafffffff
-00040000000994000009400000000000000000000000000000000000000004000000040000000000000000000000000000000000000000000000000000000000
-09400400049400000094994000000000004444000444400000000000000049900000499004440400000000000000000000000000000000000006600000066000
-94000990494004000940000400444000049999404009994040000000000497790049977949994990044000000000000000000000000000000069760000600600
-490049799400499040000400049994004000000400000099094440000499900004997900977097794994040000000000000000000009700006999a6006000060
-9044970040449779044049904000094000000000000000000099994004970990049700900999090097794990000000000000000000999a000644496006000060
-40997990049909004994977900000004000000000000000000000004497700004990000000000090970797790000000000000000004449000644496006000060
+00040000000994000009400000000000000000000000000000000000000004000000040000000000000000000000000007f07f00000000000000000000000000
+094004000494000000949940000000000044440004444000000000000000499000004990044404000000000000000000feefee20000000000006600000066000
+9400099049400400094000040044400004999940400999404000000000049779004997794999499004400000000000008eeeee20000000000069760000600600
+49004979940049904000040004999400400000040000009909444000049990000499790097709779499404000000000008eee2000009700006999a6006000060
+904497004044977904404990400009400000000000000000009999400497099004970090099909009779499000000000008e200000999a000644496006000060
+40997990049909004994977900000004000000000000000000000004497700004990000000000090970797790000000000020000004449000644496006000060
 04970000097700909770090000000000000000000000000000000000099000000099900000000000099009000000000000000000004449000064460000600600
 00999000009990000999009900000000000000000000000000000000009900000000000000000000000000990000000000000000000440000006600000066000
 00040400400004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -1084,14 +1377,14 @@ d000d1611000d110d0000d0001000100d000000d0000000d01d1d000001110000011610016601661
 d011611d0d110100d11d16610000000d00000000000000000000000dd16600d0d11000d00000001d160616616f067f006f06670060660fff0000000000000000
 0d1600000166001d1660100000000000000000000000000000000000011000000011100000000000011001006f06700006f70f000677f7000000000000000000
 00011000001110000111011d000000000000000000000000000000000011000000000000000000000000001d06f0ff0000f000f00ff000f00000000000000000
-000d0d00d0000d00000000000000000000000000000000000000000000000000000000000000000000000000000f000000000000000000000000000000000000
-0d1001100100011000ddd0000d000000d00000000000000000000000000000000000000000000000000000000ef00f0000000000000000000000000000000000
-d000d6610d00d6610d0001d0001000000d000000000000000011d00000000000000000000000000000000000ef000ee000000000000000000000000000000000
-1000d10d0100d1000100000d000d10000100000000011d000d00010000000d000dd0000000000d0000000d00fe00fe7e00000000000000000000000000000000
-d00d16100d0d161dd00000000000d100001d000000d00010010000d00ddd0110d11d0d000dd001100dd0d110e0ffe70000000000000000000000000000000000
-010d1600010d16000dd00d000000001d0000d11dd100000dd000000dd11116611661d110d11dd661d11d1661f0ee7ee000000000000000000000000000000000
-0010d1100010d100d11dd11d00000000000000000000000000000000166011001106166111661000116610000fe7000000000000000000000000000000000000
-000d0001000d0011dd661dd00000000000000000000000000000000001d0d01d0d0001d0d01101d0011d01d000eee00000000000000000000000000000000000
+000d0d00d0000d00000000000000000000000000000000000000000000000000000000000000000000000000000f00000eff00000f0000000000000000000000
+0d1001100100011000ddd0000d000000d00000000000000000000000000000000000000000000000000000000ef00f00ef000f000e00f0000000000000000000
+d000d6610d00d6610d0001d0001000000d000000000000000011d00000000000000000000000000000000000ef000ee0f000fee0ef00ee000000000000000000
+1000d10d0100d1000100000d000d10000100000000011d000d00010000000d000dd0000000000d0000000d00fe00fe7ee00fe77ef00fe7e00000000000000000
+d00d16100d0d161dd00000000000d100001d000000d00010010000d00ddd0110d11d0d000dd001100dd0d110e0ffe700e0fe70e0e0fe70970000000000000000
+010d1600010d16000dd00d000000001d0000d11dd100000dd000000dd11116611661d110d11dd661d11d1661f0ee7ee0fef7ee00f0e7eee90000000000000000
+0010d1100010d100d11dd11d00000000000000000000000000000000166011001106166111661000116610000fe700000fe700000fe700490000000000000000
+000d0001000d0011dd661dd00000000000000000000000000000000001d0d01d0d0001d0d01101d0011d01d000eee00000eee00000eee0000000000000000000
 __gff__
 0001000200000000000000000000000000010000000000000000000000000000000100000000808000000000000000000000000101008040000000000000000080400000804080400000000000000000804000000300804000000000000000000000000000000000000000000000000000000000030000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

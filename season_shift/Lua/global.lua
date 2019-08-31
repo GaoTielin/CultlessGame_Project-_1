@@ -380,6 +380,68 @@ function load_level (cart_name)
 	reload(0x3000, 0x3000, 0x0100, cart_name)
 end
 
+function init_change_camera()
+  local old_camera_pos_x = cfg_levels.level1.camera_pos.x*8
+  local old_camera_pos_y = cfg_levels.level1.camera_pos.y*8
+  local now_camera_pos_x = cfg_levels.level1.camera_pos.x*8
+  local now_camera_pos_y = cfg_levels.level1.camera_pos.y*8
+  local flip_x = false
+  local flip_y = false
+  local fix_driction = 0
+  local function change(level)
+    now_camera_pos_x = cfg_levels["level" .. level].camera_pos.x*8
+    now_camera_pos_y = cfg_levels["level" .. level].camera_pos.y*8
+    flip_x = old_camera_pos_x > now_camera_pos_x
+    flip_y = old_camera_pos_y > now_camera_pos_y
+    fix_driction_x = now_camera_pos_x - old_camera_pos_x
+    fix_driction_y = now_camera_pos_y - old_camera_pos_y
+  end
+  local function update()
+    local changed_x = false
+    local changed_y = false
+    if fix_driction_x * (flip_x and -1 or 1) > 0 then
+      old_camera_pos_x = old_camera_pos_x + cfg_camera_move_speed.x * (flip_x and -1 or 1)
+      fix_driction_x = fix_driction_x + cfg_camera_move_speed.x * (flip_x and 1 or -1)
+    else
+      changed_x = true
+    end
+    if fix_driction_y * (flip_x and -1 or 1) > 0 then
+      old_camera_pos_y = old_camera_pos_y + cfg_camera_move_speed.y * (flip_y and -1 or 1)
+      fix_driction_y = fix_driction_y + cfg_camera_move_speed.y * (flip_y and 1 or -1)
+    else
+      changed_y = true
+    end
+    camera_location.x = old_camera_pos_x
+    camera_location.y = old_camera_pos_y
+    if changed_x and changed_y then
+      old_camera_pos_x = now_camera_pos_x
+      old_camera_pos_y = now_camera_pos_y
+      return true
+    else
+      return false
+    end
+  end
+  return {
+    change = change,
+    update = update,
+  }
+end
+
+function change_level(level)
+  game_state_flag = "change_level"
+  for v in all(enemies.enemies) do
+      v.destroy()
+  end
+  local level_cfg = cfg_levels["level" .. level]
+  enemies = init_enemies(level_cfg.enemys)
+  local camera_pos_x = level_cfg.camera_pos.x*8
+  local camera_pos_y = level_cfg.camera_pos.y*8
+  player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
+  player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+
+  change_camera.change(level)
+end
+
 function _update()
     update_state_flag = game_state_flag .. "_update"
     game_states.update_states[update_state_flag]()
@@ -387,6 +449,7 @@ end
 
 function _draw()
     cls()
+    camera(camera_location.x, camera_location.y)
     draw_state_flage = game_state_flag .. "_draw"
     game_states.draw_states[draw_state_flage]()
 end

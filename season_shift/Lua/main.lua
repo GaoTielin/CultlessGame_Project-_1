@@ -100,6 +100,11 @@ controller = {
 
 function _init()
   cls()
+  game_level = 1
+  camera_location = {
+    x = 0,
+    y = 0,
+  }
   direction_flag = {
     x,
     y,
@@ -117,14 +122,15 @@ function _init()
   player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   tail = init_tail()
-
   -- map_col = map_hit(player)
 
   -- OnCllision(player, text_obj)
+  cfg_levels = cfg_levels_autumn
+  change_camera = init_change_camera()
 
   snow = init_snow()
   chest = init_chest()
-  enemies = init_enemies(cfg_levels_autumn.level1.enemys)
+  enemies = init_enemies(cfg_levels.level1.enemys)
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
   max_pinecone_num = 6
@@ -149,7 +155,14 @@ end
 game_states = {
 ----------update状态机--------------
 update_states = {
+  change_level_update = function()
+    if change_camera.update() then
+      game_state_flag = "play"
+    end
+  end,
+
   play_update = function()
+        player.check_position()
         map_ani_1.update()
         map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
@@ -158,6 +171,7 @@ update_states = {
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
         if (btn (1) ) controller.right()
+        -- if (btnp (5)) change_level(2)
 
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()
@@ -194,7 +208,7 @@ update_states = {
         timer.update()
         tail.update()
         enemies.update()
-        -- move_camera()
+        move_camera()
         Update_Trigger()
     end,
 
@@ -205,7 +219,34 @@ update_states = {
   ---------------------------------
 
   -----------draw状态机-------------
+
   draw_states = {
+    change_level_draw = function()
+      map(map_location.x, map_location.y)
+
+      for v in all(object_table) do
+        if v.flip_x then
+          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
+        else
+          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+        end
+      end
+
+      print(player.can_jump)
+      print(player.state)
+      print(player.is_physic)
+      print(player_state_x_flag)
+      print(player.vecter.x)
+      -- snow.draw()
+      chest.draw()
+      enemies.draw()
+      global_pinecone.draw()
+      draw_pinecone_ui()
+      mogu_hit()
+      -- map_col.update_trg()
+      -- camera(player.pos_x-64, 0)
+    end,
+
     play_draw = function()
       map(map_location.x, map_location.y)
 
@@ -233,6 +274,7 @@ update_states = {
     end,
     game_over_draw = function()
       -- map(16, 0)
+
     end,
   },
   -------------------------------

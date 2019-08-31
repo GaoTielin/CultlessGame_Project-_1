@@ -42,17 +42,21 @@ function init_enemies (enemy_config)
     local o = {
         enemies = {}
     }
-    for i=1,#enemy_config.bees do
-        local e = enemy_config.bees[i]
-        local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-        local b = init_enemy(pos_x, pos_y, max_range, speed, 'bee')
-        add(o.enemies, b)
+    if enemy_config.bees then
+      for i=1,#enemy_config.bees do
+          local e = enemy_config.bees[i]
+          local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
+          local b = init_enemy(pos_x, pos_y, max_range, speed, 'bee')
+          add(o.enemies, b)
+      end
     end
-    for i=1,#enemy_config.catepillers do
-        local e = enemy_config.catepillers[i]
-        local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-        local c = init_enemy(pos_x, pos_y, max_range, speed, 'catepiller')
-        add(o.enemies, c)
+    if enemy_config.catepillers then
+      for i=1,#enemy_config.catepillers do
+          local e = enemy_config.catepillers[i]
+          local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
+          local c = init_enemy(pos_x, pos_y, max_range, speed, 'catepiller')
+          add(o.enemies, c)
+      end
     end
     o.update = function ()
         for i=1,#o.enemies do
@@ -207,6 +211,19 @@ function init_player()
 
   player.mogu_hit = function()
       player.vecter.y = -1*cfg_mogu_jump
+  end
+
+  player.check_position = function()
+    if player.pos_x + 3 >= camera_location.x + 128 then
+
+      game_level = game_level + 1
+      change_level(game_level)
+    end
+    if  player.pos_x + 8 <= camera_location.x then
+      game_level = game_level - 1
+      -- printh("game_level- = " .. game_level, "dri")
+      change_level(game_level)
+    end
   end
 
   init_animation(player, 128, 130, 10, "nomal", true)
