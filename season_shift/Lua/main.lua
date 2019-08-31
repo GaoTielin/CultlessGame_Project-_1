@@ -130,6 +130,7 @@ function _init()
 
   snow = init_snow()
   chest = init_chest()
+  thief = init_thief()
   enemies = init_enemies(cfg_levels.level1.enemys)
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
@@ -209,6 +210,7 @@ update_states = {
         tail.update()
         enemies.update()
         move_camera()
+        thief.draw_run1()
         Update_Trigger()
     end,
 
@@ -265,6 +267,7 @@ update_states = {
       print(player.vecter.x)
       -- snow.draw()
       chest.draw()
+      thief.update_run1()
       enemies.draw()
       global_pinecone.draw()
       draw_pinecone_ui()

@@ -248,3 +248,49 @@ function init_tail()
   init_animation(tail, 0, 0, 10, "climb", true)
   return tail
 end
+
+function init_thief ()
+    local thief = init_spr("thief", 160, 20, 50, 1, 1, true)
+    thief.mogu_jump_event = false
+    thief.draw_run1 = function ()
+        thief_mogu_hit()
+        spr(thief.sp, thief.pos_x, thief.pos_y, 1, 1)
+    end
+    thief.update_run1 = function ()
+        if not thief.mogu_jump_event then
+            thief.state = 'run'
+            change_animation(thief, 'run')
+            thief.pos_x += 1
+        end
+        if thief.pos_x >= 68 and not thief.mogu_jump_event then
+            thief.vecter.y -= 4
+            thief.vecter.x += 3
+            thief.mogu_jump_event = true
+        end
+        if thief.pos_x >= 96 then
+            hit(thief, 1, "width", function()
+                thief.vecter.x = 0
+                thief.vecter.y = -3
+                timer.add_timeout('thief_move', 0.1, function()
+                    thief.vecter.x = 2
+                end)
+            end)
+        end
+    end
+    thief.mogu_hit = function()
+        change_animation(thief, 'jump')
+        thief.vecter.y = -4
+        timer.add_timeout('thief_jump', 0.15, function()
+            thief.vecter.x = 1
+        end)
+    end
+    thief.draw_run2 = function ()
+    end
+    thief.update_run2 = function ()
+    end
+    thief_mogu_hit = map_trigger_enter(thief, 3, thief.mogu_hit, "down")
+    init_animation(thief, 160, 162, 10, "nomal", true)
+    init_animation(thief, 167, 170, 10, "run", true)
+    init_animation(thief, 135, 138, 10, "jump", true)
+    return thief
+end
