@@ -46,10 +46,10 @@ cfg_levels_autumn = {
     enemys = { -- 敌人配置
       caterpillar ={},
       bees = {
-        {26*8, 6*8, 16, 0.5},
+        -- {26*8, 6*8, 16, 0.5},
       },
       catepillers = {
-
+        {26*8, 6*8, 16, 0.5}
       },
     },
   },
