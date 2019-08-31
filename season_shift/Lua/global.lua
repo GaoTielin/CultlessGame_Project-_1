@@ -331,6 +331,7 @@ end
 function update_animation()
     for v in all(object_table) do
         if v.animation then
+            print(ani_flag, v.pos_x, v.y)
             v.animation()
         end
     end
