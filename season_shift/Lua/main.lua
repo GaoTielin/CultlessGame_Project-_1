@@ -59,6 +59,16 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
+    elseif player.state == "climb" and player.flip_x then
+     player.pos_y -= cfg_climb_speed
+     local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
+     local map_y = player.pos_y + player.height*8 - 1
+     if get_map_flage(map_x, map_y) ~= 1 then
+       player.state = "nomal"
+       change_animation(player, "nomal")
+       player.is_physic = true
+       player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
+     end
     end
   end,
   right = function()
@@ -74,6 +84,16 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
+    elseif player.state == "climb" and not player.flip_x then
+     player.pos_y -= cfg_climb_speed
+     local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
+     local map_y = player.pos_y + player.height*8 - 1
+     if get_map_flage(map_x, map_y) ~= 1 then
+       player.state = "nomal"
+       change_animation(player, "nomal")
+       player.is_physic = true
+       player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
+     end
     end
   end,
 }
@@ -175,6 +195,7 @@ update_states = {
         tail.update()
         enemies.update()
         -- move_camera()
+        Update_Trigger()
     end,
 
     game_over_update = function()
@@ -195,7 +216,7 @@ update_states = {
           spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
         end
       end
-      Update_Trigger()
+
       print(player.can_jump)
       print(player.state)
       print(player.is_physic)

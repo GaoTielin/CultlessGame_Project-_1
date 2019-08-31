@@ -189,12 +189,6 @@ function init_player()
   player.climb_jump = function()
     local btn_num = player.flip_x and 1 or 0
     local not_btn = player.flip_x and 0 or 1
-    -- if btn(btn_num) then
-    --   player.state = "jump"
-    --   change_animation(player, "jump")
-    --   change_animation(tail, "jump")
-    --   player.vecter.y = -3
-    --   player.vecter.x = player.vecter.x + (player.flip_x and -2 or 2)
     if btn(not_btn) then
       player.state = "nomal"
       change_animation(player, "nomal")
