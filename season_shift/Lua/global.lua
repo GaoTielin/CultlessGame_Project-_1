@@ -353,6 +353,7 @@ function handle_player_hit ()
             del(global_pinecone.pinecone_list, p)
         end)
         player.vecter.x = player.flip_x and 2 or -2
+        game_over()
     end
 end
 
@@ -425,6 +426,10 @@ function init_change_camera()
     change = change,
     update = update,
   }
+end
+
+function game_over()
+  change_level(game_level)
 end
 
 function change_level(level)

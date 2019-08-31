@@ -640,6 +640,7 @@ function handle_player_hit ()
             del(global_pinecone.pinecone_list, p)
         end)
         player.vecter.x = player.flip_x and 2 or -2
+        game_over()
     end
 end
 
@@ -712,6 +713,10 @@ function init_change_camera()
     change = change,
     update = update,
   }
+end
+
+function game_over()
+  change_level(game_level)
 end
 
 function change_level(level)
@@ -937,9 +942,7 @@ function init_enemy (pos_x, pos_y, max_range, speed, type)
         e = init_spr("catepiller", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
     end
-    ontrigger_enter(e, player, function()
-        e.vecter.x = e.flip_x and 1 or -1
-    end, 'enemy_hit')
+    ontrigger_enter(e, player, game_over)
 
     e.flip_x = false
     e.update = function ()
@@ -1198,11 +1201,11 @@ cfg_levels_autumn = {
     level_type = "noaml", -- éâœ½â™ªç½®åœ°å›¾ç±»åâ¬…ï¸ï¼â˜‰åâ—†¯åâ–’šåâ˜‰°ä¸â™ªåâ€¦ğŸ˜åœ°å›¾ä½¿çâ¬†ï¸¨ä¸â™ªåâ€¦ğŸ˜çšâ–‘åœ°å½¢éâœ½â™ªç½®ï¼ì›ƒ
     enemys = { -- æË‡ğŸ˜äººéâœ½â™ªç½®ï¼ğŸ˜åâ—†ğŸ±æË‡°åâ˜‰â—åâ˜‰«ä¸ºxåâ€¦æ â™¥ï¼ğŸ˜yåâ€¦æ â™¥ï¼ğŸ˜ç§»åâŒ‚¨æœâ–ˆè¿œè·ç¦», éâ–ˆŸåº¦
       bees = {
-        {6*8, 6*8, 16, 0.5},
+        -- {6*8, 6*8, 16, 0.5},
         -- {56*8, 8*8, 16, 0.5}
       },
       catepillers = {
-        {10, 10, 16, 0.5}
+        -- {10*8, 10*8, 16, 0.5}
       }
     },
   },
