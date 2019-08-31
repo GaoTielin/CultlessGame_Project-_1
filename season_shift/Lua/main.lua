@@ -104,7 +104,7 @@ function _init()
 
   snow = init_snow()
   chest = init_chest()
-  bees = init_bees(bee_pos)
+  enemies = init_enemies(enemy)
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
   max_pinecone_num = 6
@@ -173,8 +173,8 @@ update_states = {
         snow.update()
         timer.update()
         tail.update()
-        bees.update()
-        move_camera()
+        enemies.update()
+        -- move_camera()
     end,
 
     game_over_update = function()
@@ -203,7 +203,7 @@ update_states = {
       print(player.vecter.x)
       -- snow.draw()
       chest.draw()
-      bees.draw()
+      enemies.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
       mogu_hit()

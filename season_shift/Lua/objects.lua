@@ -8,49 +8,62 @@ function init_chest ()
      return c
 end
 
-function init_bee (pos_x, pos_y)
-  local e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
-  init_animation(e, 48, 50, 10, "move", true)
-  ontrigger_enter(e, player, function()
-      e.vecter.x = e.flip_x and 1 or -1
-  end, 'bee_hit')
+-- enemy could be bee or catepiller, depends on type args
+function init_enemy (pos_x, pos_y, max_range, speed, type)
+    local e
+    if type == 'bee' then
+        e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
+        init_animation(e, 48, 50, 10, "move", true)
+    elseif type == 'catepiller' then
+        e = init_spr("catepiller", 34, pos_x, pos_y, 1, 1, true, 0, 0)
+        init_animation(e, 34, 35, 10, "move", true)
+    end
+    ontrigger_enter(e, player, function()
+        e.vecter.x = e.flip_x and 1 or -1
+    end, 'enemy_hit')
 
-  local max_range = 16
-  e.flip_x = false
-  e.update = function ()
-    if not e.flip_x and e.pos_x > pos_x + max_range then
-      e.flip_x = true
+    e.flip_x = false
+    e.update = function ()
+        if not e.flip_x and e.pos_x > pos_x + max_range then
+            e.flip_x = true
+        end
+        if e.flip_x and e.pos_x < pos_x - max_range then
+            e.flip_x = false
+        end
+        e.pos_x = e.pos_x + (e.flip_x and -speed or speed)
     end
-    if e.flip_x and e.pos_x < pos_x - max_range then
-      e.flip_x = false
+    e.draw = function ()
+        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
     end
-    e.pos_x = e.pos_x + (e.flip_x and - 0.5 or 0.5)
-  end
-  e.draw = function ()
-    spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
-  end
-  return e
+    return e
 end
 
-function init_bees (bee_pos)
+function init_enemies (enemy_config)
     local o = {
-        bees = {}
+        enemies = {}
     }
-    for i=1,#bee_pos do
-        local pos_x, pos_y = bee_pos[i][1], bee_pos[i][2]
-        local b = init_bee(pos_x, pos_y)
-        add(o.bees, b)
+    for i=1,#enemy_config.bees do
+        local e = enemy_config.bees[i]
+        local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
+        local b = init_enemy(pos_x, pos_y, max_range, speed, 'bee')
+        add(o.enemies, b)
+    end
+    for i=1,#enemy_config.catepillers do
+        local e = enemy_config.catepillers[i]
+        local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
+        local c = init_enemy(pos_x, pos_y, max_range, speed, 'catepiller')
+        add(o.enemies, c)
     end
     o.update = function ()
-        for i=1,#o.bees do
-            local b = o.bees[i]
-            b.update()
+        for i=1,#o.enemies do
+            local e = o.enemies[i]
+            e.update()
         end
     end
     o.draw = function ()
-        for i=1,#o.bees do
-            local b = o.bees[i]
-            b.draw()
+        for i=1,#o.enemies do
+            local e = o.enemies[i]
+            e.draw()
         end
     end
     return o
@@ -76,7 +89,7 @@ function init_global_pinecone ()
 end
 
 function draw_pinecone_ui()
-    local ui_x = player.pos_x > 64 and player.pos_x + 64 or 125
+    local ui_x = 125
     for i = 1, max_pinecone_num do
         if i <= player_pinecone then
             spr(142, ui_x - 6 * i, 2)
