@@ -10,30 +10,30 @@ function map_trigger(obj, flag, direction)
     local h = obj.height * 8
     local x1, x2, y1, y2 = 0, 0, 0, 0
     if direction == 'left' then
-        x1 = x - 1
+        x1 = x + 2
         y1 = y
-        x2 = x
+        x2 = x + 2
         y2 = y + h - 1
     elseif direction == 'right' then
-        x1 = x + w
+        x1 = x + w - 2
         y1 = y
-        x2 = x + w + 1
+        x2 = x + w - 2
         y2 = y + h - 1
     elseif direction == 'up' then
         x1 = x + 1
-        y1 = y - 1
+        y1 = y  + 2
         x2 = x + w - 1
-        y2 = y
+        y2 = y + 2
     elseif direction == 'down' then
         x1 = x
-        y1 = y + h
+        y1 = y + h - 2
         x2 = x + w
-        y2 = y + h
+        y2 = y + h - 2
     elseif direction == 'all' then
-        x1 = x
-        y1 = y
-        x2 = x + w
-        y2 = y + h
+        x1 = x + 2
+        y1 = y + 2
+        x2 = x + w - 2
+        y2 = y + h - 2
     end
 
     if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
