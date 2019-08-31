@@ -8,8 +8,8 @@ function init_chest ()
      return c
 end
 
-function init_catepiller (pos_x, pos_y)
-  local e = init_spr("catepiller", 48, pos_x, pos_y, 1, 1, false, 0, 0)
+function init_bee (pos_x, pos_y)
+  local e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
   init_animation(e, 48, 50, 10, "move", true)
   ontrigger_enter(e, player, function()
       e.vecter.x = e.flip_x and 1 or -1
@@ -32,6 +32,30 @@ function init_catepiller (pos_x, pos_y)
   return e
 end
 
+function init_bees (bee_pos)
+    local o = {
+        bees = {}
+    }
+    for i=1,#bee_pos do
+        local pos_x, pos_y = bee_pos[i][1], bee_pos[i][2]
+        local b = init_bee(pos_x, pos_y)
+        add(o.bees, b)
+    end
+    o.update = function ()
+        for i=1,#o.bees do
+            local b = o.bees[i]
+            b.update()
+        end
+    end
+    o.draw = function ()
+        for i=1,#o.bees do
+            local b = o.bees[i]
+            b.draw()
+        end
+    end
+    return o
+end
+
 function init_global_pinecone ()
   local g = {
     pinecone_list = {}
@@ -52,7 +76,7 @@ function init_global_pinecone ()
 end
 
 function draw_pinecone_ui()
-    local ui_x = 125
+    local ui_x = player.pos_x > 64 and player.pos_x + 64 or 125
     for i = 1, max_pinecone_num do
         if i <= player_pinecone then
             spr(142, ui_x - 6 * i, 2)

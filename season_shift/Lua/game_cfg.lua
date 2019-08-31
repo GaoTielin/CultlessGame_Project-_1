@@ -7,3 +7,9 @@ cfg_climb_speed = 2 -- 爬墙速度
 cfg_gravity = 0.4 -- 重力(向下的加速度)
 cfg_player_max_v = 1.6 -- 最大速度
 cfg_mogu_jump = 3 -- 采蘑菇跳跃速度
+
+-- enemy pos config
+bee_pos = {
+    {36*8, 6*8},
+    {56*8, 8*8}
+}
