@@ -124,6 +124,17 @@ function _init()
   player = init_player()
   player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
+  jinji_hit = map_trigger_enter(player, 7, game_over, "all")
+  lupai_hit = map_trigger_stay(player, 6, function()
+    print("x", player.pos_x, player.pos_y + 3, 4)
+    if btnp(5) then
+      game_level = 1
+      change_level(game_level)
+      player.pos_x = 48
+      player.pos_y = 80      
+    end
+  end, "all")
+
   tail = init_tail()
   -- map_col = map_hit(player)
 
@@ -135,14 +146,22 @@ function _init()
   chest = init_chest()
   thief = init_thief()
   enemies = init_enemies(cfg_levels.level1.enemys)
+  this_songzi_cfg = {}
+  for k,v in pairs(cfg_levels.level1.songzi) do
+    add(this_songzi_cfg, v)
+  end
+  if this_songzi_cfg then
+    init_songzis(this_songzi_cfg)
+  end
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
-  max_pinecone_num = 6
+  max_pinecone_num = 10
   player_pinecone = 3
   timer = newtimer()
 
   map_ani_1 = init_map_animation(7, 15, 2, false)
   map_ani_2 = init_map_animation(6, 15, 2, true)
+
   -- register collision
   -- ontrigger_enter(player, bee, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
@@ -166,6 +185,8 @@ update_states = {
   end,
 
   play_update = function()
+        update_trigger()
+
         player.check_position()
         map_ani_1.update()
         map_ani_2.update()
@@ -214,7 +235,7 @@ update_states = {
         enemies.update()
         move_camera()
         thief.draw_run1()
-        update_trigger()
+
     end,
 
     game_over_update = function()
@@ -248,6 +269,7 @@ update_states = {
       global_pinecone.draw()
       draw_pinecone_ui()
       mogu_hit()
+      jinji_hit()
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
@@ -275,6 +297,8 @@ update_states = {
       global_pinecone.draw()
       draw_pinecone_ui()
       mogu_hit()
+      jinji_hit()
+      lupai_hit()
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
@@ -343,12 +367,26 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         is_physic = is_physic,
         animation_table = animation_table,
         animation = animation,
-        destroy = function()
-            object_table[obj_idx] = nil
-        end,
+        -- destroy = function()
+        --     -- spr_obj = nil
+        --     spr_obj.trigger_enter = nil
+        --     object_table[obj_idx] = nil
+        -- end,
         flip_x = false,
         flip_y = false,
     }
+    spr_obj.destroy = function()
+      if spr_obj.destroy_trigger_enter then
+        spr_obj.destroy_trigger_enter()
+      end
+      if spr_obj.destroy_trigger_stay then
+        spr_obj.destroy_trigger_enter()
+      end
+      if spr_obj.destroy_trigger_stay then
+        spr_obj.destroy_trigger_enter()
+      end
+      object_table[obj_idx] = nil
+    end
 
     add(object_table, spr_obj)
     return spr_obj
@@ -375,12 +413,11 @@ local function trigger(sprit_1, sprit_2)
     local h1 = sprit_1.height * 8
     local h2 = sprit_2.height * 8
     local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
-    local xs = w1 * 0.5 + w2 * 0.5
+    local xs = w1 * 0.5 + w2 * 0.5 - 2
     local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
-    local ys = h1 / 2 + h2 / 2
-    if xd < xs and
-    yd < ys then
-        hit = true
+    local ys = h1 / 2 + h2 / 2 - 2
+    if xd < xs and yd < ys then
+      hit = true
     end
     return hit
 end
@@ -399,10 +436,14 @@ function ontrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
         end
     end
 
-    if trigger_name then
-        trigger_table[trigger_name] = trigger_enter
-    else
-        add(trigger_table, trigger_enter)
+    local idx = #trigger_table + 1
+    add(trigger_table, trigger_enter)
+    sprit_1.destroy_trigger_enter = function()
+      trigger_table[idx] = nil
+    end
+
+    sprit_2.destroy_trigger_enter = function()
+      trigger_table[idx] = nil
     end
 
     return trigger_enter
@@ -414,10 +455,15 @@ function ontrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
             stay_func()
         end
     end
-    if trigger_name then
-        trigger_table[trigger_name] = trigger_stay
-    else
-        add(trigger_table, trigger_stay)
+
+    local idx = #trigger_table + 1
+    add(trigger_table, trigger_stay)
+    sprit_1.destroy_trigger_stay = function()
+      trigger_table[idx] = nil
+    end
+
+    sprit_2.destroy_trigger_stay = function()
+      trigger_table[idx] = nil
     end
 
     return trigger_stay
@@ -436,10 +482,15 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
             entered = false
         end
     end
-    if trigger_name then
-        trigger_table[trigger_name] = trigger_exit
-    else
-        add(trigger_table, trigger_exit)
+
+    local idx = #trigger_table + 1
+    add(trigger_table, trigger_exit)
+    sprit_1.destroy_trigger_exit = function()
+      trigger_table[idx] = nil
+    end
+
+    sprit_2.destroy_trigger_exit = function()
+      trigger_table[idx] = nil
     end
 
     return trigger_exit
@@ -614,7 +665,6 @@ end
 
 -------------åâ˜‰â™¥æâ™ª¢åâŒ‚¨çâ¬†ï¸»----------------
 function change_animation(spr_obj, ani_flag)
-    
     spr_obj.animation = spr_obj.animation_table[ani_flag]
 end
 
@@ -622,7 +672,6 @@ end
 function update_animation()
     for v in all(object_table) do
         if v.animation then
-          print(ani_flag, v.pos_x, v.y)
             v.animation()
         end
     end
@@ -721,21 +770,41 @@ function init_change_camera()
 end
 
 function game_over()
+  if player.hand_songzi >0 then
+    player_pinecone = player_pinecone - player.hand_songzi
+  end
   change_level(game_level)
 end
 
 function change_level(level)
+  if game_level ~= level then
+    for i=1,#this_songzi_cfg do
+      cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+    end
+    -- cfg_levels["level" .. game_level].songzi = this_songzi_cfg
+  end
   game_state_flag = "change_level"
   for v in all(enemies.enemies) do
       v.destroy()
   end
+  for k,v in pairs(this_songzi_cfg) do
+    v = nil
+  end
   local level_cfg = cfg_levels["level" .. level]
   enemies = init_enemies(level_cfg.enemys)
+  if level_cfg.songzi then
+    for k,v in pairs(level_cfg.songzi) do
+      add(this_songzi_cfg, v)
+    end
+    if this_songzi_cfg then
+      init_songzis(this_songzi_cfg)
+    end
+  end
   local camera_pos_x = level_cfg.camera_pos.x*8
   local camera_pos_y = level_cfg.camera_pos.y*8
   player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
   player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
-
+  player.hand_songzi = 0
   change_camera.change(level)
 end
 
@@ -836,6 +905,11 @@ function map_trigger(obj, flag, direction)
         y1 = y + h
         x2 = x + w
         y2 = y + h
+    elseif direction == 'all' then
+        x1 = x
+        y1 = y
+        x2 = x + w
+        y2 = y + h
     end
 
     if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
@@ -929,12 +1003,26 @@ end
 -->8
 -- objects
 function init_chest ()
-    local c = init_spr("chest", 18, 10, 48, 1, 1, true, 0, 0)
+    local c = init_spr("chest", 139, 9, 48, 2, 2, true, 0, 0)
      c.pinecone = 0
      c.draw = function ()
          print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-6, 4)
      end
      return c
+end
+
+function init_songzis(songzi_config)
+  for i,v in pairs(songzi_config) do
+    local pos_x, pos_y = v[1], v[2]
+    local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
+    init_animation(b, 141, 142, 5, "move", true)
+    ontrigger_enter(b, player, function()
+      b.destroy()
+      player_pinecone = player_pinecone + 1
+      player.hand_songzi = player.hand_songzi + 1
+      songzi_config[i] = nil
+    end)
+  end
 end
 
 -- enemy could be bee or catepiller, depends on type args
@@ -1023,9 +1111,9 @@ function draw_pinecone_ui()
     local ui_x = 125
     for i = 1, max_pinecone_num do
         if i <= player_pinecone then
-            spr(142, ui_x - 6 * i, 2)
+            spr(142, ui_x - 6 * i + camera_location.x, 2)
         else
-            spr(143, ui_x - 6 * i, 2)
+            spr(143, ui_x - 6 * i + camera_location.x, 2)
         end
     end
 end
@@ -1037,6 +1125,7 @@ function init_player()
   player.new_ground = 2
   player.max_jump = 1
   player.can_jump = 1
+  player.hand_songzi = 0
   player.player_states = {
     states_x = {
       nomal = function()
@@ -1143,13 +1232,15 @@ function init_player()
   player.check_position = function()
     if player.pos_x + 3 >= camera_location.x + 128 then
 
+
+      change_level(game_level+1)
       game_level = game_level + 1
-      change_level(game_level)
     end
     if  player.pos_x + 8 <= camera_location.x then
-      game_level = game_level - 1
+
       -- printh("game_level- = " .. game_level, "dri")
-      change_level(game_level)
+      change_level(game_level-1)
+      game_level = game_level - 1
     end
   end
 
@@ -1245,11 +1336,11 @@ end
 
 cfg_player_acceleration_fast = 0.2 -- è·âž¡ï¸æ­¥åâŒ‚ éâ–ˆŸåº¦
 cfg_player_acceleration_low = 0.3 -- è·âž¡ï¸æ­¥åâ™¥â—†éâ–ˆŸåº¦
-cfg_jump_speed = 3.1 -- è·³è·â¬‡ï¸éâ–ˆŸåº¦
+cfg_jump_speed = 4 -- è·³è·â¬‡ï¸éâ–ˆŸåº¦
 cfg_climb_speed = 2 -- çâ˜‰¬å¢â–¥éâ–ˆŸåº¦
 cfg_gravity = 0.4 -- éâ™¥â™ªåâŒ‚›(åâ€¦âž¡ï¸ä¸â¬…ï¸çšâ–‘åâŒ‚ éâ–ˆŸåº¦)
 cfg_player_max_v = 1.6 -- æœâ–ˆå¤§éâ–ˆŸåº¦
-cfg_mogu_jump = 3 -- éâ™¥â™¥èâ–¤âž¡ï¸èâ—†â™¥è·³è·â¬‡ï¸éâ–ˆŸåº¦
+cfg_mogu_jump = 4 -- éâ™¥â™¥èâ–¤âž¡ï¸èâ—†â™¥è·³è·â¬‡ï¸éâ–ˆŸåº¦
 cfg_camera_move_speed = { -- åâ˜‰â™¥æâ™ª¢åœ°å›¾æâŽ¶éË‡œå¤´ç§»åâŒ‚¨éâ–ˆŸåº¦
   x = 5,
   y = 5,
@@ -1259,7 +1350,7 @@ cfg_levels_autumn = {
   level1 = {
     player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 0,
-      y = 3,
+      y = 7,
     },
     camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 0,
@@ -1275,11 +1366,14 @@ cfg_levels_autumn = {
         -- {10*8, 10*8, 16, 0.5}
       }
     },
+    songzi = {
+      -- {9*8, 10*8}
+    },
   },
   level2 = {
     player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒps:ç›¸å¯¹äºðŸ…¾ï¸æâž¡ï¸â–‘åâ¬‡ï¸â—†æœº
       x = 0,
-      y = 3,
+      y = 7,
     },
     camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 16,
@@ -1292,14 +1386,18 @@ cfg_levels_autumn = {
         -- {26*8, 6*8, 16, 0.5},
       },
       catepillers = {
-        {26*8, 6*8, 16, 0.5}
+        -- {27*8, 6*8, 8, 0.5}
       },
+    },
+    songzi = {
+      {13*8, 8*8},
+      {26*8, 6*8},
     },
   },
   level3 = {
     player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 0,
-      y = 3,
+      y = 7,
     },
     camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 32,
@@ -1314,12 +1412,17 @@ cfg_levels_autumn = {
       catepillers = {
 
       },
+
+    },
+    songzi = {
+      {36*8,8*8},
+      {44*8,6*8},
     },
   },
   level4 = {
     player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 0,
-      y = 3,
+      y = 7,
     },
     camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 48,
@@ -1329,17 +1432,20 @@ cfg_levels_autumn = {
     enemys = { -- æË‡ðŸ˜äººéâœ½â™ªç½®
       caterpillar ={},
       bees = {
-        -- {26*8, 6*8, 16, 0.5},
+        {54*8, 7*8, 24, 0.5},
       },
       catepillers = {
-
+        {52*8, 9*8, 8, 0.5}
       },
+    },
+    songzi = {
+      {54*8, 9*8},
     },
   },
   level5 = {
     player_start_pos = { -- è§â˜…èì›ƒ²èµ·å§â¬…ï¸åœ¨åâœ½³åâ™ª¡ä¸­çšâ–‘ä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 0,
-      y = 3,
+      y = 7,
     },
     camera_pos = { -- ç›¸æœºä½â™ªç½® åâ™ªË‡ä½â™ªï¼â˜‰æ ¼ï¼ì›ƒ
       x = 64,
@@ -1352,21 +1458,23 @@ cfg_levels_autumn = {
         -- {26*8, 6*8, 16, 0.5},
       },
       catepillers = {
-
+        {}
       },
     },
+    songzi = {
+    }
   },
 }
 
 __gfx__
-0000000033333333faff3bff66666666ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-0000000044444444bffff3bf6dddddd67fff7fff7fff7fffff7fff7fff7fff7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-00000000444455443bfabbbf6d6dd6d6c7f7c7f7c7f7c7f7f7c7f7c7f7c7f7c7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-0000000044444444f3b3333b6ddd6dd6cc7ccc7ccc7ccc7c7ccc7ccc7ccc7cccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-0000000045544444ffb3ffaf6dd6ddd6cccc7ccccccccccccc7cccccccccccccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-0000000044444444ffb3ffff6d6dd6d6cccccccccccccc7ccccccccccccc7cccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-0000000044444554fbfbfb3f6dddddd6ccccccccc7ccccccccccccc7ccccccccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-00000000444444443ff3bffb66666666ccccccc7ccccccccccccc7ccccccccccffffffffffffffffff9fffffaaaaafffffffffffffffffffffffffffffffffff
+0000000033333333f8ff21ff66666666ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+00000000444444441ffff21f6dddddd67fff7fff7fff7fffff7fff7fff7fff7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+000000004444554421f8111f6d6dd6d6c7f7c7f7c7f7c7f7f7c7f7c7f7c7f7c7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+0000000044444444f21222216ddd6dd6cc7ccc7ccc7ccc7c7ccc7ccc7ccc7cccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+0000000045544444ff12ff8f6dd6ddd6cccc7ccccccccccccc7cccccccccccccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+0000000044444444ff12ffff6d6dd6d6cccccccccccccc7ccccccccccccc7cccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+0000000044444554f1f1f12f6dddddd6ccccccccc7ccccccccccccc7ccccccccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+00000000444444442ff21ff166666666ccccccc7ccccccccccccc7ccccccccccffffffffffffffffff9fffffaaaaafffffffffffffffffffffffffffffffffff
 ffffffff33333333ffffffff00000000ccccccccccccccccccccccccccccccccfffffffffffffffff99ffffaaa7aaaffffffffffffffffffffffffffffffffff
 ffffffff33353333ffffffff00000000cc7ccccccccccccc7cccccccccccccccffffffffffffffffffffffaaa77aaaafffffafffffffffff22ffffffffffffff
 ffffffff53545353ffffffff00000000ccccccccccccccccccccccccccccccc7ffffffffffffffffffffffaa777aa9aaaffaaafffffffff2282fffffffffffff
@@ -1375,14 +1483,14 @@ ffffffff44444544fff8ffff00000000ccccccccccccccccccccccccccccccccffffffffffffffff
 ffffffff44444444ff878fff00000000ccccc7ccccccccccccc7ccccccccccccfffffffffffffffffffffaaa777aaa9aaa777aaaafaffffaa2ffffffffffffff
 ffffffff45444444f88888ff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffffffaaaaa7a9aaaaaa7aaaaaaaffffaaaffffffffffffff
 ffffffff44444454ff777fff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffaffaaaaaaaaa9aaaaaaaaaaaaaaaaaaaaffffffffffffff
-00000000444444440000000000000000b0000000b0000000fffffffffffffffffffffffafffffffffaaaaaaaaaaaa999aaaaaaaa9aaaaaffaaffffffffffffff
-000000004444444400000000000000003000000030000000ffffffffffffffffffffffaaafffffaaaaaaaaa777aaaa9a99aaaaa9aaaaaaaaaaffffffffffffff
-00000000444445440000000000000000b00000000b000000fffffffffffffffffffffffffffff9aaaaa9aaaa77aaaaaa999aa99aaa7aaaaaaaafffffffafffff
-000000004444444400000000000000003000000000300000fffffffffffffffffffffffffffffa999999aaaaa7aaaaaaa999999aaa7a99aaaaaffffffaafffff
-00000000444444440000000000000000b00000000b000000ff3ffffffff3fffffffffffffffaaa99999aaaaa9aaaa9aaaa9999aaaa77aaaa9aaaffffffffffff
-00000000454444440000000000003000b0000000b0000000fff333fffff3ffffffffffffffaaaa9999aaaaaaa9999aaaaaa9aaaaaaaa9aa999aaafffffffffff
-000000004444444400000000000b0b00b0000000b0000000fff3f3fffff33ffffffffffffaaaaaaa9999aaaaaaaaaaaaaaaaaaaaaaaaa9a99a99999fffffffff
-0000000044444444bbbb3b3b0bb0003bb000000000000000fff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
+00000000444444440000000000000000bb000000bb000000fffffffffffffffffffffffafffffffffaaaaaaaaaaaa999aaaaaaaa9aaaaaffaaffffffffffffff
+000000004444444400000000000000003300000033000000ffffffffffffffffffffffaaafffffaaaaaaaaa777aaaa9a99aaaaa9aaaaaaaaaaffffffffffffff
+00000000444445440000000000000000bb0000000bb00000fffffffffffffffffffffffffffff9aaaaa9aaaa77aaaaaa999aa99aaa7aaaaaaaafffffffafffff
+000000004444444400000000000000003300000000330000fffffffffffffffffffffffffffffa999999aaaaa7aaaaaaa999999aaa7a99aaaaaffffffaafffff
+00000000444444440000000000003000bb0000000bb00000ff3ffffffff3fffffffffffffffaaa99999aaaaa9aaaa9aaaa9999aaaa77aaaa9aaaffffffffffff
+000000004544444400000000000b3b00bb000000bb000000fff333fffff3ffffffffffffffaaaa9999aaaaaaa9999aaaaaa9aaaaaaaa9aa999aaafffffffffff
+00000000444444440bbb3b3b0bbb0b3bbb000000bb000000fff3f3fffff33ffffffffffffaaaaaaa9999aaaaaaaaaaaaaaaaaaaaaaaaa9a99a99999fffffffff
+00000000444444440bbb3b3b0bb0003b0000000000000000fff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
 000000000000000000000000977777773333333300000000fffffffffff8ffffffffffffaaaaaaaaaa779aaaaa99aaaaaaaaaaaaa9aa999999997799ffffffff
 760006706660006676000670d99999973233323300000000f8fffffffffffff8ffffffffaaaaaaaaaaa77aaaa9999aaaaaaaaaaaaa999999999999999fffffff
 776067707776067777606770d99999972d232d2700000000ffaf8fffffff8fffffffffffaaaaaaaaaaa77aaa999999aa7777aaaa99999999999a9a9999ffffff
@@ -1456,7 +1564,7 @@ d00d16100d0d161dd00000000000d100001d000000d00010010000d00ddd0110d11d0d000dd00110
 0010d1100010d100d11dd11d00000000000000000000000000000000166011001106166111661000116610000fe700000fe700000fe700490000000000000000
 000d0001000d0011dd661dd00000000000000000000000000000000001d0d01d0d0001d0d01101d0011d01d000eee00000eee00000eee0000000000000000000
 __gff__
-0001000200000000000000000000000000010000000000000000000000000000000100000000808000000000000000000000000101008040000000000000000080400000804080400000000000000000804000000300804000000000000000000000000000000000000000000000000000000000030000000000000000000000
+0001070200000000000000000000000000010000070707070000000000000000000100000000808000000000000000000000000101008040000000000000000080400000804080400000000000000000804000000300804000000000000000000000000006060000000000000000000000000000030000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
@@ -1465,10 +1573,10 @@ __map__
 1010101062106010101010101060101010101010101010601060101010101010101010101010106710101010101040101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 08090a0b0c0d630f101010101062101010101010411010101060101010101040101010101010106610101010101010101010101010601041101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 18191a1b1c1d1e1f411010101010101041101010101010101010101010101010101010101010023410101010101010101010104010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-28292a2b2c2d2e2f101010101010101010101010101010101010231010101010101010103010023310101010101010101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+28292a2b2c2d2e2f101010101010101010101010101010101010101010101010101010101010023310101010101010101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 38393a3b3c3d3e3f101010101010101010101010101010101010343434101010101010101010023310100234341010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-48494a4b4c4d4e4f104010101010441010101010101067101010331033101010101010101010023310100233331010101010101010101010301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-58595a5b5c5d5e5f101010101034343410101010101066101010331033101010101010343410101010100233331010101010101023101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+48494a4b4c4d4e4f104010101010441010101010101067101010331033101010101010101010103310100233331010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+58595a5b5c5d5e5f101010101034343410101010101066101010331033101010101010343410101010100233331010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 68696a6b6c6d6e42431010333333101033101010343434101010331033101010101010331010101010540233331010101010103434343434343410651010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 78797a7b7c7d6452535654101010101010505633331010020233331033121044101254334456101033333350563410561050333333101210333333333310101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1111111111111111111111060606060611111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
