@@ -90,21 +90,20 @@ end
 
 local function Trigger(sprit_1, sprit_2)
     local hit = false
-    -- local x1 = sprit_1.pos_x
-    -- local x2 = sprit_2.pos_x
-    -- local w1 = sprit_1.width * 8
-    -- local w2 = sprit_2.width * 8
-    -- local y1 = sprit_1.pos_y
-    -- local y2 = sprit_2.pos_y
-    -- local h1 = sprit_1.height * 8
-    -- local h2 = sprit_2.height * 8
-    -- local xd = abs((sprit_1.pos_x + (sprit_1.width * 8 / 2)) - (sprit_2.pos_x + (sprit_2.width * 8 / 2)))
-    -- local xs = sprit_1.width * 8 * 0.5 + sprit_2.width * 8 * 0.5
-    -- local yd = abs((sprit_1.pos_y + (sprit_1.height * 8 / 2)) - (sprit_2.pos_y + (sprit_2.height * 8 / 2)))
-    -- local ys = sprit_1.height * 8 / 2 + sprit_2.height * 8 / 2
-    if abs((sprit_1.pos_x + (sprit_1.width * 8 / 2)) - (sprit_2.pos_x + (sprit_2.width * 8 / 2))) < sprit_1.width * 8 * 0.5 + sprit_2.width * 8 * 0.5 and
-    abs((sprit_1.pos_y + (sprit_1.height * 8 / 2)) - (sprit_2.pos_y + (sprit_2.height * 8 / 2))) < sprit_1.height * 8 / 2 + sprit_2.height * 8 / 2 then
-        hit = true
+    local x1 = sprit_1.pos_x
+    local x2 = sprit_2.pos_x
+    local w1 = sprit_1.width * 8
+    local w2 = sprit_2.width * 8
+    local y1 = sprit_1.pos_y
+    local y2 = sprit_2.pos_y
+    local h1 = sprit_1.height * 8
+    local h2 = sprit_2.height * 8
+    local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
+    local xs = w1 * 0.5 + w2 * 0.5
+    local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
+    local ys = h1 / 2 + h2 / 2
+    if xd < xs and yd < ys then
+      hit = true
     end
     return hit
 end
@@ -457,28 +456,41 @@ function init_change_camera()
 end
 
 function game_over()
+  if player.hand_songzi >0 then
+    player_pinecone = player_pinecone - player.hand_songzi
+  end
   change_level(game_level)
 end
 
 function change_level(level)
-  -- if game_level ~= level then
-  --   cfg_levels["level" .. game_level].songzi = this_songzi_cfg
-  -- end
+  if game_level ~= level then
+    for i=1,#this_songzi_cfg do
+      cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+    end
+    -- cfg_levels["level" .. game_level].songzi = this_songzi_cfg
+  end
   game_state_flag = "change_level"
   for v in all(enemies.enemies) do
       v.destroy()
   end
+  for k,v in pairs(this_songzi_cfg) do
+    v = nil
+  end
   local level_cfg = cfg_levels["level" .. level]
   enemies = init_enemies(level_cfg.enemys)
-  this_songzi_cfg = level_cfg.songzi
   if level_cfg.songzi then
-    init_songzis(level_cfg.songzi)
+    for k,v in pairs(level_cfg.songzi) do
+      add(this_songzi_cfg, v)
+    end
+    if this_songzi_cfg then
+      init_songzis(this_songzi_cfg)
+    end
   end
   local camera_pos_x = level_cfg.camera_pos.x*8
   local camera_pos_y = level_cfg.camera_pos.y*8
   player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
   player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
-
+  player.hand_songzi = 0
   change_camera.change(level)
 end
 

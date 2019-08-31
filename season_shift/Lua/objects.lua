@@ -9,16 +9,16 @@ function init_chest ()
 end
 
 function init_songzis(songzi_config)
-  for i=1,#songzi_config do
-      local e = songzi_config[i]
-      local pos_x, pos_y = e[1], e[2]
-      local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
-      init_animation(b, 141, 142, 5, "move", true)
-      ontrigger_enter(b, player, function()
-        b.destroy()
-        player_pinecone = player_pinecone + 1
-        songzi_config[i] = nil
-      end)
+  for i,v in pairs(songzi_config) do
+    local pos_x, pos_y = v[1], v[2]
+    local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
+    init_animation(b, 141, 142, 5, "move", true)
+    ontrigger_enter(b, player, function()
+      b.destroy()
+      player_pinecone = player_pinecone + 1
+      player.hand_songzi = player.hand_songzi + 1
+      songzi_config[i] = nil
+    end)
   end
 end
 
@@ -122,6 +122,7 @@ function init_player()
   player.new_ground = 2
   player.max_jump = 1
   player.can_jump = 1
+  player.hand_songzi = 0
   player.player_states = {
     states_x = {
       nomal = function()

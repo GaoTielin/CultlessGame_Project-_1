@@ -125,9 +125,10 @@ function _init()
   lupai_hit = map_trigger_stay(player, 6, function()
     print("X", player.pos_x, player.pos_y + 3, 4)
     if btnp(5) then
-      change_level(1)
+      game_level = 1
+      change_level(game_level)
       player.pos_x = 48
-      player.pos_y = 80
+      player.pos_y = 80      
     end
   end, "all")
 
@@ -142,13 +143,16 @@ function _init()
   chest = init_chest()
   thief = init_thief()
   enemies = init_enemies(cfg_levels.level1.enemys)
-  this_songzi_cfg = cfg_levels.level1.songzi
+  this_songzi_cfg = {}
+  for k,v in pairs(cfg_levels.level1.songzi) do
+    add(this_songzi_cfg, v)
+  end
   if this_songzi_cfg then
-    init_songzis(cfg_levels.level1.songzi)
+    init_songzis(this_songzi_cfg)
   end
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
-  max_pinecone_num = 6
+  max_pinecone_num = 10
   player_pinecone = 3
   timer = newtimer()
 

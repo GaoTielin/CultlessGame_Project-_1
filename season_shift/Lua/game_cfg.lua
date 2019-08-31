@@ -6,7 +6,7 @@ cfg_jump_speed = 4 -- 跳跃速度
 cfg_climb_speed = 2 -- 爬墙速度
 cfg_gravity = 0.4 -- 重力(向下的加速度)
 cfg_player_max_v = 1.6 -- 最大速度
-cfg_mogu_jump = 3 -- 采蘑菇跳跃速度
+cfg_mogu_jump = 4 -- 采蘑菇跳跃速度
 cfg_camera_move_speed = { -- 切换地图时镜头移动速度
   x = 5,
   y = 5,
@@ -33,7 +33,7 @@ cfg_levels_autumn = {
       }
     },
     songzi = {
-      {9*8, 10*8}
+      -- {9*8, 10*8}
     },
   },
   level2 = {
@@ -56,7 +56,8 @@ cfg_levels_autumn = {
       },
     },
     songzi = {
-      {9*8, 10*8}
+      {13*8, 8*8},
+      {26*8, 6*8},
     },
   },
   level3 = {
@@ -77,6 +78,11 @@ cfg_levels_autumn = {
       catepillers = {
 
       },
+
+    },
+    songzi = {
+      {36*8,8*8},
+      {44*8,6*8},
     },
   },
   level4 = {
@@ -92,11 +98,14 @@ cfg_levels_autumn = {
     enemys = { -- 敌人配置
       caterpillar ={},
       bees = {
-        -- {26*8, 6*8, 16, 0.5},
+        {58*8, 7*8, 16, 0.5},
       },
       catepillers = {
-
+        {52*8, 9*8, 8, 0.5}
       },
+    },
+    songzi = {
+      {54*8, 9*8},
     },
   },
   level5 = {
@@ -115,8 +124,10 @@ cfg_levels_autumn = {
         -- {26*8, 6*8, 16, 0.5},
       },
       catepillers = {
-
+        {}
       },
     },
+    songzi = {
+    }
   },
 }
