@@ -99,9 +99,9 @@ local function Trigger(sprit_1, sprit_2)
     local h1 = sprit_1.height * 8
     local h2 = sprit_2.height * 8
     local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
-    local xs = w1 * 0.5 + w2 * 0.5
+    local xs = w1 * 0.5 + w2 * 0.5 - 2
     local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
-    local ys = h1 / 2 + h2 / 2
+    local ys = h1 / 2 + h2 / 2 - 2
     if xd < xs and yd < ys then
       hit = true
     end
