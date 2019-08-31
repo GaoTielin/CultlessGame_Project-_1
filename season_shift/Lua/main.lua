@@ -104,7 +104,7 @@ function _init()
 
   snow = init_snow()
   chest = init_chest()
-  enemies = init_enemies(enemy)
+  enemies = init_enemies(cfg_levels_autumn.level1.enemys)
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
   max_pinecone_num = 6

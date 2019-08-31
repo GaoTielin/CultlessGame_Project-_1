@@ -9,7 +9,7 @@ cfg_player_max_v = 1.6 -- 最大速度
 cfg_mogu_jump = 3 -- 采蘑菇跳跃速度
 
 cfg_levels_autumn = {
-  1 = {
+  level1 = {
     player_start_pos = { -- 角色起始在关卡中的位置 单位（格）
       x = 0,
       y = 3,
@@ -29,7 +29,7 @@ cfg_levels_autumn = {
       }
     },
   },
-  2 = {
+  level2 = {
     player_start_pos = { -- 角色起始在关卡中的位置 单位（格）
       x = 0,
       y = 3,
