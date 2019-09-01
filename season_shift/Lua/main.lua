@@ -233,7 +233,11 @@ update_states = {
         tail.update()
         enemies.update()
         move_camera()
-        if thief.act == 'run1' then thief.update_run1() end
+        if thief.act == 'run1' then
+            thief.update_run1()
+        elseif thief.act == 'run2' and game_level == 9 then
+            thief.update_run2()
+        end
         if chest.pinecone == 10 then
             game_level = 5
             change_level(5)
@@ -312,7 +316,7 @@ update_states = {
       print(player.vecter.x)
       -- snow.draw()
       chest.draw()
-      if thief.act == 'run1' then thief.draw_run1() end
+      if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
       enemies.draw()
       global_pinecone.draw()
       draw_pinecone_ui()

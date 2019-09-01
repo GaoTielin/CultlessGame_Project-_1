@@ -346,6 +346,10 @@ function init_thief ()
             end)
         end
         tail.update()
+        if thief.pos_x >= 520 then
+            thief.vecter.x = 0
+            thief.act = 'run2'
+        end
     end
     thief.mogu_hit = function()
         change_animation(thief, 'jump')
@@ -358,23 +362,28 @@ function init_thief ()
     thief.draw_run2 = function ()
     end
     thief.update_run2 = function ()
-        if not (thief.pos_x >= 68) then
+        if not (thief.pos_x >= 584) then
             change_animation(thief, 'run')
             change_animation(tail, 'run')
             thief.pos_x += 2
         else
             if not thief.fall_event then
                 thief.state = 'fall'
+                thief.vecter.x = 0
                 change_animation(thief, 'fall')
-                timer.add_timeout('thief_run', 0.5, function()
+                timer.add_timeout('thief_run', 1, function()
                     change_animation(thief, 'run')
                     change_animation(tail, 'run')
                     thief.state = 'run'
+                    init_songzis({
+                      {73*8, 11*8}
+                    })
                 end)
                 thief.fall_event = true
             end
             if thief.state ~= 'fall' then thief.pos_x += 2 end
         end
+        tail.update()
     end
     thief_mogu_hit = map_trigger_enter(thief, 3, thief.mogu_hit, "down")
     init_animation(thief, 160, 162, 10, "nomal", true)

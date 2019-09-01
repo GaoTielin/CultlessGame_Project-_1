@@ -476,7 +476,6 @@ function change_level(level)
     -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
-
   local level_cfg = cfg_levels["level" .. level]
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
