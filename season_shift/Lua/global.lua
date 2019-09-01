@@ -444,6 +444,8 @@ function init_change_camera()
     if changed_x and changed_y then
       old_camera_pos_x = now_camera_pos_x
       old_camera_pos_y = now_camera_pos_y
+      camera_location.x = old_camera_pos_x
+      camera_location.y = old_camera_pos_y
       return true
     else
       return false
@@ -467,7 +469,7 @@ function change_level(level)
     for i=1,#cfg_levels["level" .. game_level].songzi do
       cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
       this_songzi_cfg[i] = nil
-  end
+    end
   end
   game_state_flag = "change_level"
   for v in all(enemies.enemies) do
@@ -495,8 +497,10 @@ function change_level(level)
   end
   local camera_pos_x = level_cfg.camera_pos.x*8
   local camera_pos_y = level_cfg.camera_pos.y*8
-  player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
-  player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+  if level == game_level then
+    player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
+    player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+  end
   player.hand_songzi = 0
   change_camera.change(level)
 end
