@@ -12,7 +12,7 @@ controller = {
     if player.state == "climb" then
       player.climb_jump()
     else
-      player.vecter.y -= cfg_jump_speed
+      player.vecter.y = cfg_jump_speed * -1
       direction_flag.y = "up"
       player.can_jump =  player.can_jump - 1
       if player.state ~= "jump" then
@@ -197,10 +197,7 @@ update_states = {
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
         if (btn (1) ) controller.right()
-        -- local map_cfg = {
-        --   {x = 23, y = 11, sp = 2},
-        --   {x = 24, y = 11, sp = 2},
-        -- }
+        -- if (btnp (5)) change_level(2)
         -- if (btnp (5)) change_map(map_cfg)
 
         player.player_states.states_x[player_state_x_flag]()
@@ -372,11 +369,6 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         is_physic = is_physic,
         animation_table = animation_table,
         animation = animation,
-        -- destroy = function()
-        --     -- spr_obj = nil
-        --     spr_obj.trigger_enter = nil
-        --     object_table[obj_idx] = nil
-        -- end,
         flip_x = false,
         flip_y = false,
     }
@@ -385,10 +377,10 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         spr_obj.destroy_trigger_enter()
       end
       if spr_obj.destroy_trigger_stay then
-        spr_obj.destroy_trigger_enter()
+        spr_obj.destroy_trigger_stay()
       end
       if spr_obj.destroy_trigger_stay then
-        spr_obj.destroy_trigger_enter()
+        spr_obj.destroy_trigger_stay()
       end
       object_table[obj_idx] = nil
     end
@@ -763,6 +755,8 @@ function init_change_camera()
     if changed_x and changed_y then
       old_camera_pos_x = now_camera_pos_x
       old_camera_pos_y = now_camera_pos_y
+      camera_location.x = old_camera_pos_x
+      camera_location.y = old_camera_pos_y
       return true
     else
       return false
@@ -786,7 +780,7 @@ function change_level(level)
     for i=1,#cfg_levels["level" .. game_level].songzi do
       cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
       this_songzi_cfg[i] = nil
-  end
+    end
   end
   game_state_flag = "change_level"
   for v in all(enemies.enemies) do
@@ -814,8 +808,10 @@ function change_level(level)
   end
   local camera_pos_x = level_cfg.camera_pos.x*8
   local camera_pos_y = level_cfg.camera_pos.y*8
-  player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
-  player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+  if level == game_level then
+    player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
+    player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+  end
   player.hand_songzi = 0
   change_camera.change(level)
 end
@@ -1204,11 +1200,6 @@ function init_player()
       player.new_ground = 2
 
       player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
-      -- if player.vecter.y>0 then
-      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8
-      -- elseif player.vecter.y<0 then
-      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8 + 8-1
-      -- end
       player.vecter.y = 0
     end)
     hit(player, 1, "width", function()
@@ -1224,6 +1215,10 @@ function init_player()
         change_animation(tail, "climb")
         player.is_physic = false
         player.vecter.y = 0
+        if player.vecter.x ~= 0 then
+          player.pos_x = (player.vecter.x<0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+        end
+        player.vecter.x = 0
       end
     end)
     hit(player, player.new_ground, "height", function()
@@ -1258,12 +1253,12 @@ function init_player()
   end
 
   player.check_position = function()
-    if player.pos_x + 3 >= camera_location.x + 128 then
+    if player.pos_x + 3 > camera_location.x + 128 then
 
       change_level(game_level+1)
       game_level = game_level + 1
     end
-    if  player.pos_x + 8 <= camera_location.x then
+    if  player.pos_x + 8 < camera_location.x then
 
       -- printh("game_level- = " .. game_level, "dri")
       change_level(game_level-1)
@@ -1361,12 +1356,12 @@ end
 -->8
 -->game_cfg
 
-cfg_player_acceleration_fast = 0.2 -- Ë∑‚û°Ô∏èÊ≠•Â‚åÇ†È‚ñàüÂ∫¶
-cfg_player_acceleration_low = 0.3 -- Ë∑‚û°Ô∏èÊ≠•Â‚ô•‚óÜÈ‚ñàüÂ∫¶
-cfg_jump_speed = 3.2 -- Ë∑≥Ë∑‚¨áÔ∏èÈ‚ñàüÂ∫¶
+cfg_player_acceleration_fast = 0.3 -- Ë∑‚û°Ô∏èÊ≠•Â‚åÇ†È‚ñàüÂ∫¶
+cfg_player_acceleration_low = 0.6 -- Ë∑‚û°Ô∏èÊ≠•Â‚ô•‚óÜÈ‚ñàüÂ∫¶
+cfg_jump_speed = 3 -- Ë∑≥Ë∑‚¨áÔ∏èÈ‚ñàüÂ∫¶
 cfg_climb_speed = 1.6 -- Á‚òâ¨Â¢‚ñ•È‚ñàüÂ∫¶
-cfg_gravity = 0.4 -- È‚ô•‚ô™Â‚åÇõ(Â‚Ä¶‚û°Ô∏è‰∏‚¨ÖÔ∏èÁö‚ñëÂ‚åÇ†È‚ñàüÂ∫¶)
-cfg_player_max_v = 1.6 -- Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
+cfg_gravity = 0.3 -- È‚ô•‚ô™Â‚åÇõ(Â‚Ä¶‚û°Ô∏è‰∏‚¨ÖÔ∏èÁö‚ñëÂ‚åÇ†È‚ñàüÂ∫¶)
+cfg_player_max_v = 1.8 -- Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
 cfg_mogu_jump = 4 -- È‚ô•‚ô•Ë‚ñ§‚û°Ô∏èË‚óÜ‚ô•Ë∑≥Ë∑‚¨áÔ∏èÈ‚ñàüÂ∫¶
 cfg_camera_move_speed = { -- Â‚òâ‚ô•Ê‚ô™¢Âú∞ÂõæÊ‚ùé∂ÈÀáúÂ§¥ÁßªÂ‚åÇ®È‚ñàüÂ∫¶
   x = 5,
@@ -1595,22 +1590,22 @@ __gfx__
 0000000044444444ff12ffff6d6dd6d6cccccccccccccc7ccccccccccccc7cccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 0000000044444554f1f1f12f6dddddd6ccccccccc7ccccccccccccc7ccccccccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 00000000444444442ff21ff166666666ccccccc7ccccccccccccc7ccccccccccffffffffffffffffff9fffffaaaaafffffffffffffffffffffffffffffffffff
-ffffffff33333333ffffffff00000000ccccccccccccccccccccccccccccccccfffffffffffffffff99ffffaaa7aaaffffffffffffffffffffffffffffffffff
-ffffffff33353333ffffffff00000000cc7ccccccccccccc7cccccccccccccccffffffffffffffffffffffaaa77aaaafffffafffffffffff22ffffffffffffff
-ffffffff53545353ffffffff00000000ccccccccccccccccccccccccccccccc7ffffffffffffffffffffffaa777aa9aaaffaaafffffffff2282fffffffffffff
-ffffffff45445355ffffffff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffffaaaaa777aa9aaaaaaaaaffffff22222ffffffffffffff
-ffffffff44444544fff8ffff00000000ccccccccccccccccccccccccccccccccffffffffffffffffffafaaa7777aaa9aaaaaaaaaffffff2222ffffffffffffff
-ffffffff44444444ff878fff00000000ccccc7ccccccccccccc7ccccccccccccfffffffffffffffffffffaaa777aaa9aaa777aaaafaffffaa2ffffffffffffff
-ffffffff45444444f88888ff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffffffaaaaa7a9aaaaaa7aaaaaaaffffaaaffffffffffffff
-ffffffff44444454ff777fff00000000ccccccccccccccccccccccccccccccccfffffffffffffffffaffaaaaaaaaa9aaaaaaaaaaaaaaaaaaaaffffffffffffff
-00000000444444440000000000000000bb000000bb000000fffffffffffffffffffffffafffffffffaaaaaaaaaaaa999aaaaaaaa9aaaaaffaaffffffffffffff
-000000004444444400000000000000003300000033000000ffffffffffffffffffffffaaafffffaaaaaaaaa777aaaa9a99aaaaa9aaaaaaaaaaffffffffffffff
-00000000444445440000000000000000bb0000000bb00000fffffffffffffffffffffffffffff9aaaaa9aaaa77aaaaaa999aa99aaa7aaaaaaaafffffffafffff
-000000004444444400000000000000003300000000330000fffffffffffffffffffffffffffffa999999aaaaa7aaaaaaa999999aaa7a99aaaaaffffffaafffff
-00000000444444440000000000003000bb0000000bb00000ff3ffffffff3fffffffffffffffaaa99999aaaaa9aaaa9aaaa9999aaaa77aaaa9aaaffffffffffff
-000000004544444400000000000b3b00bb000000bb000000fff333fffff3ffffffffffffffaaaa9999aaaaaaa9999aaaaaa9aaaaaaaa9aa999aaafffffffffff
-00000000444444440bbb3b3b0bbb0b3bbb000000bb000000fff3f3fffff33ffffffffffffaaaaaaa9999aaaaaaaaaaaaaaaaaaaaaaaaa9a99a99999fffffffff
-00000000444444440bbb3b3b0bb0003b0000000000000000fff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
+ffffffff33333333ffffffffffffffffccccccccccccccccccccccccccccccccfffffffffffffffff99ffffaaa7aaaffffffffffffffffffffffffffffffffff
+ffffffff33353333ffffffffffffffffcc7ccccccccccccc7cccccccccccccccffffffffffffffffffffffaaa77aaaafffffafffffffffff22ffffffffffffff
+ffffffff53545353ffffffffffffffffccccccccccccccccccccccccccccccc7ffffffffffffffffffffffaa777aa9aaaffaaafffffffff2282fffffffffffff
+ffffffff45445355ffffffffffffffffccccccccccccccccccccccccccccccccfffffffffffffffffffaaaaa777aa9aaaaaaaaaffffff22222ffffffffffffff
+ffffffff44444544fff8ffffafffffffccccccccccccccccccccccccccccccccffffffffffffffffffafaaa7777aaa9aaaaaaaaaffffff2222ffffffffffffff
+ffffffff44444444ff878fff9f7666ffccccc7ccccccccccccc7ccccccccccccfffffffffffffffffffffaaa777aaa9aaa777aaaafaffffaa2ffffffffffffff
+ffffffff45444444f88888ffa66ddd5fccccccccccccccccccccccccccccccccfffffffffffffffffffffaaaaa7a9aaaaaa7aaaaaaaffffaaaffffffffffffff
+ffffffff44444454ff777fff95d655aaccccccccccccccccccccccccccccccccfffffffffffffffffaffaaaaaaaaa9aaaaaaaaaaaaaaaaaaaaffffffffffffff
+77777777444444440000000000000000bb000000bb000000fffffffffffffffffffffffafffffffffaaaaaaaaaaaa999aaaaaaaa9aaaaaffaaffffffffffffff
+777777774444444400000000000000003300000033000000ffffffffffffffffffffffaaafffffaaaaaaaaa777aaaa9a99aaaaa9aaaaaaaaaaffffffffffffff
+77777777444445440000000000000000bb0000000bb00000fffffffffffffffffffffffffffff9aaaaa9aaaa77aaaaaa999aa99aaa7aaaaaaaafffffffafffff
+777777774444444400000000000000003300000000330000fffffffffffffffffffffffffffffa999999aaaaa7aaaaaaa999999aaa7a99aaaaaffffffaafffff
+77777777444444440000000000003000bb0000000bb00000ff3ffffffff3fffffffffffffffaaa99999aaaaa9aaaa9aaaa9999aaaa77aaaa9aaaffffffffffff
+777777774544444400000000000b3b00bb000000bb000000fff333fffff3ffffffffffffffaaaa9999aaaaaaa9999aaaaaa9aaaaaaaa9aa999aaafffffffffff
+77777777444444440bbb3b3b0bbb0b3bbb000000bb000000fff3f3fffff33ffffffffffffaaaaaaa9999aaaaaaaaaaaaaaaaaaaaaaaaa9a99a99999fffffffff
+77777777444444440bbb3b3b0bb0003b0000000000000000fff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
 000000000000000000000000977777773333333300000000fffffffffff8ffffffffffffaaaaaaaaaa779aaaaa99aaaaaaaaaaaaa9aa999999997799ffffffff
 760006706660006676000670d99999973233323300000000f8fffffffffffff8ffffffffaaaaaaaaaaa77aaaa9999aaaaaaaaaaaaa999999999999999fffffff
 776067707776067777606770d99999972d232d2700000000ffaf8fffffff8fffffffffffaaaaaaaaaaa77aaa999999aa7777aaaa99999999999a9a9999ffffff
@@ -1643,14 +1638,14 @@ ffb33ffffb33fffffffffffffffffffffff4fffffff4fffffff3f3ffffaaaaffffffffffffffffff
 ffff3bffffff3bfffffffffffffffffffff4fffffff4fffffff33ffff9faaf9ffffffffffffffffffffffffffffffffe22222ffffff22fffffffffffffffffff
 ffff3fffffff3fffffffffffffffffffaaa4fffffff4fffffff3fffffff3ffffffffffffffffffafffffffaffffffffe22222fffff2fffffffffffffffffffff
 fff33f3ffff33f3fffffffffffffffff99949999fff4fffffff3fffffff3fffffffffffffffffaafffffffffffffff2222222fffffffafffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000fffffffffffffafffffffffffffff22222222fffffffaaffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffff222222222fffffffffffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffe222222222ffffffffffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffff222222e2222222ffffffffffffffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000fffffffffffffffffffffffeee922e9992299e229aaaaaaaafffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000fffffffffffaafffffff999999299999229999ee229999999fffffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000fff9aaaa9aaaaa9999999aa9229999992999999999999aaaaaaaffffffffffff
-0000000000000000000000000000000000000000000000000000000000000000ff999999aaaa9999999999999999999999999999999a99999999aaaaafffffff
+7777777777777777777777777777777700000000000000000000000000000000fffffffffffffafffffffffffffff22222222fffffffaaffffffffffffffffff
+7777777777777777777777777777777700000000000000000000000000000000ffffffffffffffffffffffffffff222222222fffffffffffffffffffffffffff
+7777777777777777777777777777777700000000000000000000000000000000ffffffffffffffffffffffffffffe222222222ffffffffffffffffffffffffff
+7777777777777777777777777777777700000000000000000000000000000000ffffffffffffffffffffffff222222e2222222ffffffffffffffffffffffffff
+7777777777777777777777777777777700000000000000000000000000000000fffffffffffffffffffffffeee922e9992299e229aaaaaaaafffffffffffffff
+7777777777777777777777777777777700000000000000000000000000000000fffffffffffaafffffff999999299999229999ee229999999fffffffffffffff
+7777777777777777777777777777777700000000000000000000000000000000fff9aaaa9aaaaa9999999aa9229999992999999999999aaaaaaaffffffffffff
+0777777777777777777777777777444400000000000000000000000000000000ff999999aaaa9999999999999999999999999999999a99999999aaaaafffffff
 00040000000994000009400000000000000000000000000000000000000004000000040000000000000000000000000000000000000000000000000000000000
 09400400049400000094994000000000004444000444400000000000000049900000499004440400000000000000000000000000000000000006600000066000
 94000990494004000940000400444000049999404009994040000000000497790049977949994990044000000000000000000000000000000069760000600600
