@@ -108,7 +108,7 @@ function init_cloud()
 
   local function draw()
     for m in all(maps) do
-      map(m.x+camera_location.x, m.y+camera_location.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
+      map(m.x, m.y, m.map_x + m.ex_x + camera_location.x, m.map_y + camera_location.y, m.width, m.height)
     end
   end
   return {
