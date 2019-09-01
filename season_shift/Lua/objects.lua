@@ -33,7 +33,7 @@ function init_songzis(songzi_config)
 end
 
 -- enemy could be bee or catepiller, depends on type args
-function init_enemy (pos_x, pos_y, max_range, speed, type)
+function init_enemy (pos_x, pos_y, max_range, speed, is_flip, type)
     local e
     if type == 'bee' then
         e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
@@ -46,7 +46,7 @@ function init_enemy (pos_x, pos_y, max_range, speed, type)
       game_over()
     end)
 
-    e.flip_x = false
+    e.flip_x = is_flip
     e.update = function ()
         if not e.flip_x and e.pos_x > pos_x + max_range then
             e.flip_x = true
@@ -70,7 +70,8 @@ function init_enemies (enemy_config)
       for i=1,#enemy_config.bees do
           local e = enemy_config.bees[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local b = init_enemy(pos_x, pos_y, max_range, speed, 'bee')
+          local is_flip = e[5] and e[5] or false
+          local b = init_enemy(pos_x, pos_y, max_range, speed, is_flip, 'bee')
           add(o.enemies, b)
       end
     end
@@ -78,7 +79,8 @@ function init_enemies (enemy_config)
       for i=1,#enemy_config.catepillers do
           local e = enemy_config.catepillers[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local c = init_enemy(pos_x, pos_y, max_range, speed, 'catepiller')
+          local is_flip = e[5] and e[5] or false
+          local c = init_enemy(pos_x, pos_y, max_range, speed, is_flip, 'catepiller')
           add(o.enemies, c)
       end
     end
