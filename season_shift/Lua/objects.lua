@@ -38,26 +38,40 @@ function init_enemy (pos_x, pos_y, max_range, speed, is_flip, type)
     if type == 'bee' then
         e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
         init_animation(e, 48, 50, 10, "move", true)
-    elseif type == 'catepiller' then
-        e = init_spr("catepiller", 34, pos_x, pos_y, 1, 1, true, 0, 0)
+    elseif type == 'catepiller_x' then
+        e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
+    elseif type == 'catepiller_y' then
+        e = init_spr("catepiller_y", 34, pos_x, pos_y, 1, 1, false, 0, 0)
+        init_animation(e, 36, 37, 10, "move", true)
     end
     ontrigger_enter(e, player, function()
       game_over()
     end)
 
     e.flip_x = is_flip
+    e.flip_y = is_flip
     e.update = function ()
-        if not e.flip_x and e.pos_x > pos_x + max_range then
-            e.flip_x = true
+        if e.name == 'catepiller_x' or e.name == 'bee' then
+            if not e.flip_x and e.pos_x > pos_x + max_range then
+                e.flip_x = true
+            end
+            if e.flip_x and e.pos_x < pos_x - max_range then
+                e.flip_x = false
+            end
+            e.pos_x = e.pos_x + (e.flip_x and -speed or speed)
+        elseif e.name == 'catepiller_y' then
+            if not e.flip_y and e.pos_y < pos_y - max_range then
+                e.flip_y = true
+            end
+            if e.flip_y and e.pos_y > pos_y + max_range then
+                e.flip_y = false
+            end
+            e.pos_y = e.pos_y + (e.flip_y and speed or -speed)
         end
-        if e.flip_x and e.pos_x < pos_x - max_range then
-            e.flip_x = false
-        end
-        e.pos_x = e.pos_x + (e.flip_x and -speed or speed)
     end
     e.draw = function ()
-        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
+        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x, e.flip_y)
     end
     return e
 end
@@ -80,7 +94,13 @@ function init_enemies (enemy_config)
           local e = enemy_config.catepillers[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local is_flip = e[5] and e[5] or false
-          local c = init_enemy(pos_x, pos_y, max_range, speed, is_flip, 'catepiller')
+          local direction = e[6] and e[6] or 'x'
+          local c
+          if direction == 'x' then
+              c = init_enemy(pos_x, pos_y, max_range, speed, is_flip, 'catepiller_x')
+          elseif direction == 'y' then
+              c = init_enemy(pos_x, pos_y, max_range, speed, is_flip, 'catepiller_y')
+          end
           add(o.enemies, c)
       end
     end
