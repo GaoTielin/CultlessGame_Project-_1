@@ -235,6 +235,7 @@ update_states = {
         if thief.act == 'run1' then thief.update_run1() end
         if chest.pinecone == 10 then
             game_level = 5
+            change_level(5)
             chest.pinecone -= 1
             thief.act = 'run1'
         end
