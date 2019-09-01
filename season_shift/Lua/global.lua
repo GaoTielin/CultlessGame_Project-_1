@@ -365,21 +365,6 @@ function exchange_obj(obj_1, obj_2)
     return obj_2, mid_obj
 end
 
-function handle_player_hit ()
-    if player_pinecone == 0 then
-        -- todo change scene to gameover
-    else
-        player_pinecone -= 1
-        local p = {sp=141, pos_x=player.pos_x+8, pos_y=player.pos_y+8, is_dropped=true}
-        add(global_pinecone.pinecone_list, p)
-        timer.add_timeout('remove_pinecone'..player_pinecone, 3, function()
-            del(global_pinecone.pinecone_list, p)
-        end)
-        player.vecter.x = player.flip_x and 2 or -2
-        game_over()
-    end
-end
-
 function move_camera ()
     local map_start = 0
     local map_end = 1024
@@ -498,6 +483,44 @@ function change_level(level)
   end
   player.hand_songzi = 0
   change_camera.change(level)
+end
+
+local fadetable = {
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {1,1,1,1,1,1,1,0,0,0,0,0,0,0,0},
+    {2,2,2,2,2,2,1,1,1,0,0,0,0,0,0},
+    {3,3,3,3,3,3,1,1,1,0,0,0,0,0,0},
+    {4,4,4,2,2,2,2,2,1,1,0,0,0,0,0},
+    {5,5,5,5,5,1,1,1,1,1,0,0,0,0,0},
+    {6,6,13,13,13,13,5,5,5,5,1,1,1,0,0},
+    {7,6,6,6,6,13,13,13,5,5,5,1,1,0,0},
+    {8,8,8,8,2,2,2,2,2,2,0,0,0,0,0},
+    {9,9,9,4,4,4,4,4,4,5,5,0,0,0,0},
+    {10,10,9,9,9,4,4,4,5,5,5,5,0,0,0},
+    {11,11,11,3,3,3,3,3,3,3,0,0,0,0,0},
+    {12,12,12,12,12,3,3,1,1,1,1,1,1,0,0},
+    {13,13,13,5,5,5,5,1,1,1,1,1,0,0,0},
+    {14,14,14,13,4,4,2,2,2,2,2,1,1,0,0},
+    {15,15,6,13,13,13,5,5,5,5,5,1,1,0,0}
+}
+
+function fade(i)
+    for c=0,15 do
+        if flr(i+1)>=16 then
+            pal(c,0)
+        else
+            pal(c,fadetable[c+1][flr(i+1)])
+        end
+    end
+end
+
+function fade_out()
+    printh('fadeout')
+    for i=1,16 do
+        timer.add_timeout('fade'..i, i*0.1, function()
+            fade(i)
+        end)
+    end
 end
 
 function _update()
