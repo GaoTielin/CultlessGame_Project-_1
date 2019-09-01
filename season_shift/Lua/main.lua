@@ -126,12 +126,9 @@ function _init()
   lupai_hit = map_trigger_stay(player, 6, function()
     print("X", player.pos_x, player.pos_y + 3, 4)
     if btnp(5) then
-      if thief.act == 'init' and camera_location.x > 0 then
-            thief.act = 'run1'
-      end
+      game_level = 1
+      change_level(1)
       -- local next_level = player_pinecone >= 10 then
-      change_level(5)
-      game_level = 5
       player.pos_x = 48
       player.pos_y = 80
     end
@@ -156,8 +153,8 @@ function _init()
   end
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
-  max_pinecone_num = 10
-  player_pinecone = 3
+  max_pinecone_num = 6
+  player_pinecone = 1
   timer = newtimer()
 
   map_ani_1 = init_map_animation(7, 15, 2, false)
@@ -236,6 +233,11 @@ update_states = {
         enemies.update()
         move_camera()
         if thief.act == 'run1' then thief.update_run1() end
+        if chest.pinecone == 10 then
+            game_level = 5
+            chest.pinecone -= 1
+            thief.act = 'run1'
+        end
     end,
 
     game_over_update = function()

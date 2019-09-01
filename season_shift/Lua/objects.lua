@@ -1,7 +1,7 @@
 -- objects
 function init_chest ()
     local c = init_spr("chest", 139, 9, 48, 2, 2, true, 0, 0)
-     c.pinecone = 0
+     c.pinecone = 4
      c.draw = function ()
          print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-6, 4)
      end
