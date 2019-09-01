@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
---------------�🅾️��☉��▥�----------------
+--------------�🅾️��☉��▥�----------------
 map_location ={
     x = 0,
     y = 0,
@@ -111,16 +111,18 @@ function _init()
   direction_flag = {
     x,
     y,
-  } --�∧��…➡️�♥签
-  game_state_flag = "play"--游�☉◆�⌂��█▒�♥签
-  gravity = cfg_gravity-- �♥♪�⌂�
+  } --�∧��…➡️��♥签
+  cloud = init_cloud()
+  game_state_flag = "play"--游�☉◆�⌂��█▒��♥签
+  gravity = cfg_gravity-- �♥♪�⌂�
   update_state_flag = "play"
   draw_state_flage = "play"
   player_state_x_flag = "nomal"
-  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
+  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
+  thief = init_thief()
   player = init_player()
   player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
@@ -128,9 +130,9 @@ function _init()
   lupai_hit = map_trigger_stay(player, 6, function()
     print("x", player.pos_x, player.pos_y + 3, 4)
     if btnp(5) then
+      game_level = 1
+      change_level(1)
       -- local next_level = player_pinecone >= 10 then
-      change_level(5)
-      game_level = 5
       player.pos_x = 48
       player.pos_y = 80
     end
@@ -145,7 +147,6 @@ function _init()
 
   snow = init_snow()
   chest = init_chest()
-  thief = init_thief()
   enemies = init_enemies(cfg_levels.level1.enemys)
   this_songzi_cfg = {}
   for k,v in pairs(cfg_levels.level1.songzi) do
@@ -156,8 +157,8 @@ function _init()
   end
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
-  max_pinecone_num = 10
-  player_pinecone = 3
+  max_pinecone_num = 6
+  player_pinecone = 1
   timer = newtimer()
 
   map_ani_1 = init_map_animation(7, 15, 2, false)
@@ -175,9 +176,9 @@ function _init()
   end, 'chest_store')
 end
 
-------------游�☉◆�⌂��█▒机-----------------
+------------游�☉◆�⌂��█▒机-----------------
 game_states = {
-----------update�⌂��█▒机--------------
+----------update�⌂��█▒机--------------
 update_states = {
   change_level_update = function()
     if change_camera.update() then
@@ -203,7 +204,6 @@ update_states = {
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()
         player.hit()
-
         for v in all(object_table) do
           if v.name ~= "player" then
             v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
@@ -236,8 +236,14 @@ update_states = {
         tail.update()
         enemies.update()
         move_camera()
-        thief.draw_run1()
-
+        if thief.act == 'run1' then thief.update_run1() end
+        if chest.pinecone == 10 then
+            game_level = 5
+            change_level(5)
+            chest.pinecone -= 1
+            thief.act = 'run1'
+        end
+        cloud.update()
     end,
 
     game_over_update = function()
@@ -246,17 +252,24 @@ update_states = {
   },
   ---------------------------------
 
-  -----------draw�⌂��█▒机-------------
+  -----------draw�⌂��█▒机-------------
 
   draw_states = {
     change_level_draw = function()
       map(map_location.x, map_location.y)
+      cloud.draw()
 
       for v in all(object_table) do
         if v.flip_x then
           spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
         else
-          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+            if v.name == 'thief' then
+                if thief.act ~= 'init' then
+                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+                end
+            else
+              spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+            end
         end
       end
 
@@ -272,18 +285,26 @@ update_states = {
       draw_pinecone_ui()
       mogu_hit()
       jinji_hit()
+
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
 
     play_draw = function()
       map(map_location.x, map_location.y)
+      cloud.draw()
 
       for v in all(object_table) do
         if v.flip_x then
           spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
         else
-          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+            if v.name == 'thief' then
+                if thief.act ~= 'init' then
+                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+                end
+            else
+              spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+            end
         end
       end
 
@@ -294,13 +315,14 @@ update_states = {
       print(player.vecter.x)
       -- snow.draw()
       chest.draw()
-      thief.update_run1()
+      if thief.act == 'run1' then thief.draw_run1() end
       enemies.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
       mogu_hit()
       jinji_hit()
       lupai_hit()
+
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
@@ -316,7 +338,7 @@ update_states = {
 -->8
 --> global-1
 object_table = {}
----------------计�❎��▥�-------------------
+---------------计�❎��▥�-------------------
 newtimer = function ()
     local o = {
         timers = {}
@@ -356,7 +378,7 @@ end
 
 ----------------------------------------
 
-----------------实�⬅️�😐∧对象---------------
+----------------实��⬅️�😐∧对象---------------
 --sp(图�웃♥索�ˇ)--pos_x,pos_y(实�⬅️�😐∧�…�♥)--width,height(图�웃♥�▤度�😐宽度)--
 function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
     if not v_x then v_x = 0 end
@@ -382,7 +404,8 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
       if spr_obj.destroy_trigger_stay then
         spr_obj.destroy_trigger_stay()
       end
-      object_table[obj_idx] = nil
+      -- object_table[obj_idx] = nil
+      del(object_table, spr_obj)
     end
 
     add(object_table, spr_obj)
@@ -390,7 +413,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
--------------�★�⧗碰�★��☉触�◆➡️�⬅️�웃--------------
+-------------��★��⧗碰�★���☉触�◆➡️��⬅️��웃--------------
 trigger_table = {}
 
 function update_trigger()
@@ -493,7 +516,7 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     return trigger_exit
 end
 
--------------�★�⧗碰�★��☉碰�★��⬅️�웃--------------
+-------------��★��⧗碰�★���☉碰�★���⬅️��웃--------------
 cllision_table = {}
 function update_cllision()
     for k, v in pairs(cllision_table) do
@@ -566,7 +589,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
 end
 ---------------------------------------
 
---------------地形碰�★�-------------------
+--------------地形碰�★�-------------------
 --sprit_flag: palyer = 1, map = 2
 function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
     local next_x = sprit.pos_x + sprit.vecter.x
@@ -628,7 +651,7 @@ end
 ------------------------------------------
 
 
-----------------------�☉�建�⌂��⬆️�-------------------
+----------------------�☉�建�⌂��⬆️�-------------------
 function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     local update_time = 0
     local sp = first_spr
@@ -660,12 +683,12 @@ function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     end
 end
 
--------------�☉♥�♪��⌂��⬆️�----------------
+-------------�☉♥�♪��⌂��⬆️�----------------
 function change_animation(spr_obj, ani_flag)
     spr_obj.animation = spr_obj.animation_table[ani_flag]
 end
 
------------�⌂��⬆️��★��⬆️�---------------
+-----------�⌂��⬆️��★��⬆️�---------------
 function update_animation()
     for v in all(object_table) do
         if v.animation then
@@ -674,7 +697,7 @@ function update_animation()
     end
 end
 
-------------�☉♥�♪�对象---------------
+------------�☉♥�♪�对象---------------
 function exchange_obj(obj_1, obj_2)
     local mid_obj = obj_1
     return obj_2, mid_obj
@@ -802,7 +825,7 @@ function change_level(level)
       -- printh("level-i = " .. i, "dir")
       this_songzi_cfg[i] = level_cfg.songzi[i]
     end
-    if this_songzi_cfg then
+    if #this_songzi_cfg ~= 0 then
       songzi = init_songzis(this_songzi_cfg)
     end
   end
@@ -879,6 +902,119 @@ function init_snow(speed, num, hit_spr_flag)
         update = update,
         draw = draw,
     }
+end
+
+function init_cloud()
+  -- local cloud_speed_1 = 0.3
+  -- local cloud_speed_2 = 0.5
+  -- local map_x_1 = 0
+  -- local map_y_1 = 0
+  -- local map_x_2 = 0
+  -- local map_y_2 = 0
+
+  local function update_location(need_x, speed)
+    local cloud_x = need_x
+    if cloud_x < -128 then
+      cloud_x = 0
+    end
+    cloud_x = cloud_x - speed
+    return cloud_x
+  end
+  local maps = {}
+
+  local function init_map(x, y, map_x, map_y, width, height, speed)
+    local m = {
+      x = x,
+      y = y,
+      map_x = map_x,
+      map_y = map_y,
+      width = width,
+      height = height,
+      speed = speed,
+      ex_x = 0,
+      ex_y = 0,
+    }
+    m.update = function()
+      m.ex_x = update_location(m.ex_x, m.speed)
+      -- printh(m.ex_x, "dir")
+    end
+    -- m.draw = function()
+    --   -- printh(m.ex_x, "dir")
+    --   map(m.x, m.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
+    -- end
+    add(maps, m)
+  end
+
+  init_map(112, 21, 0, 8, 16, 3, 0.2)--2
+  init_map(112, 21, 128, 8, 16,  3, 0.2)
+  -- init_map(112, 24, 0, 16, 16, 4, 0.3) --3
+  -- init_map(112, 24, 128, 16, 16, 4, 0.3)
+  init_map(112, 16, 0, 0, 16, 3, 0.4)--1
+  init_map(112, 16, 128, 0, 16, 3, 0.4)
+  -- init_map(112, 28, 0, 24, 16, 4, 0.5)--4
+  -- init_map(112, 28, 128, 24, 16, 4, 0.5)
+
+  local function update()
+    for v in all(maps) do
+      v.update()
+    end
+  end
+
+  local function draw()
+    for m in all(maps) do
+      map(m.x+camera_location.x, m.y+camera_location.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
+    end
+  end
+  return {
+    update = update,
+    draw = draw,
+  }
+end
+
+function init_leaves(speed, num, hit_spr_flag)
+  local function init_leaf(pos_x, v_x, v_y)
+    local lf = init_spr("leaf", 118, pos_x, 0, 1, 1, false, v_x, v_y)
+    local update_speed = 5+flr(rnd(15))
+    init_animation(lf, 118, 119, update_speed, "leaf", true)
+    return lf
+  end
+
+  if not speed then speed = 1 end
+  if not hit_spr_flag then hit_spr_flag = 1 end
+  if not num then num = flr(rnd(10)) + 10 end
+  local leaves = {}
+  for i = 1, num do
+      local pos_x = flr(rnd(125))+2
+      local v_x = rnd(3)+speed
+      local v_y = 3 - rnd(6)
+      local f = init_leaf(pos_x, v_x, v_y)
+      add(leaves, f)
+  end
+
+  local function is_land(sp)
+      if get_map_flage(sp.pos_x, (sp.pos_y + sp.vecter.y)) == hit_spr_flag then
+          sp.pos_y = flr((sp.pos_y + sp.vecter.y) / 8) * 8 - 8
+          return true
+      end
+  end
+
+  -- local function update()
+  --     for s in all(leaves) do
+  --         if not s.landed then
+  --             s.pos_x += s.vecter.x
+  --             s.pos_y += s.vecter.y
+  --         end
+  --         if is_land(s) and not s.landed then
+  --             -- s.y = 100
+  --             s.landed = true
+  --             timer.add_timeout('snow_melt'..s.n, 1, function()
+  --                 s.landed = false
+  --                 s.y = 0
+  --                 s.x = rnd(128)
+  --             end)
+  --         end
+  --     end
+  -- end
 end
 
 -->8
@@ -1018,7 +1154,7 @@ end
 -- objects
 function init_chest ()
     local c = init_spr("chest", 139, 9, 48, 2, 2, true, 0, 0)
-     c.pinecone = 0
+     c.pinecone = 4
      c.draw = function ()
          print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-6, 4)
      end
@@ -1050,29 +1186,45 @@ function init_songzis(songzi_config)
 end
 
 -- enemy could be bee or catepiller, depends on type args
-function init_enemy (pos_x, pos_y, max_range, speed, type)
+function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
     local e
     if type == 'bee' then
         e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
         init_animation(e, 48, 50, 10, "move", true)
-    elseif type == 'catepiller' then
-        e = init_spr("catepiller", 34, pos_x, pos_y, 1, 1, true, 0, 0)
+    elseif type == 'catepiller_x' then
+        e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
+    elseif type == 'catepiller_y' then
+        e = init_spr("catepiller_y", 34, pos_x, pos_y, 1, 1, false, 0, 0)
+        init_animation(e, 36, 37, 10, "move", true)
     end
-    ontrigger_enter(e, player, game_over)
+    ontrigger_enter(e, player, function()
+      game_over()
+    end)
 
-    e.flip_x = false
+    e.flip_x = flip_x
+    e.flip_y = flip_y
     e.update = function ()
-        if not e.flip_x and e.pos_x > pos_x + max_range then
-            e.flip_x = true
+        if e.name == 'catepiller_x' or e.name == 'bee' then
+            if not e.flip_x and e.pos_x > pos_x + max_range then
+                e.flip_x = true
+            end
+            if e.flip_x and e.pos_x < pos_x - max_range then
+                e.flip_x = false
+            end
+            e.pos_x = e.pos_x + (e.flip_x and -speed or speed)
+        elseif e.name == 'catepiller_y' then
+            if not e.flip_y and e.pos_y < pos_y - max_range then
+                e.flip_y = true
+            end
+            if e.flip_y and e.pos_y > pos_y + max_range then
+                e.flip_y = false
+            end
+            e.pos_y = e.pos_y + (e.flip_y and speed or -speed)
         end
-        if e.flip_x and e.pos_x < pos_x - max_range then
-            e.flip_x = false
-        end
-        e.pos_x = e.pos_x + (e.flip_x and -speed or speed)
     end
     e.draw = function ()
-        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
+        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x, e.flip_y)
     end
     return e
 end
@@ -1085,7 +1237,9 @@ function init_enemies (enemy_config)
       for i=1,#enemy_config.bees do
           local e = enemy_config.bees[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local b = init_enemy(pos_x, pos_y, max_range, speed, 'bee')
+          local flip_x = e[5] and e[5] or false
+          local flip_y = e[6] and e[5] or false
+          local b = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'bee')
           add(o.enemies, b)
       end
     end
@@ -1093,7 +1247,15 @@ function init_enemies (enemy_config)
       for i=1,#enemy_config.catepillers do
           local e = enemy_config.catepillers[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local c = init_enemy(pos_x, pos_y, max_range, speed, 'catepiller')
+          local flip_x = e[5] and e[5] or false
+          local flip_y = e[6] and e[5] or false
+          local direction = e[7] and e[7] or 'x'
+          local c
+          if direction == 'x' then
+              c = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'catepiller_x')
+          elseif direction == 'y' then
+              c = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'catepiller_y')
+          end
           add(o.enemies, c)
       end
     end
@@ -1200,10 +1362,18 @@ function init_player()
       player.new_ground = 2
 
       player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+      -- if player.vecter.y>0 then
+      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8
+      -- elseif player.vecter.y<0 then
+      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8 + 8-1
+      -- end
       player.vecter.y = 0
     end)
     hit(player, 1, "width", function()
       -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+      if player.vecter.x ~= 0 then
+        player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+      end
       player.vecter.x = 0
       local map_y = player.pos_y + player.height*8+7
       if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
@@ -1215,10 +1385,6 @@ function init_player()
         change_animation(tail, "climb")
         player.is_physic = false
         player.vecter.y = 0
-        if player.vecter.x ~= 0 then
-          player.pos_x = (player.vecter.x<0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
-        end
-        player.vecter.x = 0
       end
     end)
     hit(player, player.new_ground, "height", function()
@@ -1292,8 +1458,10 @@ function init_tail()
 end
 
 function init_thief ()
-    local thief = init_spr("thief", 160, 20, 50, 1, 1, true)
+    local thief = init_spr("thief", 160, 20, 60, 1, 1, true)
+    thief.act = 'init'
     thief.mogu_jump_event = false
+    thief.fall_event = false
     thief.flip_x = false
     thief.draw_run1 = function ()
         thief_mogu_hit()
@@ -1314,11 +1482,11 @@ function init_thief ()
             thief.state = 'run'
             change_animation(thief, 'run')
             change_animation(tail, 'run')
-            thief.pos_x += 1
+            thief.pos_x += 2
         end
         if thief.pos_x >= 68 and not thief.mogu_jump_event then
             thief.vecter.y -= 4
-            thief.vecter.x += 3
+            thief.vecter.x += 0.5
             thief.mogu_jump_event = true
         end
         if thief.pos_x >= 96 then
@@ -1335,35 +1503,52 @@ function init_thief ()
     thief.mogu_hit = function()
         change_animation(thief, 'jump')
         change_animation(tail, 'jump')
-        thief.vecter.y = -4
-        timer.add_timeout('thief_jump', 0.15, function()
+        thief.vecter.y = -5
+        timer.add_timeout('thief_jump', 0.1, function()
             thief.vecter.x = 1
         end)
     end
     thief.draw_run2 = function ()
     end
     thief.update_run2 = function ()
-      tail.update()
+        if not (thief.pos_x >= 68) then
+            change_animation(thief, 'run')
+            change_animation(tail, 'run')
+            thief.pos_x += 2
+        else
+            if not thief.fall_event then
+                thief.state = 'fall'
+                change_animation(thief, 'fall')
+                timer.add_timeout('thief_run', 0.5, function()
+                    change_animation(thief, 'run')
+                    change_animation(tail, 'run')
+                    thief.state = 'run'
+                end)
+                thief.fall_event = true
+            end
+            if thief.state ~= 'fall' then thief.pos_x += 2 end
+        end
     end
     thief_mogu_hit = map_trigger_enter(thief, 3, thief.mogu_hit, "down")
     init_animation(thief, 160, 162, 10, "nomal", true)
     init_animation(thief, 167, 170, 10, "run", true)
     init_animation(thief, 183, 186, 10, "jump", true)
     init_animation(thief, 176, 178, 10, "climb", true)
+    init_animation(thief, 178, 178, 10, "fall", false)
     return thief
 end
 
 -->8
 -->game_cfg
 
-cfg_player_acceleration_fast = 0.3 -- �➡️步�⌂��█�度
-cfg_player_acceleration_low = 0.6 -- �➡️步�♥◆�█�度
-cfg_jump_speed = 3 -- 跳�⬇️�█�度
-cfg_climb_speed = 1.6 -- �☉��▥�█�度
-cfg_gravity = 0.3 -- �♥♪�⌂�(�…➡️�⬅️�░�⌂��█�度)
-cfg_player_max_v = 1.8 -- �█大�█�度
-cfg_mogu_jump = 4 -- �♥♥�▤➡️�◆♥跳�⬇️�█�度
-cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移�⌂��█�度
+cfg_player_acceleration_fast = 0.3 -- �➡️步�⌂��█�度
+cfg_player_acceleration_low = 0.6 -- �➡️步�♥◆�█�度
+cfg_jump_speed = 3 -- 跳�⬇️�█�度
+cfg_climb_speed = 1.6 -- �☉��▥�█�度
+cfg_gravity = 0.3 -- �♥♪�⌂�(�…➡️�⬅️�░�⌂��█�度)
+cfg_player_max_v = 1.8 -- �█大�█�度
+cfg_mogu_jump = 4 -- �♥♥�▤➡️�◆♥跳�⬇️�█�度
+cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移�⌂��█�度
   x = 5,
   y = 5,
 }
@@ -1371,61 +1556,66 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移�⌂��█�度
 cfg_levels_autumn = {
   level1 = {
 
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 7,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置�😐�◆🐱�ˇ��☉●�☉�为x�…�♥�😐y�…�♥�😐移�⌂��█远距离, �█�度
+    enemys = {
+        -- �ˇ😐人�✽♪置�😐�◆🐱�ˇ��☉●�☉�为x�…�♥�😐y�…�♥�😐移�⌂��█远距离, �█�度, �▤��…��◆♪�…➡️, �▥��…�♪ˇ�⬅️��웃�█个�◆🐱�ˇ�表示�▤�水平�☉��▤�▤��∧直�☉�
       bees = {
-        -- {6*8, 6*8, 16, 0.5},
-        -- {56*8, 8*8, 16, 0.5}
+        -- {6*8, 10*8, 16, 0.5},
+        -- {3*8, 11*8, 16, 0.5},
       },
       catepillers = {
-        -- {10*8, 10*8, 16, 0.5}
-      }
+        -- {10*8, 10*8, 16, 0.5},
+        -- {5*8, 10*8, 16, 0.5},
+      },
     },
     songzi = {
-      -- {9*8, 10*8}
+      -- {13*8, 8*8},
+      -- {3*8, 11*8},
+      -- {6*8, 11*8},
+      {5*8,11*8}
     },
   },
   level2 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃ps:相对�🅾️�➡️░�⬇️◆机
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃ps:相对�🅾️�➡️░�⬇️◆机
       x = 0,
       y = 7,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 16,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置
+    enemys = { -- �ˇ😐人�✽♪置
       caterpillar ={},
       bees = {
         -- {26*8, 6*8, 16, 0.5},
       },
       catepillers = {
-        -- {27*8, 6*8, 8, 0.5}
+        --{25*8, 9*8, 8, 0.5, true,true, 'y'},
       },
     },
     songzi = {
       -- {13*8, 8*8},
-      {26*8, 6*8},
+      {26*8, 6*8}
     },
   },
   level3 = {
 
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 7,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 32,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置
+    enemys = { -- �ˇ😐人�✽♪置
       caterpillar ={},
       bees = {
         -- {26*8, 6*8, 16, 0.5},
@@ -1441,21 +1631,21 @@ cfg_levels_autumn = {
     },
   },
   level4 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 7,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 48,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置
+    enemys = { -- �ˇ😐人�✽♪置
       caterpillar ={},
       bees = {
-        {54*8, 7*8, 24, 0.5},
+        {54*8, 8*8, 24, 0.5, false},
       },
       catepillers = {
-        {52*8, 9*8, 8, 0.5}
+        {54*8, 9*8, 24, 0.5,true}
       },
     },
     songzi = {
@@ -1470,18 +1660,19 @@ cfg_levels_autumn = {
       {x = 42, y = 8, sp = 16},
       {x = 42, y = 9, sp = 16},
       {x = 42, y = 10, sp = 16},
+      {x = 63, y = 9, sp = 16},
       {x = 63, y = 10, sp = 16},
       {x = 63, y = 11, sp = 16},
     },
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 7,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置
+    enemys = { -- �ˇ😐人�✽♪置
       caterpillar ={},
       bees = {
         -- {54*8, 7*8, 24, 0.5},
@@ -1495,15 +1686,15 @@ cfg_levels_autumn = {
     },
   },
   level6 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃ps:相对�🅾️�➡️░�⬇️◆机
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃ps:相对�🅾️�➡️░�⬇️◆机
       x = 0,
       y = 5,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 16,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置
+    enemys = { -- �ˇ😐人�✽♪置
       caterpillar ={},
       bees = {
         -- {26*8, 6*8, 16, 0.5},
@@ -1516,58 +1707,59 @@ cfg_levels_autumn = {
     },
   },
   level7 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 5,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 32,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置
+    enemys = { -- �ˇ😐人�✽♪置
       caterpillar ={},
       bees = {
-        {35*8, 7*8, 16, 0.5},
+        {35*8, 8*8, 16, 0.5},
       },
       catepillers = {
-        {42*8, 10*8, 0, 0.5}
+        {42*8, 8*8, 8, 0.5,true,true,'y'},
+        {40*8, 7*8, 8, 0.5,false,true,'y'},
       },
     },
     songzi = {
     },
   },
   level8 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 5,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 48,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置
+    enemys = { -- �ˇ😐人�✽♪置
       caterpillar ={},
       bees = {
-        {54*8, 7*8, 24, 0.5},
+        {58*8, 8*8, 24, 0.5},
       },
       catepillers = {
-        {52*8, 9*8, 8, 0.5},
-        {56*8, 9*8, 8, 0.5},
+        {54*8, 9*8, 24, 0.5,false},
+        {54*8, 9*8, 24, 0.5,true},
       },
     },
     songzi = {
     },
   },
   level9 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
+    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
       x = 0,
       y = 5,
     },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
+    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
       x = 48,
       y = 0,
     },
-    enemys = { -- �ˇ😐人�✽♪置
+    enemys = { -- �ˇ😐人�✽♪置
       caterpillar ={},
       bees = {
         {54*8, 7*8, 24, 0.5},
@@ -1590,14 +1782,14 @@ __gfx__
 0000000044444444ff12ffff6d6dd6d6cccccccccccccc7ccccccccccccc7cccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 0000000044444554f1f1f12f6dddddd6ccccccccc7ccccccccccccc7ccccccccffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 00000000444444442ff21ff166666666ccccccc7ccccccccccccc7ccccccccccffffffffffffffffff9fffffaaaaafffffffffffffffffffffffffffffffffff
-ffffffff33333333ffffffffffffffffccccccccccccccccccccccccccccccccfffffffffffffffff99ffffaaa7aaaffffffffffffffffffffffffffffffffff
-ffffffff33353333ffffffffffffffffcc7ccccccccccccc7cccccccccccccccffffffffffffffffffffffaaa77aaaafffffafffffffffff22ffffffffffffff
-ffffffff53545353ffffffffffffffffccccccccccccccccccccccccccccccc7ffffffffffffffffffffffaa777aa9aaaffaaafffffffff2282fffffffffffff
-ffffffff45445355ffffffffffffffffccccccccccccccccccccccccccccccccfffffffffffffffffffaaaaa777aa9aaaaaaaaaffffff22222ffffffffffffff
-ffffffff44444544fff8ffffafffffffccccccccccccccccccccccccccccccccffffffffffffffffffafaaa7777aaa9aaaaaaaaaffffff2222ffffffffffffff
-ffffffff44444444ff878fff9f7666ffccccc7ccccccccccccc7ccccccccccccfffffffffffffffffffffaaa777aaa9aaa777aaaafaffffaa2ffffffffffffff
-ffffffff45444444f88888ffa66ddd5fccccccccccccccccccccccccccccccccfffffffffffffffffffffaaaaa7a9aaaaaa7aaaaaaaffffaaaffffffffffffff
-ffffffff44444454ff777fff95d655aaccccccccccccccccccccccccccccccccfffffffffffffffffaffaaaaaaaaa9aaaaaaaaaaaaaaaaaaaaffffffffffffff
+ffffffff33333333ffffffff77777777ccccccccccccccccccccccccccccccccfffffffffffffffff99ffffaaa7aaaffffffffffffffffffffffffffffffffff
+ffffffff33353333ffffffff77777777cc7ccccccccccccc7cccccccccccccccffffffffffffffffffffffaaa77aaaafffffafffffffffff22ffffffffffffff
+ffffffff53545353ffffffff77777777ccccccccccccccccccccccccccccccc7ffffffffffffffffffffffaa777aa9aaaffaaafffffffff2282fffffffffffff
+ffffffff45445355ffffffff77777777ccccccccccccccccccccccccccccccccfffffffffffffffffffaaaaa777aa9aaaaaaaaaffffff22222ffffffffffffff
+ffffffff44444544fff8ffff77777777ccccccccccccccccccccccccccccccccffffffffffffffffffafaaa7777aaa9aaaaaaaaaffffff2222ffffffffffffff
+ffffffff44444444ff878fff77777777ccccc7ccccccccccccc7ccccccccccccfffffffffffffffffffffaaa777aaa9aaa777aaaafaffffaa2ffffffffffffff
+ffffffff45444444f88888ff77777777ccccccccccccccccccccccccccccccccfffffffffffffffffffffaaaaa7a9aaaaaa7aaaaaaaffffaaaffffffffffffff
+ffffffff44444454ff777fff77777777ccccccccccccccccccccccccccccccccfffffffffffffffffaffaaaaaaaaa9aaaaaaaaaaaaaaaaaaaaffffffffffffff
 77777777444444440000000000000000bb000000bb000000fffffffffffffffffffffffafffffffffaaaaaaaaaaaa999aaaaaaaa9aaaaaffaaffffffffffffff
 777777774444444400000000000000003300000033000000ffffffffffffffffffffffaaafffffaaaaaaaaa777aaaa9a99aaaaa9aaaaaaaaaaffffffffffffff
 77777777444445440000000000000000bb0000000bb00000fffffffffffffffffffffffffffff9aaaaa9aaaa77aaaaaa999aa99aaa7aaaaaaaafffffffafffff
@@ -1605,15 +1797,15 @@ ffffffff44444454ff777fff95d655aaccccccccccccccccccccccccccccccccffffffffffffffff
 77777777444444440000000000003000bb0000000bb00000ff3ffffffff3fffffffffffffffaaa99999aaaaa9aaaa9aaaa9999aaaa77aaaa9aaaffffffffffff
 777777774544444400000000000b3b00bb000000bb000000fff333fffff3ffffffffffffffaaaa9999aaaaaaa9999aaaaaa9aaaaaaaa9aa999aaafffffffffff
 77777777444444440bbb3b3b0bbb0b3bbb000000bb000000fff3f3fffff33ffffffffffffaaaaaaa9999aaaaaaaaaaaaaaaaaaaaaaaaa9a99a99999fffffffff
-77777777444444440bbb3b3b0bb0003b0000000000000000fff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
-000000000000000000000000977777773333333300000000fffffffffff8ffffffffffffaaaaaaaaaa779aaaaa99aaaaaaaaaaaaa9aa999999997799ffffffff
-760006706660006676000670d99999973233323300000000f8fffffffffffff8ffffffffaaaaaaaaaaa77aaaa9999aaaaaaaaaaaaa999999999999999fffffff
-776067707776067777606770d99999972d232d2700000000ffaf8fffffff8fffffffffffaaaaaaaaaaa77aaa999999aa7777aaaa99999999999a9a9999ffffff
-0760670007779c4c07606700d99999972dddddd700000000ffff88fffff888ffffffffff99aaaaaaaaaaaaa99999999aaa99aaaa999999999aaaa9999fffffff
-0079c4c0000550000079c4c0d99999972dddddd700000000f8f8988fff88888ffffffffff99aaaaaaaaaaa999992999999aaaaa999999999aaaaa9999fffffff
-005500000009900000550000d99999972dddddd700000000f889a98ff8899988fffffffff99aaaa99aaaaaaaa922a999aaaaa999997799999999a999ffffffff
-009900000000500000099000d99999972dddddd700000000889aaa98889aa998ffffffffff99aa9aaaaaaaaaa222aaaaaaaa9a9a777799999a999999ffffffff
-000570000000070000000570d99999972dddddd70000000089aaaaa8899aaa98fffffff999999aaaaaaaa77999e2997777a9aaa7227999999a99999fffffffff
+66666666444444440bbb3b3b0bb0003b0000000000000000fff3fffffff3f3ffffffffffaaaaaaaaa799aaaaaaaaaaaaaaaaaaaa9aaaa99999999799ffffffff
+0000000000000000000000009777777733333333fffffffffffffffffff8ffffffffffffaaaaaaaaaa779aaaaa99aaaaaaaaaaaaa9aa999999997799ffffffff
+760006706660006676000670d999999732333233fffffffff8fffffffffffff8ffffffffaaaaaaaaaaa77aaaa9999aaaaaaaaaaaaa999999999999999fffffff
+776067707776067777606770d99999972d232d27ffffffffffaf8fffffff8fffffffffffaaaaaaaaaaa77aaa999999aa7777aaaa99999999999a9a9999ffffff
+0760670007779c4c07606700d99999972dddddd7ffffffffffff88fffff888ffffffffff99aaaaaaaaaaaaa99999999aaa99aaaa999999999aaaa9999fffffff
+0079c4c0000550000079c4c0d99999972dddddd7affffffff8f8988fff88888ffffffffff99aaaaaaaaaaa999992999999aaaaa999999999aaaaa9999fffffff
+005500000009900000550000d99999972dddddd79f7666fff889a98ff8899988fffffffff99aaaa99aaaaaaaa922a999aaaaa999997799999999a999ffffffff
+009900000000500000099000d99999972dddddd7a66ddd5f889aaa98889aa998ffffffffff99aa9aaaaaaaaaa222aaaaaaaa9a9a777799999a999999ffffffff
+000570000000070000000570d99999972dddddd795d655aa89aaaaa8899aaa98fffffff999999aaaaaaaa77999e2997777a9aaa7227999999a99999fffffffff
 fffffffffffffffffffffffffffffffffff33fffffaa33fffffffffffffffffffffffff9999a99aaaaaaa779999e22277a999a72e779999999aa9fffffffffff
 ffffffffffffffffff777f999ffffffff999f3ffffaa9f3fffffffffffffffffffffffaaaaaaa9aa9999799999aee292279992eaee999eee99aa99ffffffffff
 fffffffffffffffffff7999999fffffffaa9f3ffff999ff34fffffffffffffffffffffaaaaaaaaa29999999999aaee9222eee22e99aa99ee9a99999fffffffff
@@ -1638,14 +1830,14 @@ ffb33ffffb33fffffffffffffffffffffff4fffffff4fffffff3f3ffffaaaaffffffffffffffffff
 ffff3bffffff3bfffffffffffffffffffff4fffffff4fffffff33ffff9faaf9ffffffffffffffffffffffffffffffffe22222ffffff22fffffffffffffffffff
 ffff3fffffff3fffffffffffffffffffaaa4fffffff4fffffff3fffffff3ffffffffffffffffffafffffffaffffffffe22222fffff2fffffffffffffffffffff
 fff33f3ffff33f3fffffffffffffffff99949999fff4fffffff3fffffff3fffffffffffffffffaafffffffffffffff2222222fffffffafffffffffffffffffff
-7777777777777777777777777777777700000000000000000000000000000000fffffffffffffafffffffffffffff22222222fffffffaaffffffffffffffffff
-7777777777777777777777777777777700000000000000000000000000000000ffffffffffffffffffffffffffff222222222fffffffffffffffffffffffffff
-7777777777777777777777777777777700000000000000000000000000000000ffffffffffffffffffffffffffffe222222222ffffffffffffffffffffffffff
-7777777777777777777777777777777700000000000000000000000000000000ffffffffffffffffffffffff222222e2222222ffffffffffffffffffffffffff
-7777777777777777777777777777777700000000000000000000000000000000fffffffffffffffffffffffeee922e9992299e229aaaaaaaafffffffffffffff
-7777777777777777777777777777777700000000000000000000000000000000fffffffffffaafffffff999999299999229999ee229999999fffffffffffffff
-7777777777777777777777777777777700000000000000000000000000000000fff9aaaa9aaaaa9999999aa9229999992999999999999aaaaaaaffffffffffff
-0777777777777777777777777777444400000000000000000000000000000000ff999999aaaa9999999999999999999999999999999a99999999aaaaafffffff
+7777777700007777777777767777000000003000000030000000300000003000fffffffffffffafffffffffffffff22222222fffffffaaffffffffffffffffff
+7777777700777777777777767777760000003000000030000003300000033000ffffffffffffffffffffffffffff222222222fffffffffffffffffffffffffff
+7777777707777777777777767777776000033330003333000000300000000300ffffffffffffffffffffffffffffe222222222ffffffffffffffffffffffffff
+7777777707777777777777767777776000003000000300000000b00000000b00ffffffffffffffffffffffff222222e2222222ffffffffffffffffffffffffff
+0777777777777777777777607777777600b330000b3300000000000000000000fffffffffffffffffffffffeee922e9992299e229aaaaaaaafffffffffffffff
+0677777777777777777777607777777600003b0000003b000000000000000000fffffffffffaafffffff999999299999229999ee229999999fffffffffffffff
+0066777777777777777766007777777600003000000030000000000000000000fff9aaaa9aaaaa9999999aa9229999992999999999999aaaaaaaffffffffffff
+0000666677777777666600007777777600033030000330300000000000000000ff999999aaaa9999999999999999999999999999999a99999999aaaaafffffff
 00040000000994000009400000000000000000000000000000000000000004000000040000000000000000000000000000000000000000000000000000000000
 09400400049400000094994000000000004444000444400000000000000049900000499004440400000000000000000000000000000000000006600000066000
 94000990494004000940000400444000049999404009994040000000000497790049977949994990044000000000000000000000000000000069760000600600
@@ -1678,39 +1870,55 @@ d00d16100d0d161dd00000000000d100001d000000d00010010000d00ddd0110d11d0d000dd00110
 010d1600010d16000dd00d000000001d0000d11dd100000dd000000dd11116611661d110d11dd661d11d1661f0ee7ee0fef7ee00f0e7eee90000000000000000
 0010d1100010d100d11dd11d00000000000000000000000000000000166011001106166111661000116610000fe700000fe700000fe700490000000000000000
 000d0001000d0011dd661dd00000000000000000000000000000000001d0d01d0d0001d0d01101d0011d01d000eee00000eee00000eee0000000000000000000
+fffffffffff77777777fffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+fffffffff777777777777ff77fffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffffff6777777777667f6776ffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+f777777f776677777666667766ffffffffff7777777fffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+7777777776666677666667777777ffffff7766677777ffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+777777777777776667777667777777fff776777777777fff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+6777777677777677777666777777777ff777777777776fff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+f6777667777777766777777777777776f67777777766ffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ff666677777777766677777777776766ff66666667777fff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffff776677666f677777777776666ffff66666777767ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffffff6666666ff6666777766666fffffffff6777776ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+fffffffff66ffffffff66666666ffffffffffff6667666ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffffffffffffffffffffffffffffffffffffff6666ffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
 0001070200000000000000000000000000010000070707070000000000000000000100000000808000000000000000000000000101008040000000000000000080400000804080400000000000000000804000000300804000000000000000000000000000060000000000000000000000000000030000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101062106010101010101060101010101010101010601060101010101010101010101010106710101010101040101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-08090a0b0c0d630f101010101062101010101010411010101060101010101040101010101010106610101010101010101010101010601041101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-18191a1b1c1d1e1f411010101010101041101010101010101010101010101010101010101010023410101010101010101010104010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-28292a2b2c2d2e2f101010101010101010101010101010101010101010101010101010101010023310101010101010101010101010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-38393a3b3c3d3e3f101010101010101010101010101010101010343434101010101010101010023310100234341010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-48494a4b4c4d4e4f104010101010441010101010101067101010331033101010101010101010103310100233331010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-58595a5b5c5d5e5f101010101034343410101010101066101010331033101010101010343410101010100233331010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-68696a6b6c6d6e42431010333333101033101010343434101010331033101010101010331010101010540233331010101010103434343434343410651010100210101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-78797a7b7c7d6452535654101010101010505633331010101033331033121044101254334456101033333350563410561050333333101210333333333310100210101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1111111111111111111111060606060611111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-2121212121212121212121161616161621212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-2121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-2121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101046101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+1010101062106010101010101060101010101010101010601060101010101010101010101010106710101010101040101010101010601010101010101010101010104110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+08090a0b0c0d630f1010101010621010101010104110101010601010101010401010101010101066101010101010101010101010106010411010101010101010101008090a0b0c0d0e0f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+18191a1b1c1d1e1f4110101010101010411010101010101010101010101010101010101010100234101010101010101010101040106010101010101010101010101018191a1b1c1d1e1f411010461010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+28292a2b2c2d2e2f1010101010101010101010101010101010101010101010101010101010100233101010101010101010101010106010101010101010101010461028292a2b2c2d2e2f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+38393a3b3c3d3e3f1010101010101010101010101010101010103434341010101010101010100233101002343410101010101010101010101010101010101010101038393a3b3c3d3e3f101041101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+48494a4b4c4d4e4f1040101010104410101010101010671010103310331010101010101010101033101002333310101010101010101010101010101010101010101048494a4b4c4d4e4f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+58595a5b5c5d5e5f1010101010343434101010101010661010103310331010101010103434101033101002333310101010101010101010101010101010101010101058595a5b5c5d5e5f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+68696a6b6c6d6e424310103333331010331010103434341010103310331010101010103310101010105402333310101010101034343434343434106510101010671068696a6b6c6d6e6f104243101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+78797a7b7c7d64525356541010101010105056333310100202333310331210441012543344561010333333505634105610503333331012103333333333101010665678647a7b7c7d357f265253505644101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+1111111111111111111111060606060611111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+2121212121212121212121161616161621212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+2121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+2121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101020202020132013132020202020202013
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101020727113131373702020720000702020
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000007020202072000000000000000000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000000000000000000000000000000000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000000000000000000000000000000000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000000000000071131313131313137300
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101071131373000070202020202020207200
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101070202072000000000000000000000000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000740000760000750074000074007500
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000740000000000770075000075007700
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000760000000000000077000075000000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000000000000000000000000076000000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000007400007500000000760000750000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000007700007500000000000000750000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000000000007400000000000000770000
+1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000000000007700000000000000000000
