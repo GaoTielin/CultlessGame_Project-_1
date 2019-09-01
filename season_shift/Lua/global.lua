@@ -66,7 +66,8 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
       if spr_obj.destroy_trigger_stay then
         spr_obj.destroy_trigger_stay()
       end
-      object_table[obj_idx] = nil
+      -- object_table[obj_idx] = nil
+      del(object_table, spr_obj)
     end
 
     add(object_table, spr_obj)
