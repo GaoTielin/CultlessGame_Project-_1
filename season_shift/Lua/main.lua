@@ -140,13 +140,11 @@ function _init()
   end, "all")
 
   tail = init_tail()
-  -- map_col = map_hit(player)
-
-  -- OnCllision(player, text_obj)
   cfg_levels = cfg_levels_autumn
   change_camera = init_change_camera()
 
-  snow = init_snow()
+  -- snow = init_snow()
+  -- leaves = init_leaves()
   chest = init_chest()
   enemies = init_enemies(cfg_levels.level1.enemys)
   this_songzi_cfg = {}
@@ -165,8 +163,6 @@ function _init()
   map_ani_1 = init_map_animation(7, 15, 2, false)
   map_ani_2 = init_map_animation(6, 15, 2, true)
 
-  -- register collision
-  -- ontrigger_enter(player, bee, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
     if btnp(5) then
       if player_pinecone ~= 0 then
@@ -226,13 +222,12 @@ update_states = {
         update_animation()
         if abs(player.vecter.x) < player_acceleration_low then
             player_state_x_flag = "nomal"
-        -- elseif abs(player.vecter.x) == player_max_v then
-        --     player_state_x_flag = "fast_go_stay"
         else
             player_state_x_flag = "fast_back"
         end
         if (player.pos_x < 0) player.pos_x = 1
-        snow.update()
+        -- snow.update()
+        -- leaves.update()
         timer.update()
         tail.update()
         enemies.update()

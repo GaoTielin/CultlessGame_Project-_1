@@ -515,7 +515,7 @@ function fade(i)
 end
 
 function fade_out()
-    printh('fadeout')
+    -- printh('fadeout')
     for i=1,16 do
         timer.add_timeout('fade'..i, i*0.1, function()
             fade(i)

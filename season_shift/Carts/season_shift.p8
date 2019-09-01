@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
---------------�🅾️��☉��▥�----------------
+--------------�🅾️��☉��▥�----------------
 map_location ={
     x = 0,
     y = 0,
@@ -111,14 +111,14 @@ function _init()
   direction_flag = {
     x,
     y,
-  } --�∧��…➡️��♥签
+  } --�∧��…➡️�♥签
   cloud = init_cloud()
-  game_state_flag = "play"--游�☉◆�⌂��█▒��♥签
-  gravity = cfg_gravity-- �♥♪�⌂�
+  game_state_flag = "play"--游�☉◆�⌂��█▒�♥签
+  gravity = cfg_gravity-- �♥♪�⌂�
   update_state_flag = "play"
   draw_state_flage = "play"
   player_state_x_flag = "nomal"
-  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
+  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
@@ -130,22 +130,24 @@ function _init()
   lupai_hit = map_trigger_stay(player, 6, function()
     print("x", player.pos_x, player.pos_y + 3, 4)
     if btnp(5) then
-      game_level = 1
-      change_level(1)
-      -- local next_level = player_pinecone >= 10 then
-      player.pos_x = 48
-      player.pos_y = 80
+      -- if game_level == 9 then
+        fade_out()
+      -- else
+      --   game_level = 1
+      --   change_level(1)
+      --   -- local next_level = player_pinecone >= 10 then
+      --   player.pos_x = 48
+      --   player.pos_y = 80
+      -- end
     end
   end, "all")
 
   tail = init_tail()
-  -- map_col = map_hit(player)
-
-  -- oncllision(player, text_obj)
   cfg_levels = cfg_levels_autumn
   change_camera = init_change_camera()
 
-  snow = init_snow()
+  -- snow = init_snow()
+  -- leaves = init_leaves()
   chest = init_chest()
   enemies = init_enemies(cfg_levels.level1.enemys)
   this_songzi_cfg = {}
@@ -164,8 +166,6 @@ function _init()
   map_ani_1 = init_map_animation(7, 15, 2, false)
   map_ani_2 = init_map_animation(6, 15, 2, true)
 
-  -- register collision
-  -- ontrigger_enter(player, bee, handle_player_hit, 'player_hit')
   ontrigger_stay(player, chest, function()
     if btnp(5) then
       if player_pinecone ~= 0 then
@@ -176,9 +176,9 @@ function _init()
   end, 'chest_store')
 end
 
-------------游�☉◆�⌂��█▒机-----------------
+------------游�☉◆�⌂��█▒机-----------------
 game_states = {
-----------update�⌂��█▒机--------------
+----------update�⌂��█▒机--------------
 update_states = {
   change_level_update = function()
     if change_camera.update() then
@@ -225,18 +225,21 @@ update_states = {
         update_animation()
         if abs(player.vecter.x) < player_acceleration_low then
             player_state_x_flag = "nomal"
-        -- elseif abs(player.vecter.x) == player_max_v then
-        --     player_state_x_flag = "fast_go_stay"
         else
             player_state_x_flag = "fast_back"
         end
         if (player.pos_x < 0) player.pos_x = 1
-        snow.update()
+        -- snow.update()
+        -- leaves.update()
         timer.update()
         tail.update()
         enemies.update()
         move_camera()
-        if thief.act == 'run1' then thief.update_run1() end
+        if thief.act == 'run1' then
+            thief.update_run1()
+        elseif thief.act == 'run2' and game_level == 9 then
+            thief.update_run2()
+        end
         if chest.pinecone == 10 then
             game_level = 5
             change_level(5)
@@ -252,7 +255,7 @@ update_states = {
   },
   ---------------------------------
 
-  -----------draw�⌂��█▒机-------------
+  -----------draw�⌂��█▒机-------------
 
   draw_states = {
     change_level_draw = function()
@@ -315,7 +318,7 @@ update_states = {
       print(player.vecter.x)
       -- snow.draw()
       chest.draw()
-      if thief.act == 'run1' then thief.draw_run1() end
+      if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
       enemies.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
@@ -338,7 +341,7 @@ update_states = {
 -->8
 --> global-1
 object_table = {}
----------------计�❎��▥�-------------------
+---------------计�❎��▥�-------------------
 newtimer = function ()
     local o = {
         timers = {}
@@ -378,7 +381,7 @@ end
 
 ----------------------------------------
 
-----------------实��⬅️�😐∧对象---------------
+----------------实�⬅️�😐∧对象---------------
 --sp(图�웃♥索�ˇ)--pos_x,pos_y(实�⬅️�😐∧�…�♥)--width,height(图�웃♥�▤度�😐宽度)--
 function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
     if not v_x then v_x = 0 end
@@ -413,7 +416,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
--------------��★��⧗碰�★���☉触�◆➡️��⬅️��웃--------------
+-------------�★�⧗碰�★��☉触�◆➡️�⬅️�웃--------------
 trigger_table = {}
 
 function update_trigger()
@@ -516,7 +519,7 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     return trigger_exit
 end
 
--------------��★��⧗碰�★���☉碰�★���⬅️��웃--------------
+-------------�★�⧗碰�★��☉碰�★��⬅️�웃--------------
 cllision_table = {}
 function update_cllision()
     for k, v in pairs(cllision_table) do
@@ -589,7 +592,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
 end
 ---------------------------------------
 
---------------地形碰�★�-------------------
+--------------地形碰�★�-------------------
 --sprit_flag: palyer = 1, map = 2
 function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
     local next_x = sprit.pos_x + sprit.vecter.x
@@ -651,7 +654,7 @@ end
 ------------------------------------------
 
 
-----------------------�☉�建�⌂��⬆️�-------------------
+----------------------�☉�建�⌂��⬆️�-------------------
 function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     local update_time = 0
     local sp = first_spr
@@ -683,12 +686,12 @@ function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     end
 end
 
--------------�☉♥�♪��⌂��⬆️�----------------
+-------------�☉♥�♪��⌂��⬆️�----------------
 function change_animation(spr_obj, ani_flag)
     spr_obj.animation = spr_obj.animation_table[ani_flag]
 end
 
------------�⌂��⬆️��★��⬆️�---------------
+-----------�⌂��⬆️��★��⬆️�---------------
 function update_animation()
     for v in all(object_table) do
         if v.animation then
@@ -697,25 +700,10 @@ function update_animation()
     end
 end
 
-------------�☉♥�♪�对象---------------
+------------�☉♥�♪�对象---------------
 function exchange_obj(obj_1, obj_2)
     local mid_obj = obj_1
     return obj_2, mid_obj
-end
-
-function handle_player_hit ()
-    if player_pinecone == 0 then
-        -- todo change scene to gameover
-    else
-        player_pinecone -= 1
-        local p = {sp=141, pos_x=player.pos_x+8, pos_y=player.pos_y+8, is_dropped=true}
-        add(global_pinecone.pinecone_list, p)
-        timer.add_timeout('remove_pinecone'..player_pinecone, 3, function()
-            del(global_pinecone.pinecone_list, p)
-        end)
-        player.vecter.x = player.flip_x and 2 or -2
-        game_over()
-    end
 end
 
 function move_camera ()
@@ -814,7 +802,6 @@ function change_level(level)
     -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
-
   local level_cfg = cfg_levels["level" .. level]
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
@@ -837,6 +824,44 @@ function change_level(level)
   end
   player.hand_songzi = 0
   change_camera.change(level)
+end
+
+local fadetable = {
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {1,1,1,1,1,1,1,0,0,0,0,0,0,0,0},
+    {2,2,2,2,2,2,1,1,1,0,0,0,0,0,0},
+    {3,3,3,3,3,3,1,1,1,0,0,0,0,0,0},
+    {4,4,4,2,2,2,2,2,1,1,0,0,0,0,0},
+    {5,5,5,5,5,1,1,1,1,1,0,0,0,0,0},
+    {6,6,13,13,13,13,5,5,5,5,1,1,1,0,0},
+    {7,6,6,6,6,13,13,13,5,5,5,1,1,0,0},
+    {8,8,8,8,2,2,2,2,2,2,0,0,0,0,0},
+    {9,9,9,4,4,4,4,4,4,5,5,0,0,0,0},
+    {10,10,9,9,9,4,4,4,5,5,5,5,0,0,0},
+    {11,11,11,3,3,3,3,3,3,3,0,0,0,0,0},
+    {12,12,12,12,12,3,3,1,1,1,1,1,1,0,0},
+    {13,13,13,5,5,5,5,1,1,1,1,1,0,0,0},
+    {14,14,14,13,4,4,2,2,2,2,2,1,1,0,0},
+    {15,15,6,13,13,13,5,5,5,5,5,1,1,0,0}
+}
+
+function fade(i)
+    for c=0,15 do
+        if flr(i+1)>=16 then
+            pal(c,0)
+        else
+            pal(c,fadetable[c+1][flr(i+1)])
+        end
+    end
+end
+
+function fade_out()
+    printh('fadeout')
+    for i=1,16 do
+        timer.add_timeout('fade'..i, i*0.1, function()
+            fade(i)
+        end)
+    end
 end
 
 function _update()
@@ -962,7 +987,7 @@ function init_cloud()
 
   local function draw()
     for m in all(maps) do
-      map(m.x+camera_location.x, m.y+camera_location.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
+      map(m.x, m.y, m.map_x + m.ex_x + camera_location.x, m.map_y + camera_location.y, m.width, m.height)
     end
   end
   return {
@@ -973,9 +998,9 @@ end
 
 function init_leaves(speed, num, hit_spr_flag)
   local function init_leaf(pos_x, v_x, v_y)
-    local lf = init_spr("leaf", 118, pos_x, 0, 1, 1, false, v_x, v_y)
+    local lf = init_spr("leaf", 159, pos_x, 0, 1, 1, false, v_x, v_y)
     local update_speed = 5+flr(rnd(15))
-    init_animation(lf, 118, 119, update_speed, "leaf", true)
+    init_animation(lf, 159, 159, update_speed, "leaf", true)
     return lf
   end
 
@@ -985,36 +1010,62 @@ function init_leaves(speed, num, hit_spr_flag)
   local leaves = {}
   for i = 1, num do
       local pos_x = flr(rnd(125))+2
-      local v_x = rnd(3)+speed
-      local v_y = 3 - rnd(6)
+      local v_y = rnd(2)+speed
+      local v_x = 3 - rnd(6)
       local f = init_leaf(pos_x, v_x, v_y)
+      f.n = i
+      f.landed = false
       add(leaves, f)
   end
 
+  local function out_of_scen(sp)
+
+    if sp.pos_x >= camera_location.x+128 or sp.pos_x <= camera_location.x - 8 or sp.pos_y >= camera_location.y+128 then
+      return true
+    end
+    return false
+  end
+
   local function is_land(sp)
-      if get_map_flage(sp.pos_x, (sp.pos_y + sp.vecter.y)) == hit_spr_flag then
-          sp.pos_y = flr((sp.pos_y + sp.vecter.y) / 8) * 8 - 8
+      -- printh("canland? ========= ", "dir")
+      if out_of_scen(sp) then
+        sp.landed = false
+        sp.pos_y = 0
+        sp.pos_x = flr(rnd(125))+2
+        sp.vecter.x = rnd(3)+speed
+        sp.vecter.y = 3 - rnd(6)
+        return false
+      end
+      if get_map_flage(sp.pos_x, (sp.pos_y + sp.vecter.y*2)) == hit_spr_flag or get_map_flage((sp.pos_x + sp.vecter.x*2), sp.pos_y ) == hit_spr_flag then
+          -- sp.pos_y = flr((sp.pos_y + sp.vecter.y) / 8) * 8 - 8
           return true
+      end
+
+  end
+
+  local function update()
+      for s in all(leaves) do
+          if not s.landed then
+              s.pos_x += s.vecter.x
+              s.pos_y += s.vecter.y
+          end
+          if is_land(s) and not s.landed then
+              -- s.y = 100
+              s.landed = true
+              timer.add_timeout('leaf_melt'..s.n, 1, function()
+                  s.landed = false
+                  s.pos_y = 0
+                  s.pos_x = flr(rnd(125))+2
+                  s.vecter.x = rnd(3)+speed
+                  s.vecter.y = 3 - rnd(6)
+              end)
+          end
       end
   end
 
-  -- local function update()
-  --     for s in all(leaves) do
-  --         if not s.landed then
-  --             s.pos_x += s.vecter.x
-  --             s.pos_y += s.vecter.y
-  --         end
-  --         if is_land(s) and not s.landed then
-  --             -- s.y = 100
-  --             s.landed = true
-  --             timer.add_timeout('snow_melt'..s.n, 1, function()
-  --                 s.landed = false
-  --                 s.y = 0
-  --                 s.x = rnd(128)
-  --             end)
-  --         end
-  --     end
-  -- end
+  return{
+    update = update,
+  }
 end
 
 -->8
@@ -1499,6 +1550,10 @@ function init_thief ()
             end)
         end
         tail.update()
+        if thief.pos_x >= 520 then
+            thief.vecter.x = 0
+            thief.act = 'run2'
+        end
     end
     thief.mogu_hit = function()
         change_animation(thief, 'jump')
@@ -1511,23 +1566,28 @@ function init_thief ()
     thief.draw_run2 = function ()
     end
     thief.update_run2 = function ()
-        if not (thief.pos_x >= 68) then
+        if not (thief.pos_x >= 584) then
             change_animation(thief, 'run')
             change_animation(tail, 'run')
             thief.pos_x += 2
         else
             if not thief.fall_event then
                 thief.state = 'fall'
+                thief.vecter.x = 0
                 change_animation(thief, 'fall')
-                timer.add_timeout('thief_run', 0.5, function()
+                timer.add_timeout('thief_run', 1, function()
                     change_animation(thief, 'run')
                     change_animation(tail, 'run')
                     thief.state = 'run'
+                    init_songzis({
+                      {73*8, 11*8}
+                    })
                 end)
                 thief.fall_event = true
             end
             if thief.state ~= 'fall' then thief.pos_x += 2 end
         end
+        tail.update()
     end
     thief_mogu_hit = map_trigger_enter(thief, 3, thief.mogu_hit, "down")
     init_animation(thief, 160, 162, 10, "nomal", true)
@@ -1887,7 +1947,7 @@ ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000
 ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0001070200000000000000000000000000010000070707070000000000000000000100000000808000000000000000000000000101008040000000000000000080400000804080400000000000000000804000000300804000000000000000000000000000060000000000000000000000000000030000000000000000000000
+0001070200000000000000000000000000010000070707070000000000000000000100000000808000000000000000000000000101008040000000000000000080400000804080400000000000000000804000000300804000000000000000000000000006060000000000000000000000000000030000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
@@ -1899,9 +1959,9 @@ __map__
 28292a2b2c2d2e2f1010101010101010101010101010101010101010101010101010101010100233101010101010101010101010106010101010101010101010461028292a2b2c2d2e2f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 38393a3b3c3d3e3f1010101010101010101010101010101010103434341010101010101010100233101002343410101010101010101010101010101010101010101038393a3b3c3d3e3f101041101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 48494a4b4c4d4e4f1040101010104410101010101010671010103310331010101010101010101033101002333310101010101010101010101010101010101010101048494a4b4c4d4e4f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-58595a5b5c5d5e5f1010101010343434101010101010661010103310331010101010103434101033101002333310101010101010101010101010101010101010101058595a5b5c5d5e5f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-68696a6b6c6d6e424310103333331010331010103434341010103310331010101010103310101010105402333310101010101034343434343434106510101010671068696a6b6c6d6e6f104243101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-78797a7b7c7d64525356541010101010105056333310100202333310331210441012543344561010333333505634105610503333331012103333333333101010665678647a7b7c7d357f265253505644101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+58595a5b5c5d5e5f1010101010343434101010101010661010103310331010101010103434101010101002333310101010101010101010101010101010101002101058595a5b5c5d5e5f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+68696a6b6c6d6e424310103333331010331010103434341010103310331010101010103310101010105402333310101010101034343434343434106510101002671068696a6b6c6d6e6f104243101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+78797a7b7c7d64525356541010101010105056333310100202333310331210441012543344561010333333505634105610503333331012103333333333101002665678647a7b7c7d357f265253505644101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1111111111111111111111060606060611111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121161616161621212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
