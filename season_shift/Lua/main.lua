@@ -118,6 +118,7 @@ function _init()
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
+  thief = init_thief()
   player = init_player()
   player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
@@ -125,6 +126,9 @@ function _init()
   lupai_hit = map_trigger_stay(player, 6, function()
     print("X", player.pos_x, player.pos_y + 3, 4)
     if btnp(5) then
+      if thief.act == 'init' and camera_location.x > 0 then
+            thief.act = 'run1'
+      end
       -- local next_level = player_pinecone >= 10 then
       change_level(5)
       game_level = 5
@@ -142,7 +146,6 @@ function _init()
 
   snow = init_snow()
   chest = init_chest()
-  thief = init_thief()
   enemies = init_enemies(cfg_levels.level1.enemys)
   this_songzi_cfg = {}
   for k,v in pairs(cfg_levels.level1.songzi) do
@@ -200,7 +203,6 @@ update_states = {
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()
         player.hit()
-
         for v in all(object_table) do
           if v.name ~= "player" then
             v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
@@ -233,8 +235,7 @@ update_states = {
         tail.update()
         enemies.update()
         move_camera()
-        thief.draw_run1()
-
+        if thief.act == 'run1' then thief.update_run1() end
     end,
 
     game_over_update = function()
@@ -253,7 +254,13 @@ update_states = {
         if v.flip_x then
           spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
         else
-          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+            if v.name == 'thief' then
+                if thief.act ~= 'init' then
+                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+                end
+            else
+              spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+            end
         end
       end
 
@@ -280,7 +287,13 @@ update_states = {
         if v.flip_x then
           spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
         else
-          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+            if v.name == 'thief' then
+                if thief.act ~= 'init' then
+                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+                end
+            else
+              spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+            end
         end
       end
 
@@ -291,7 +304,7 @@ update_states = {
       print(player.vecter.x)
       -- snow.draw()
       chest.draw()
-      thief.update_run1()
+      if thief.act == 'run1' then thief.draw_run1() end
       enemies.draw()
       global_pinecone.draw()
       draw_pinecone_ui()
