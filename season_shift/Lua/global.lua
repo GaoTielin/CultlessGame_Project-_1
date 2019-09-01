@@ -53,11 +53,6 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         is_physic = is_physic,
         animation_table = animation_table,
         animation = animation,
-        -- destroy = function()
-        --     -- spr_obj = nil
-        --     spr_obj.trigger_enter = nil
-        --     object_table[obj_idx] = nil
-        -- end,
         flip_x = false,
         flip_y = false,
     }
@@ -66,10 +61,10 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         spr_obj.destroy_trigger_enter()
       end
       if spr_obj.destroy_trigger_stay then
-        spr_obj.destroy_trigger_enter()
+        spr_obj.destroy_trigger_stay()
       end
       if spr_obj.destroy_trigger_stay then
-        spr_obj.destroy_trigger_enter()
+        spr_obj.destroy_trigger_stay()
       end
       object_table[obj_idx] = nil
     end
