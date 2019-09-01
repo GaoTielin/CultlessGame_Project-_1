@@ -138,4 +138,89 @@ cfg_levels_autumn = {
       -- {54*8, 9*8},
     },
   },
+  level6 = {
+    player_start_pos = { -- 角色起始在关卡中的位置 单位（格）ps:相对于摄像机
+      x = 0,
+      y = 5,
+    },
+    camera_pos = { -- 相机位置 单位（格）
+      x = 16,
+      y = 0,
+    },
+    enemys = { -- 敌人配置
+      caterpillar ={},
+      bees = {
+        -- {26*8, 6*8, 16, 0.5},
+      },
+      catepillers = {
+        {27*8, 6*8, 8, 0.5}
+      },
+    },
+    songzi = {
+    },
+  },
+  level7 = {
+    player_start_pos = { -- 角色起始在关卡中的位置 单位（格）
+      x = 0,
+      y = 5,
+    },
+    camera_pos = { -- 相机位置 单位（格）
+      x = 32,
+      y = 0,
+    },
+    enemys = { -- 敌人配置
+      caterpillar ={},
+      bees = {
+        {35*8, 7*8, 16, 0.5},
+      },
+      catepillers = {
+        {42*8, 10*8, 0, 0.5}
+      },
+    },
+    songzi = {
+    },
+  },
+  level8 = {
+    player_start_pos = { -- 角色起始在关卡中的位置 单位（格）
+      x = 0,
+      y = 5,
+    },
+    camera_pos = { -- 相机位置 单位（格）
+      x = 48,
+      y = 0,
+    },
+    enemys = { -- 敌人配置
+      caterpillar ={},
+      bees = {
+        {54*8, 7*8, 24, 0.5},
+      },
+      catepillers = {
+        {52*8, 9*8, 8, 0.5},
+        {56*8, 9*8, 8, 0.5},
+      },
+    },
+    songzi = {
+    },
+  },
+  level9 = {
+    player_start_pos = { -- 角色起始在关卡中的位置 单位（格）
+      x = 0,
+      y = 5,
+    },
+    camera_pos = { -- 相机位置 单位（格）
+      x = 48,
+      y = 0,
+    },
+    enemys = { -- 敌人配置
+      caterpillar ={},
+      bees = {
+        {54*8, 7*8, 24, 0.5},
+      },
+      catepillers = {
+        {56*8, 9*8, 8, 0.5}
+      },
+    },
+    songzi = {
+    },
+  },
 }
