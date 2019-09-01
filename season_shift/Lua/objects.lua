@@ -33,7 +33,7 @@ function init_songzis(songzi_config)
 end
 
 -- enemy could be bee or catepiller, depends on type args
-function init_enemy (pos_x, pos_y, max_range, speed, is_flip, type)
+function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
     local e
     if type == 'bee' then
         e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
@@ -49,8 +49,8 @@ function init_enemy (pos_x, pos_y, max_range, speed, is_flip, type)
       game_over()
     end)
 
-    e.flip_x = is_flip
-    e.flip_y = is_flip
+    e.flip_x = flip_x
+    e.flip_y = flip_y
     e.update = function ()
         if e.name == 'catepiller_x' or e.name == 'bee' then
             if not e.flip_x and e.pos_x > pos_x + max_range then
@@ -71,11 +71,7 @@ function init_enemy (pos_x, pos_y, max_range, speed, is_flip, type)
         end
     end
     e.draw = function ()
-        if e.name == 'catepiller_x' or e.name == 'bee' then
-            spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
-        elseif e.name == 'catepiller_y' then
-            spr(e.sp, e.pos_x, e.pos_y, 1, 1, false, e.flip_y)
-        end
+        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x, e.flip_y)
     end
     return e
 end
@@ -88,8 +84,9 @@ function init_enemies (enemy_config)
       for i=1,#enemy_config.bees do
           local e = enemy_config.bees[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local is_flip = e[5] and e[5] or false
-          local b = init_enemy(pos_x, pos_y, max_range, speed, is_flip, 'bee')
+          local flip_x = e[5] and e[5] or false
+          local flip_y = e[6] and e[5] or false
+          local b = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'bee')
           add(o.enemies, b)
       end
     end
@@ -97,13 +94,14 @@ function init_enemies (enemy_config)
       for i=1,#enemy_config.catepillers do
           local e = enemy_config.catepillers[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local is_flip = e[5] and e[5] or false
-          local direction = e[6] and e[6] or 'x'
+          local flip_x = e[5] and e[5] or false
+          local flip_y = e[6] and e[5] or false
+          local direction = e[7] and e[7] or 'x'
           local c
           if direction == 'x' then
-              c = init_enemy(pos_x, pos_y, max_range, speed, is_flip, 'catepiller_x')
+              c = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'catepiller_x')
           elseif direction == 'y' then
-              c = init_enemy(pos_x, pos_y, max_range, speed, is_flip, 'catepiller_y')
+              c = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'catepiller_y')
           end
           add(o.enemies, c)
       end
