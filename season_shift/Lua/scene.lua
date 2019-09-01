@@ -49,3 +49,116 @@ function init_snow(speed, num, hit_spr_flag)
         draw = draw,
     }
 end
+
+function init_cloud()
+  -- local cloud_speed_1 = 0.3
+  -- local cloud_speed_2 = 0.5
+  -- local map_x_1 = 0
+  -- local map_y_1 = 0
+  -- local map_x_2 = 0
+  -- local map_y_2 = 0
+
+  local function update_location(need_x, speed)
+    local cloud_x = need_x
+    if cloud_x < -128 then
+      cloud_x = 0
+    end
+    cloud_x = cloud_x - speed
+    return cloud_x
+  end
+  local maps = {}
+
+  local function init_map(x, y, map_x, map_y, width, height, speed)
+    local m = {
+      x = x,
+      y = y,
+      map_x = map_x,
+      map_y = map_y,
+      width = width,
+      height = height,
+      speed = speed,
+      ex_x = 0,
+      ex_y = 0,
+    }
+    m.update = function()
+      m.ex_x = update_location(m.ex_x, m.speed)
+      -- printh(m.ex_x, "dir")
+    end
+    -- m.draw = function()
+    --   -- printh(m.ex_x, "dir")
+    --   map(m.x, m.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
+    -- end
+    add(maps, m)
+  end
+
+  init_map(112, 21, 0, 8, 16, 3, 0.2)--2
+  init_map(112, 21, 128, 8, 16,  3, 0.2)
+  -- init_map(112, 24, 0, 16, 16, 4, 0.3) --3
+  -- init_map(112, 24, 128, 16, 16, 4, 0.3)
+  init_map(112, 16, 0, 0, 16, 3, 0.4)--1
+  init_map(112, 16, 128, 0, 16, 3, 0.4)
+  -- init_map(112, 28, 0, 24, 16, 4, 0.5)--4
+  -- init_map(112, 28, 128, 24, 16, 4, 0.5)
+
+  local function update()
+    for v in all(maps) do
+      v.update()
+    end
+  end
+
+  local function draw()
+    for m in all(maps) do
+      map(m.x+camera_location.x, m.y+camera_location.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
+    end
+  end
+  return {
+    update = update,
+    draw = draw,
+  }
+end
+
+function init_leaves(speed, num, hit_spr_flag)
+  local function init_leaf(pos_x, v_x, v_y)
+    local lf = init_spr("leaf", 118, pos_x, 0, 1, 1, false, v_x, v_y)
+    local update_speed = 5+flr(rnd(15))
+    init_animation(lf, 118, 119, update_speed, "leaf", true)
+    return lf
+  end
+
+  if not speed then speed = 1 end
+  if not hit_spr_flag then hit_spr_flag = 1 end
+  if not num then num = flr(rnd(10)) + 10 end
+  local leaves = {}
+  for i = 1, num do
+      local pos_x = flr(rnd(125))+2
+      local v_x = rnd(3)+speed
+      local v_y = 3 - rnd(6)
+      local f = init_leaf(pos_x, v_x, v_y)
+      add(leaves, f)
+  end
+
+  local function is_land(sp)
+      if get_map_flage(sp.pos_x, (sp.pos_y + sp.vecter.y)) == hit_spr_flag then
+          sp.pos_y = flr((sp.pos_y + sp.vecter.y) / 8) * 8 - 8
+          return true
+      end
+  end
+
+  -- local function update()
+  --     for s in all(leaves) do
+  --         if not s.landed then
+  --             s.pos_x += s.vecter.x
+  --             s.pos_y += s.vecter.y
+  --         end
+  --         if is_land(s) and not s.landed then
+  --             -- s.y = 100
+  --             s.landed = true
+  --             timer.add_timeout('snow_melt'..s.n, 1, function()
+  --                 s.landed = false
+  --                 s.y = 0
+  --                 s.x = rnd(128)
+  --             end)
+  --         end
+  --     end
+  -- end
+end

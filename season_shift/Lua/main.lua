@@ -109,6 +109,7 @@ function _init()
     x,
     y,
   } --方向标签
+  cloud = init_cloud()
   game_state_flag = "play"--游戏状态标签
   gravity = cfg_gravity-- 重力
   update_state_flag = "play"
@@ -239,6 +240,7 @@ update_states = {
             chest.pinecone -= 1
             thief.act = 'run1'
         end
+        cloud.update()
     end,
 
     game_over_update = function()
@@ -252,6 +254,7 @@ update_states = {
   draw_states = {
     change_level_draw = function()
       map(map_location.x, map_location.y)
+      cloud.draw()
 
       for v in all(object_table) do
         if v.flip_x then
@@ -279,12 +282,14 @@ update_states = {
       draw_pinecone_ui()
       mogu_hit()
       jinji_hit()
+
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
 
     play_draw = function()
       map(map_location.x, map_location.y)
+      cloud.draw()
 
       for v in all(object_table) do
         if v.flip_x then
@@ -314,6 +319,7 @@ update_states = {
       mogu_hit()
       jinji_hit()
       lupai_hit()
+
       -- map_col.update_trg()
       -- camera(player.pos_x-64, 0)
     end,
