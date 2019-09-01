@@ -127,11 +127,15 @@ function _init()
   lupai_hit = map_trigger_stay(player, 6, function()
     print("X", player.pos_x, player.pos_y + 3, 4)
     if btnp(5) then
-      game_level = 1
-      change_level(1)
-      -- local next_level = player_pinecone >= 10 then
-      player.pos_x = 48
-      player.pos_y = 80
+      if game_level == 9 then
+        fade_out()
+      else
+        game_level = 1
+        change_level(1)
+        -- local next_level = player_pinecone >= 10 then
+        player.pos_x = 48
+        player.pos_y = 80
+      end
     end
   end, "all")
 
