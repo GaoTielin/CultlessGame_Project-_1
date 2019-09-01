@@ -463,11 +463,11 @@ function game_over()
 end
 
 function change_level(level)
-    if game_level ~= level then
-      for i=1,#cfg_levels["level" .. game_level].songzi do
-        cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
-        this_songzi_cfg[i] = nil
-    end
+  if game_level ~= level then
+    for i=1,#cfg_levels["level" .. game_level].songzi do
+      cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+      this_songzi_cfg[i] = nil
+  end
   end
   game_state_flag = "change_level"
   for v in all(enemies.enemies) do
@@ -480,6 +480,9 @@ function change_level(level)
   end
 
   local level_cfg = cfg_levels["level" .. level]
+  if level_cfg.change_map then
+    change_map(level_cfg.change_map)
+  end
   enemies = init_enemies(level_cfg.enemys)
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do

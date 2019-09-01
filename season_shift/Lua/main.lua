@@ -125,8 +125,9 @@ function _init()
   lupai_hit = map_trigger_stay(player, 6, function()
     print("X", player.pos_x, player.pos_y + 3, 4)
     if btnp(5) then
-      game_level = 1
-      change_level(game_level)
+      -- local next_level = player_pinecone >= 10 then
+      change_level(5)
+      game_level = 5
       player.pos_x = 48
       player.pos_y = 80
     end
@@ -194,6 +195,7 @@ update_states = {
         if (btn (0) ) controller.left()
         if (btn (1) ) controller.right()
         -- if (btnp (5)) change_level(2)
+        -- if (btnp (5)) change_map(map_cfg)
 
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()

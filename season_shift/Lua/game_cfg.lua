@@ -14,6 +14,7 @@ cfg_camera_move_speed = { -- 切换地图时镜头移动速度
 
 cfg_levels_autumn = {
   level1 = {
+
     player_start_pos = { -- 角色起始在关卡中的位置 单位（格）
       x = 0,
       y = 7,
@@ -22,7 +23,6 @@ cfg_levels_autumn = {
       x = 0,
       y = 0,
     },
-    level_type = "noaml", -- 配置地图类型（可做到不同地图使用不同的地形配置）
     enemys = { -- 敌人配置，参数分别为x坐标，y坐标，移动最远距离, 速度
       bees = {
         -- {6*8, 6*8, 16, 0.5},
@@ -45,7 +45,6 @@ cfg_levels_autumn = {
       x = 16,
       y = 0,
     },
-    level_type = "noaml", -- 配置地图类型（可做到不同地图使用不同的地形配置）
     enemys = { -- 敌人配置
       caterpillar ={},
       bees = {
@@ -61,6 +60,7 @@ cfg_levels_autumn = {
     },
   },
   level3 = {
+
     player_start_pos = { -- 角色起始在关卡中的位置 单位（格）
       x = 0,
       y = 7,
@@ -69,7 +69,6 @@ cfg_levels_autumn = {
       x = 32,
       y = 0,
     },
-    level_type = "noaml", -- 配置地图类型（可做到不同地图使用不同的地形配置）
     enemys = { -- 敌人配置
       caterpillar ={},
       bees = {
@@ -94,7 +93,6 @@ cfg_levels_autumn = {
       x = 48,
       y = 0,
     },
-    level_type = "noaml", -- 配置地图类型（可做到不同地图使用不同的地形配置）
     enemys = { -- 敌人配置
       caterpillar ={},
       bees = {
@@ -109,25 +107,35 @@ cfg_levels_autumn = {
     },
   },
   level5 = {
+    change_map = {
+      {x = 23, y = 11, sp = 2},
+      {x = 24, y = 11, sp = 2},
+      {x = 42, y = 7, sp = 16},
+      {x = 42, y = 8, sp = 16},
+      {x = 42, y = 9, sp = 16},
+      {x = 42, y = 10, sp = 16},
+      {x = 63, y = 10, sp = 16},
+      {x = 63, y = 11, sp = 16},
+    },
     player_start_pos = { -- 角色起始在关卡中的位置 单位（格）
       x = 0,
       y = 7,
     },
     camera_pos = { -- 相机位置 单位（格）
-      x = 64,
+      x = 0,
       y = 0,
     },
-    level_type = "noaml", -- 配置地图类型（可做到不同地图使用不同的地形配置）
     enemys = { -- 敌人配置
       caterpillar ={},
       bees = {
-        -- {26*8, 6*8, 16, 0.5},
+        -- {54*8, 7*8, 24, 0.5},
       },
       catepillers = {
-        {}
+        -- {52*8, 9*8, 8, 0.5}
       },
     },
     songzi = {
-    }
+      -- {54*8, 9*8},
+    },
   },
 }

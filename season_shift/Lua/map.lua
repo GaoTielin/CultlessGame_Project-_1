@@ -123,3 +123,9 @@ function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
         update = update,
     }
 end
+
+function change_map(change_cfg)
+  for k,v in pairs(change_cfg) do
+    mset(v.x, v.y, v.sp)
+  end
+end
