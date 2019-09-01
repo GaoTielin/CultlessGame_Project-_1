@@ -486,7 +486,7 @@ function change_level(level)
       -- printh("level-i = " .. i, "dir")
       this_songzi_cfg[i] = level_cfg.songzi[i]
     end
-    if this_songzi_cfg then
+    if #this_songzi_cfg ~= 0 then
       songzi = init_songzis(this_songzi_cfg)
     end
   end
