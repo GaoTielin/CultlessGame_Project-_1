@@ -42,7 +42,9 @@ function init_enemy (pos_x, pos_y, max_range, speed, type)
         e = init_spr("catepiller", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
     end
-    ontrigger_enter(e, player, game_over)
+    ontrigger_enter(e, player, function()
+      game_over()
+    end)
 
     e.flip_x = false
     e.update = function ()
