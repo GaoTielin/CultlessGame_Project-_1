@@ -463,21 +463,17 @@ function game_over()
 end
 
 function change_level(level)
-  if game_level ~= level then
-    for i=1,#this_songzi_cfg do
-      cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+    if game_level ~= level then
+      for i=1,#cfg_levels["level" .. game_level].songzi do
+        cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+        this_songzi_cfg[i] = nil
     end
-    -- cfg_levels["level" .. game_level].songzi = this_songzi_cfg
   end
   game_state_flag = "change_level"
   for v in all(enemies.enemies) do
       v.destroy()
   end
   songzi.destroy()
-  -- for v in all(songzi.table) do
-  --   printh(" des--1-------------- ")
-  --   v.destroy()
-  -- end
   for i = 1 ,#this_songzi_cfg do
     -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil

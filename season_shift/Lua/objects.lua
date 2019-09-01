@@ -12,23 +12,20 @@ function init_songzis(songzi_config)
   local s = {
     table = {},
   }
-  for v in all(songzi_config) do
-    local pos_x, pos_y = v[1], v[2]
+  for i = 1 , #songzi_config do
+    local pos_x, pos_y = songzi_config[i][1], songzi_config[i][2]
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()
       b.destroy()
       player_pinecone = player_pinecone + 1
       player.hand_songzi = player.hand_songzi + 1
-      v = nil
+      songzi_config[i] = nil
     end)
-    printh("init--1---------", "dir")
-    add(b, s.table)
+    add(s.table, b)
   end
   s.destroy = function()
-    printh("songzi_destroy ============", "dir")
     for v in all(s.table) do
-      printh("destroy--1---------", "dir")
       v.destroy()
     end
   end
@@ -241,7 +238,6 @@ function init_player()
 
   player.check_position = function()
     if player.pos_x + 3 >= camera_location.x + 128 then
-
 
       change_level(game_level+1)
       game_level = game_level + 1

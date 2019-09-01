@@ -131,7 +131,7 @@ function _init()
       game_level = 1
       change_level(game_level)
       player.pos_x = 48
-      player.pos_y = 80      
+      player.pos_y = 80
     end
   end, "all")
 
@@ -151,7 +151,7 @@ function _init()
     add(this_songzi_cfg, v)
   end
   if this_songzi_cfg then
-    init_songzis(this_songzi_cfg)
+    songzi = init_songzis(this_songzi_cfg)
   end
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()
@@ -777,9 +777,16 @@ function game_over()
 end
 
 function change_level(level)
-  if game_level ~= level then
-    for i=1,#this_songzi_cfg do
-      cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+    if game_level ~= level then
+      for i=1,#cfg_levels["level" .. game_level].songzi do
+        -- printh(game_level .. "->cfg = " .. i, "dir")
+        cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+        -- printh("songzi ." .. i ..   cfg_levels["level" .. game_level].songzi[i] )
+        this_songzi_cfg[i] = nil
+    end
+    for i = 1 , #cfg_levels["level" .. game_level].songzi do
+      -- printh(game_level .. "->songzi = " .. cfg_levels["level" .. game_level].songzi[i][1], "dir")
+      -- printh(game_level .. "->songzi = " .. i, "dir")
     end
     -- cfg_levels["level" .. game_level].songzi = this_songzi_cfg
   end
@@ -787,17 +794,21 @@ function change_level(level)
   for v in all(enemies.enemies) do
       v.destroy()
   end
-  for k,v in pairs(this_songzi_cfg) do
-    v = nil
+  songzi.destroy()
+  for i = 1 ,#this_songzi_cfg do
+    -- printh("this-i = " .. i, "dir")
+    this_songzi_cfg[i] = nil
   end
+
   local level_cfg = cfg_levels["level" .. level]
   enemies = init_enemies(level_cfg.enemys)
-  if level_cfg.songzi then
-    for k,v in pairs(level_cfg.songzi) do
-      add(this_songzi_cfg, v)
+  if #level_cfg.songzi ~= 0 then
+    for i = 1 ,#level_cfg.songzi do
+      -- printh("level-i = " .. i, "dir")
+      this_songzi_cfg[i] = level_cfg.songzi[i]
     end
     if this_songzi_cfg then
-      init_songzis(this_songzi_cfg)
+      songzi = init_songzis(this_songzi_cfg)
     end
   end
   local camera_pos_x = level_cfg.camera_pos.x*8
@@ -886,30 +897,30 @@ function map_trigger(obj, flag, direction)
     local h = obj.height * 8
     local x1, x2, y1, y2 = 0, 0, 0, 0
     if direction == 'left' then
-        x1 = x - 1
+        x1 = x + 2
         y1 = y
-        x2 = x
+        x2 = x + 2
         y2 = y + h - 1
     elseif direction == 'right' then
-        x1 = x + w
+        x1 = x + w - 2
         y1 = y
-        x2 = x + w + 1
+        x2 = x + w - 2
         y2 = y + h - 1
     elseif direction == 'up' then
         x1 = x + 1
-        y1 = y - 1
+        y1 = y  + 2
         x2 = x + w - 1
-        y2 = y
+        y2 = y + 2
     elseif direction == 'down' then
         x1 = x
-        y1 = y + h
+        y1 = y + h - 2
         x2 = x + w
-        y2 = y + h
+        y2 = y + h - 2
     elseif direction == 'all' then
-        x1 = x
-        y1 = y
-        x2 = x + w
-        y2 = y + h
+        x1 = x + 2
+        y1 = y + 2
+        x2 = x + w - 2
+        y2 = y + h - 2
     end
 
     if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
@@ -1012,17 +1023,55 @@ function init_chest ()
 end
 
 function init_songzis(songzi_config)
-  for i,v in pairs(songzi_config) do
-    local pos_x, pos_y = v[1], v[2]
+  local s = {
+    table = {},
+  }
+  -- for v in all(songzi_config) do
+  --   local pos_x, pos_y = v[1], v[2]
+  --   local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
+  --   init_animation(b, 141, 142, 5, "move", true)
+  --   ontrigger_enter(b, player, function()
+  --     b.destroy()
+  --     player_pinecone = player_pinecone + 1
+  --     player.hand_songzi = player.hand_songzi + 1
+  --     printh("enter ================", "dir")
+  --     printh("songzi_config ================" .. v[1], "dir")
+  --     v = nil
+  --     for v in all(songzi_config) do
+  --       printh("v ================" .. v[1], "dir")
+  --     end
+  --   end)
+  --   add(s.table, b)
+  -- end
+  for i = 1 , #songzi_config do
+    local pos_x, pos_y = songzi_config[i][1], songzi_config[i][2]
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
+    for v in all(this_songzi_cfg) do
+      printh("v1 ================" .. v[1], "dir")
+    end
     ontrigger_enter(b, player, function()
       b.destroy()
       player_pinecone = player_pinecone + 1
       player.hand_songzi = player.hand_songzi + 1
+      printh("enter ================", "dir")
+      printh("songzi_config ================" .. songzi_config[i][1], "dir")
       songzi_config[i] = nil
+      for v in all(this_songzi_cfg) do
+        printh("v2 ================" .. v[1], "dir")
+      end
+      -- for i = 1 , #songzi_config do
+      --    printh("v ================" .. songzi_config[i][1], "dir")
+      -- end
     end)
+    add(s.table, b)
   end
+  s.destroy = function()
+    for v in all(s.table) do
+      v.destroy()
+    end
+  end
+  return s
 end
 
 -- enemy could be bee or catepiller, depends on type args
@@ -1232,7 +1281,6 @@ function init_player()
   player.check_position = function()
     if player.pos_x + 3 >= camera_location.x + 128 then
 
-
       change_level(game_level+1)
       game_level = game_level + 1
     end
@@ -1336,8 +1384,8 @@ end
 
 cfg_player_acceleration_fast = 0.2 -- θ·β΅οΈζ­¥εβ‚ ιβ–εΊ¦
 cfg_player_acceleration_low = 0.3 -- θ·β΅οΈζ­¥εβ™¥β—†ιβ–εΊ¦
-cfg_jump_speed = 4 -- θ·³θ·β¬‡οΈιβ–εΊ¦
-cfg_climb_speed = 2 -- ηβ‰¬εΆβ–¥ιβ–εΊ¦
+cfg_jump_speed = 3.2 -- θ·³θ·β¬‡οΈιβ–εΊ¦
+cfg_climb_speed = 1.6 -- ηβ‰¬εΆβ–¥ιβ–εΊ¦
 cfg_gravity = 0.4 -- ιβ™¥β™ªεβ‚›(εβ€¦β΅οΈδΈβ¬…οΈηβ–‘εβ‚ ιβ–εΊ¦)
 cfg_player_max_v = 1.6 -- ζβ–ε¤§ιβ–εΊ¦
 cfg_mogu_jump = 4 -- ιβ™¥β™¥θβ–¤β΅οΈθβ—†β™¥θ·³θ·β¬‡οΈιβ–εΊ¦
@@ -1390,7 +1438,7 @@ cfg_levels_autumn = {
       },
     },
     songzi = {
-      {13*8, 8*8},
+      -- {13*8, 8*8},
       {26*8, 6*8},
     },
   },
