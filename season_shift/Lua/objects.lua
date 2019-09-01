@@ -71,7 +71,11 @@ function init_enemy (pos_x, pos_y, max_range, speed, is_flip, type)
         end
     end
     e.draw = function ()
-        spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x, e.flip_y)
+        if e.name == 'catepiller_x' or e.name == 'bee' then
+            spr(e.sp, e.pos_x, e.pos_y, 1, 1, e.flip_x)
+        elseif e.name == 'catepiller_y' then
+            spr(e.sp, e.pos_x, e.pos_y, 1, 1, false, e.flip_y)
+        end
     end
     return e
 end
