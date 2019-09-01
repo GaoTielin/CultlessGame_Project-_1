@@ -128,7 +128,7 @@ function _init()
       game_level = 1
       change_level(game_level)
       player.pos_x = 48
-      player.pos_y = 80      
+      player.pos_y = 80
     end
   end, "all")
 
@@ -148,7 +148,7 @@ function _init()
     add(this_songzi_cfg, v)
   end
   if this_songzi_cfg then
-    init_songzis(this_songzi_cfg)
+    songzi = init_songzis(this_songzi_cfg)
   end
   -- pinecones of whole level
   global_pinecone = init_global_pinecone()

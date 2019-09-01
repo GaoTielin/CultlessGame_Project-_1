@@ -473,17 +473,25 @@ function change_level(level)
   for v in all(enemies.enemies) do
       v.destroy()
   end
-  for k,v in pairs(this_songzi_cfg) do
-    v = nil
+  songzi.destroy()
+  -- for v in all(songzi.table) do
+  --   printh(" des--1-------------- ")
+  --   v.destroy()
+  -- end
+  for i = 1 ,#this_songzi_cfg do
+    -- printh("this-i = " .. i, "dir")
+    this_songzi_cfg[i] = nil
   end
+
   local level_cfg = cfg_levels["level" .. level]
   enemies = init_enemies(level_cfg.enemys)
-  if level_cfg.songzi then
-    for k,v in pairs(level_cfg.songzi) do
-      add(this_songzi_cfg, v)
+  if #level_cfg.songzi ~= 0 then
+    for i = 1 ,#level_cfg.songzi do
+      -- printh("level-i = " .. i, "dir")
+      this_songzi_cfg[i] = level_cfg.songzi[i]
     end
     if this_songzi_cfg then
-      init_songzis(this_songzi_cfg)
+      songzi = init_songzis(this_songzi_cfg)
     end
   end
   local camera_pos_x = level_cfg.camera_pos.x*8

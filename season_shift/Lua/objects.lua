@@ -9,7 +9,10 @@ function init_chest ()
 end
 
 function init_songzis(songzi_config)
-  for i,v in pairs(songzi_config) do
+  local s = {
+    table = {},
+  }
+  for v in all(songzi_config) do
     local pos_x, pos_y = v[1], v[2]
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
@@ -17,9 +20,19 @@ function init_songzis(songzi_config)
       b.destroy()
       player_pinecone = player_pinecone + 1
       player.hand_songzi = player.hand_songzi + 1
-      songzi_config[i] = nil
+      v = nil
     end)
+    printh("init--1---------", "dir")
+    add(b, s.table)
   end
+  s.destroy = function()
+    printh("songzi_destroy ============", "dir")
+    for v in all(s.table) do
+      printh("destroy--1---------", "dir")
+      v.destroy()
+    end
+  end
+  return s
 end
 
 -- enemy could be bee or catepiller, depends on type args
