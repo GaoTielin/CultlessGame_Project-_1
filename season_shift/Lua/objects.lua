@@ -276,8 +276,10 @@ function init_tail()
 end
 
 function init_thief ()
-    local thief = init_spr("thief", 160, 20, 50, 1, 1, true)
+    local thief = init_spr("thief", 160, 20, 60, 1, 1, true)
+    thief.act = 'init'
     thief.mogu_jump_event = false
+    thief.fall_event = false
     thief.flip_x = false
     thief.draw_run1 = function ()
         thief_mogu_hit()
@@ -298,11 +300,11 @@ function init_thief ()
             thief.state = 'run'
             change_animation(thief, 'run')
             change_animation(tail, 'run')
-            thief.pos_x += 1
+            thief.pos_x += 2
         end
         if thief.pos_x >= 68 and not thief.mogu_jump_event then
             thief.vecter.y -= 4
-            thief.vecter.x += 3
+            thief.vecter.x += 0.5
             thief.mogu_jump_event = true
         end
         if thief.pos_x >= 96 then
@@ -319,20 +321,37 @@ function init_thief ()
     thief.mogu_hit = function()
         change_animation(thief, 'jump')
         change_animation(tail, 'jump')
-        thief.vecter.y = -4
-        timer.add_timeout('thief_jump', 0.15, function()
+        thief.vecter.y = -5
+        timer.add_timeout('thief_jump', 0.1, function()
             thief.vecter.x = 1
         end)
     end
     thief.draw_run2 = function ()
     end
     thief.update_run2 = function ()
-      tail.update()
+        if not (thief.pos_x >= 68) then
+            change_animation(thief, 'run')
+            change_animation(tail, 'run')
+            thief.pos_x += 2
+        else
+            if not thief.fall_event then
+                thief.state = 'fall'
+                change_animation(thief, 'fall')
+                timer.add_timeout('thief_run', 0.5, function()
+                    change_animation(thief, 'run')
+                    change_animation(tail, 'run')
+                    thief.state = 'run'
+                end)
+                thief.fall_event = true
+            end
+            if thief.state ~= 'fall' then thief.pos_x += 2 end
+        end
     end
     thief_mogu_hit = map_trigger_enter(thief, 3, thief.mogu_hit, "down")
     init_animation(thief, 160, 162, 10, "nomal", true)
     init_animation(thief, 167, 170, 10, "run", true)
     init_animation(thief, 183, 186, 10, "jump", true)
     init_animation(thief, 176, 178, 10, "climb", true)
+    init_animation(thief, 178, 178, 10, "fall", false)
     return thief
 end
