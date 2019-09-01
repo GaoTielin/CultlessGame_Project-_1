@@ -9,7 +9,7 @@ controller = {
     if player.state == "climb" then
       player.climb_jump()
     else
-      player.vecter.y -= cfg_jump_speed
+      player.vecter.y = cfg_jump_speed * -1
       direction_flag.y = "up"
       player.can_jump =  player.can_jump - 1
       if player.state ~= "jump" then
