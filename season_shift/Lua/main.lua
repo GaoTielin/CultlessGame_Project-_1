@@ -126,15 +126,15 @@ function _init()
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   jinji_hit = map_trigger_enter(player, 7, game_over, "all")
   lupai_hit = map_trigger_stay(player, 6, function()
-    -- if game_level ~= 1 then
+    if game_level == 4 or game_level == 9 then
         -- print("pass ❎", player.pos_x-5, player.pos_y - 8, 1)
         spr(175, player.pos_x, player.pos_y - 8)
         -- print("❎", player.pos_x, player.pos_y - 6, 1)
-    -- end
+    end
     if btnp(5) then
       if game_level == 9 then
         sandy.act = 'show'
-      elseif game_level == 4 or 1 then
+      elseif game_level == 4 then
         game_level = 1
         change_level(1)
         -- local next_level = player_pinecone >= 10 then
