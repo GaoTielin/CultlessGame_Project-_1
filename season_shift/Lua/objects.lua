@@ -3,7 +3,7 @@ function init_chest ()
     local c = init_spr("chest", 139, 9, 48, 2, 2, true, 0, 0)
      c.pinecone = 4
      c.draw = function ()
-         print(c.pinecone..'/'..10, c.pos_x-4, c.pos_y-6, 4)
+         print(c.pinecone..'/'..10, c.pos_x, c.pos_y, 4)
      end
      return c
 end
@@ -263,6 +263,9 @@ function init_player()
 
   player.mogu_hit = function()
       player.vecter.y = -1*cfg_mogu_jump
+      change_animation(player, "jump")
+      player.state = "jump"
+      player.can_jump = 0
   end
 
   player.check_position = function()

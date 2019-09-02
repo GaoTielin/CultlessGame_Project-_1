@@ -125,7 +125,10 @@ function _init()
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   jinji_hit = map_trigger_enter(player, 7, game_over, "all")
   lupai_hit = map_trigger_stay(player, 6, function()
-    print("X", player.pos_x, player.pos_y + 3, 4)
+    -- if game_level ~= 1 then
+        -- print("pass ❎", player.pos_x-5, player.pos_y - 8, 1)
+        print("❎", player.pos_x, player.pos_y - 6, 1)
+    -- end
     if btnp(5) then
       if game_level == 9 then
         fade_out()
@@ -164,6 +167,7 @@ function _init()
   map_ani_2 = init_map_animation(6, 15, 2, true)
 
   ontrigger_stay(player, chest, function()
+    print("❎", chest.pos_x+5, chest.pos_y - 8, 1)
     if btnp(5) then
       if player_pinecone ~= 0 then
         player_pinecone -= 1
@@ -184,7 +188,7 @@ update_states = {
   end,
 
   play_update = function()
-        Update_Trigger()
+
 
         player.check_position()
         map_ani_1.update()
@@ -256,75 +260,11 @@ update_states = {
 
   draw_states = {
     change_level_draw = function()
-      map(map_location.x, map_location.y)
-      cloud.draw()
-
-      for v in all(object_table) do
-        if v.flip_x then
-          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
-        else
-            if v.name == 'thief' then
-                if thief.act ~= 'init' then
-                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
-                end
-            else
-              spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
-            end
-        end
-      end
-
-      print(player.can_jump)
-      print(player.state)
-      print(player.is_physic)
-      print(player_state_x_flag)
-      print(player.vecter.x)
-      -- snow.draw()
-      chest.draw()
-      enemies.draw()
-      global_pinecone.draw()
-      draw_pinecone_ui()
-      mogu_hit()
-      jinji_hit()
-
-      -- map_col.update_trg()
-      -- camera(player.pos_x-64, 0)
+      nomal_draw()
     end,
 
     play_draw = function()
-      map(map_location.x, map_location.y)
-      cloud.draw()
-
-      for v in all(object_table) do
-        if v.flip_x then
-          spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
-        else
-            if v.name == 'thief' then
-                if thief.act ~= 'init' then
-                    spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
-                end
-            else
-              spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
-            end
-        end
-      end
-
-      print(player.can_jump)
-      print(player.state)
-      print(player.is_physic)
-      print(player_state_x_flag)
-      print(player.vecter.x)
-      -- snow.draw()
-      chest.draw()
-      if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
-      enemies.draw()
-      global_pinecone.draw()
-      draw_pinecone_ui()
-      mogu_hit()
-      jinji_hit()
-      lupai_hit()
-
-      -- map_col.update_trg()
-      -- camera(player.pos_x-64, 0)
+        nomal_draw()
     end,
     game_over_draw = function()
       -- map(16, 0)
@@ -334,3 +274,33 @@ update_states = {
   -------------------------------
 }
 -----------------------------------
+function nomal_draw()
+    map(map_location.x, map_location.y)
+    cloud.draw()
+
+    for v in all(object_table) do
+      if v.flip_x then
+        spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
+      else
+          if v.name == 'thief' then
+              if thief.act ~= 'init' then
+                  spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+              end
+          else
+            spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+          end
+      end
+    end
+    -- snow.draw()
+    chest.draw()
+    if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
+    enemies.draw()
+    global_pinecone.draw()
+    draw_pinecone_ui()
+    mogu_hit()
+    jinji_hit()
+    lupai_hit()
+    Update_Trigger()
+    -- map_col.update_trg()
+    -- camera(player.pos_x-64, 0)
+end
