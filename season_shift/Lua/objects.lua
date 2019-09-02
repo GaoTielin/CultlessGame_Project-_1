@@ -121,25 +121,6 @@ function init_enemies (enemy_config)
     return o
 end
 
-function init_global_pinecone ()
-  local g = {
-    pinecone_list = {}
-  }
-  g.draw = function ()
-    for p in all(g.pinecone_list) do
-      if p.is_dropped then
-        -- hack way to let pinecone flcik
-        if time() % 0.5 < 0.25 then
-          spr(p.sp, p.pos_x, p.pos_y)
-        end
-      else
-        spr(p.sp, p.pos_x, p.pos_y)
-      end
-    end
-  end
-  return g
-end
-
 function draw_pinecone_ui()
     local ui_x = 125
     for i = 1, max_pinecone_num do
@@ -398,11 +379,11 @@ function init_thief ()
                     change_animation(tail, 'run')
                     thief.state = 'run'
                     init_songzis({
-                      {73*8, 11*8},
-                      {75*8, 11*8},
-                      {69*8, 11*8},
-                      {72*8, 11*8},
-                      {77*8, 11*8},
+                      {584, 88},
+                      {600, 88},
+                      {552, 88},
+                      {576, 88},
+                      {616, 88},
                     })
                     thief_songzi.destroy()
                 end)
@@ -433,7 +414,7 @@ function init_sandy ()
         if sandy.x <= 592 then
             sandy.x = 592
             fade_out()
-            sandy.act == 'init'
+            sandy.act = 'init'
         end
     end
     return sandy

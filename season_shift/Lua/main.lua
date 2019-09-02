@@ -160,7 +160,6 @@ function _init()
     songzi = init_songzis(this_songzi_cfg)
   end
   -- pinecones of whole level
-  global_pinecone = init_global_pinecone()
   max_pinecone_num = 6
   player_pinecone = 1
   timer = newtimer()
@@ -237,7 +236,6 @@ update_states = {
         timer.update()
         tail.update()
         enemies.update()
-        move_camera()
         if thief.act == 'run1' then
             thief.update_run1()
         elseif thief.act == 'run2' and game_level == 9 then
@@ -301,7 +299,6 @@ function nomal_draw()
     sandy.draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
     enemies.draw()
-    global_pinecone.draw()
     draw_pinecone_ui()
     mogu_hit()
     jinji_hit()
