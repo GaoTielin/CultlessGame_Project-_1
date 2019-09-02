@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
---------------�🅾️��☉��▥�----------------
+--------------�🅾️��☉��▥�----------------
 map_location ={
     x = 0,
     y = 0,
@@ -111,14 +111,14 @@ function _init()
   direction_flag = {
     x,
     y,
-  } --�∧��…➡️��♥签
+  } --�∧��…➡️�♥签
   cloud = init_cloud()
-  game_state_flag = "play"--游�☉◆�⌂��█▒��♥签
-  gravity = cfg_gravity-- �♥♪�⌂�
+  game_state_flag = "play"--游�☉◆�⌂��█▒�♥签
+  gravity = cfg_gravity-- �♥♪�⌂�
   update_state_flag = "play"
   draw_state_flage = "play"
   player_state_x_flag = "nomal"
-  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
+  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
@@ -178,11 +178,12 @@ function _init()
       end
     end
   end, 'chest_store')
+  change_level(game_level)
 end
 
-------------游�☉◆�⌂��█▒机-----------------
+------------游�☉◆�⌂��█▒机-----------------
 game_states = {
-----------update�⌂��█▒机--------------
+----------update�⌂��█▒机--------------
 update_states = {
   change_level_update = function()
     if change_camera.update() then
@@ -191,8 +192,6 @@ update_states = {
   end,
 
   play_update = function()
-
-
         player.check_position()
         map_ani_1.update()
         map_ani_2.update()
@@ -259,7 +258,7 @@ update_states = {
   },
   ---------------------------------
 
-  -----------draw�⌂��█▒机-------------
+  -----------draw�⌂��█▒机-------------
 
   draw_states = {
     change_level_draw = function()
@@ -285,7 +284,7 @@ function nomal_draw()
       if v.flip_x then
         spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
       else
-          if v.name == 'thief' then
+          if v.name == 'thief' or v.name == "thief_songzi" then
               if thief.act ~= 'init' then
                   spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
               end
@@ -1091,20 +1090,34 @@ function map_trigger(obj, flag, direction)
         y2 = y + h - 2
     end
 
-    if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
-        or get_map_flage(x1, y2) == flag or get_map_flage(x2, y1) == flag then
-            return true
+    -- if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
+    --     or get_map_flage(x1, y2) == flag or get_map_flage(x2, y1) == flag then
+    --         return true
+    -- end
+    if get_map_flage(x1, y1) == flag then
+        return true, x1, y1
     end
-    return false
+    if get_map_flage(x2, y2) == flag then
+        return true, x2, y2
+    end
+    if get_map_flage(x1, y2) == flag then
+        return true, x1, y2
+    end
+    if get_map_flage(x2, y1) == flag then
+        return true, x2, y1
+    end
+    return false, 0, 0
 end
 
 function map_trigger_enter(obj, map_flag, enter_func, direction)
     local entered = false
     local is_trigger = false
+    local enter_x
+    local enter_y
     local function trigger_enter ()
-        is_trigger = map_trigger(obj, map_flag, direction)
+        is_trigger, enter_x, enter_y = map_trigger(obj, map_flag, direction)
         if not entered and is_trigger then
-            enter_func()
+            enter_func(enter_x, enter_y)
             entered = true
         end
         if entered and not is_trigger then
@@ -1188,7 +1201,7 @@ end
 -->8
 -- objects
 function init_chest ()
-    local c = init_spr("chest", 139, 9, 48, 2, 2, true, 0, 0)
+    local c = init_spr("chest", 139, 9, 80, 2, 2, true, 0, 0)
      c.pinecone = 4
      c.draw = function ()
          print(c.pinecone..'/'..10, c.pos_x, c.pos_y, 4)
@@ -1273,7 +1286,7 @@ function init_enemies (enemy_config)
           local e = enemy_config.bees[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[5] or false
+          local flip_y = e[6] and e[6] or false
           local b = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'bee')
           add(o.enemies, b)
       end
@@ -1283,7 +1296,7 @@ function init_enemies (enemy_config)
           local e = enemy_config.catepillers[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[5] or false
+          local flip_y = e[6] and e[6] or false
           local direction = e[7] and e[7] or 'x'
           local c
           if direction == 'x' then
@@ -1449,11 +1462,16 @@ function init_player()
     player.is_physic = true
   end
 
-  player.mogu_hit = function()
+  player.mogu_hit = function(mogu_x, mogu_y)
       player.vecter.y = -1*cfg_mogu_jump
       change_animation(player, "jump")
       player.state = "jump"
       player.can_jump = 0
+      printh(mogu_x .. " " .. mogu_y, "dir")
+      mset(mogu_x/8, mogu_y/8, 85)
+      timer.add_timeout("mogu_hit", 0.1, function()
+          mset(mogu_x/8, mogu_y/8, 84)
+      end)
   end
 
   player.check_position = function()
@@ -1497,6 +1515,8 @@ end
 
 function init_thief ()
     local thief = init_spr("thief", 160, 20, 60, 1, 1, true)
+    local thief_songzi = init_spr("thief_songzi", 141, thief.pos_x, thief.pos_y, 1, 1, false)
+    init_animation(thief_songzi, 141, 142, 5, "nomal", true)
     thief.act = 'init'
     thief.mogu_jump_event = false
     thief.fall_event = false
@@ -1504,6 +1524,9 @@ function init_thief ()
     thief.draw_run1 = function ()
         thief_mogu_hit()
         spr(thief.sp, thief.pos_x, thief.pos_y, 1, 1)
+        thief_songzi.pos_x = thief.pos_x
+        thief_songzi.pos_y = thief.pos_y - 6
+        spr(thief_songzi.sp, thief_songzi.pos_x, thief_songzi.pos_y, 1, 1)
     end
     local tail = init_spr("tail", 224, thief.pos_x - 8, thief.pos_y, 1, 1, false, 0, 0)
     init_animation(tail, 0, 0, 10, "nomal", true)
@@ -1567,7 +1590,11 @@ function init_thief ()
                     change_animation(tail, 'run')
                     thief.state = 'run'
                     init_songzis({
-                      {73*8, 11*8}
+                      {73*8, 11*8},
+                      {75*8, 11*8},
+                      {69*8, 11*8},
+                      {72*8, 11*8},
+                      {77*8, 11*8},
                     })
                 end)
                 thief.fall_event = true
