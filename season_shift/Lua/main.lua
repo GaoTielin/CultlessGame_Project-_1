@@ -127,7 +127,7 @@ function _init()
   lupai_hit = map_trigger_stay(player, 6, function()
     -- if game_level ~= 1 then
         -- print("pass ❎", player.pos_x-5, player.pos_y - 8, 1)
-        spr(190, player.pos_x, player.pos_y - 8)
+        spr(175, player.pos_x, player.pos_y - 8)
         -- print("❎", player.pos_x, player.pos_y - 6, 1)
     -- end
     if btnp(5) then
@@ -168,7 +168,7 @@ function _init()
   map_ani_2 = init_map_animation(6, 15, 2, true)
 
   ontrigger_stay(player, chest, function()
-    spr(190, chest.pos_x+5, chest.pos_y - 8)
+    spr(175, chest.pos_x+5, chest.pos_y - 8)
     -- print("❎", chest.pos_x+5, chest.pos_y - 8, 1)
     if btnp(5) then
       if player_pinecone ~= 0 then
