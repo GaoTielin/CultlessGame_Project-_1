@@ -85,7 +85,7 @@ function init_enemies (enemy_config)
           local e = enemy_config.bees[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[5] or false
+          local flip_y = e[6] and e[6] or false
           local b = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'bee')
           add(o.enemies, b)
       end
@@ -95,7 +95,7 @@ function init_enemies (enemy_config)
           local e = enemy_config.catepillers[i]
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[5] or false
+          local flip_y = e[6] and e[6] or false
           local direction = e[7] and e[7] or 'x'
           local c
           if direction == 'x' then
