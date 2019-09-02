@@ -120,6 +120,7 @@ function _init()
   player_max_v = cfg_player_max_v
 
   thief = init_thief()
+  sandy = init_sandy()
   player = init_player()
   player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
@@ -132,8 +133,8 @@ function _init()
     -- end
     if btnp(5) then
       if game_level == 9 then
-        fade_out()
-    elseif game_level == 4 or 1 then
+        sandy.act = 'show'
+      elseif game_level == 4 or 1 then
         game_level = 1
         change_level(1)
         -- local next_level = player_pinecone >= 10 then
@@ -242,6 +243,9 @@ update_states = {
         elseif thief.act == 'run2' and game_level == 9 then
             thief.update_run2()
         end
+        if sandy.act == 'show' then
+            sandy.update()
+        end
         if chest.pinecone == 10 then
             game_level = 5
             change_level(5)
@@ -294,6 +298,7 @@ function nomal_draw()
     end
     -- snow.draw()
     chest.draw()
+    sandy.draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
     enemies.draw()
     global_pinecone.draw()

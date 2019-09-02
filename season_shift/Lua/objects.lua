@@ -420,3 +420,21 @@ function init_thief ()
     init_animation(thief, 178, 178, 10, "fall", false)
     return thief
 end
+
+function init_sandy ()
+    local sandy = {x=600, y=88}
+    sandy.act = 'init'
+    sandy.draw = function ()
+        spr(187, sandy.x, sandy.y, 1, 1, true)
+        sspr(16, 32, 16, 16, 600, 80)
+    end
+    sandy.update = function ()
+        sandy.x -= 0.1
+        if sandy.x <= 592 then
+            sandy.x = 592
+            fade_out()
+            sandy.act == 'init'
+        end
+    end
+    return sandy
+end
