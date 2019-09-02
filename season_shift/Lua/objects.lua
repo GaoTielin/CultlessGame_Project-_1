@@ -261,11 +261,16 @@ function init_player()
     player.is_physic = true
   end
 
-  player.mogu_hit = function()
+  player.mogu_hit = function(mogu_x, mogu_y)
       player.vecter.y = -1*cfg_mogu_jump
       change_animation(player, "jump")
       player.state = "jump"
       player.can_jump = 0
+      printh(mogu_x .. " " .. mogu_y, "dir")
+      mset(mogu_x/8, mogu_y/8, 85)
+      timer.add_timeout("mogu_hit", 0.1, function()
+          mset(mogu_x/8, mogu_y/8, 84)
+      end)
   end
 
   player.check_position = function()

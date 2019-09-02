@@ -36,20 +36,34 @@ function map_trigger(obj, flag, direction)
         y2 = y + h - 2
     end
 
-    if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
-        or get_map_flage(x1, y2) == flag or get_map_flage(x2, y1) == flag then
-            return true
+    -- if get_map_flage(x1, y1) == flag or get_map_flage(x2, y2) == flag
+    --     or get_map_flage(x1, y2) == flag or get_map_flage(x2, y1) == flag then
+    --         return true
+    -- end
+    if get_map_flage(x1, y1) == flag then
+        return true, x1, y1
     end
-    return false
+    if get_map_flage(x2, y2) == flag then
+        return true, x2, y2
+    end
+    if get_map_flage(x1, y2) == flag then
+        return true, x1, y2
+    end
+    if get_map_flage(x2, y1) == flag then
+        return true, x2, y1
+    end
+    return false, 0, 0
 end
 
 function map_trigger_enter(obj, map_flag, enter_func, direction)
     local entered = false
     local is_trigger = false
+    local enter_x
+    local enter_y
     local function trigger_enter ()
-        is_trigger = map_trigger(obj, map_flag, direction)
+        is_trigger, enter_x, enter_y = map_trigger(obj, map_flag, direction)
         if not entered and is_trigger then
-            enter_func()
+            enter_func(enter_x, enter_y)
             entered = true
         end
         if entered and not is_trigger then
