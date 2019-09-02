@@ -159,6 +159,15 @@ function init_player()
   player.max_jump = 1
   player.can_jump = 1
   player.hand_songzi = 0
+
+  player.anction_range = function()
+    if (player.pos_x < 0) player.pos_x = 1
+    if game_level == 9 then
+        if (player.pos_x < 515) player.pos_x = 516
+        if (player.pos_x > 624) player.pos_x = 624
+    end
+  end
+
   player.player_states = {
     states_x = {
       nomal = function()
@@ -242,6 +251,7 @@ function init_player()
       player.vecter.x = 0
     end)
   end
+
   player.climb_jump = function()
     local btn_num = player.flip_x and 1 or 0
     local not_btn = player.flip_x and 0 or 1
