@@ -243,7 +243,7 @@ update_states = {
         if chest.pinecone == 10 then
             game_level = 5
             change_level(5)
-            chest.pinecone -= 1
+            chest.pinecone -= 5
             thief.act = 'run1'
         end
         cloud.update()
@@ -281,7 +281,7 @@ function nomal_draw()
       if v.flip_x then
         spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
       else
-          if v.name == 'thief' then
+          if v.name == 'thief' or v.name == "thief_songzi" then
               if thief.act ~= 'init' then
                   spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
               end

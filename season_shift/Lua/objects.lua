@@ -266,7 +266,6 @@ function init_player()
       change_animation(player, "jump")
       player.state = "jump"
       player.can_jump = 0
-      printh(mogu_x .. " " .. mogu_y, "dir")
       mset(mogu_x/8, mogu_y/8, 85)
       timer.add_timeout("mogu_hit", 0.1, function()
           mset(mogu_x/8, mogu_y/8, 84)
@@ -314,6 +313,8 @@ end
 
 function init_thief ()
     local thief = init_spr("thief", 160, 20, 60, 1, 1, true)
+    local thief_songzi = init_spr("thief_songzi", 141, thief.pos_x, thief.pos_y, 1, 1, false)
+    init_animation(thief_songzi, 141, 142, 5, "nomal", true)
     thief.act = 'init'
     thief.mogu_jump_event = false
     thief.fall_event = false
@@ -321,6 +322,8 @@ function init_thief ()
     thief.draw_run1 = function ()
         thief_mogu_hit()
         spr(thief.sp, thief.pos_x, thief.pos_y, 1, 1)
+        thief_songzi.pos_x = thief.pos_x
+        thief_songzi.pos_y = thief.pos_y - 6
     end
     local tail = init_spr("tail", 224, thief.pos_x - 8, thief.pos_y, 1, 1, false, 0, 0)
     init_animation(tail, 0, 0, 10, "nomal", true)
@@ -379,13 +382,19 @@ function init_thief ()
                 thief.state = 'fall'
                 thief.vecter.x = 0
                 change_animation(thief, 'fall')
+                change_animation(tail, 'nomal')
                 timer.add_timeout('thief_run', 1, function()
                     change_animation(thief, 'run')
                     change_animation(tail, 'run')
                     thief.state = 'run'
                     init_songzis({
-                      {73*8, 11*8}
+                      {73*8, 11*8},
+                      {75*8, 11*8},
+                      {69*8, 11*8},
+                      {72*8, 11*8},
+                      {77*8, 11*8},
                     })
+                    thief_songzi.destroy()
                 end)
                 thief.fall_event = true
             end
@@ -394,10 +403,10 @@ function init_thief ()
         tail.update()
     end
     thief_mogu_hit = map_trigger_enter(thief, 3, thief.mogu_hit, "down")
-    init_animation(thief, 160, 162, 10, "nomal", true)
+    -- init_animation(thief, 160, 162, 10, "nomal", true)
     init_animation(thief, 167, 170, 10, "run", true)
     init_animation(thief, 183, 186, 10, "jump", true)
-    init_animation(thief, 176, 178, 10, "climb", true)
+    init_animation(thief, 176, 177, 10, "climb", true)
     init_animation(thief, 178, 178, 10, "fall", false)
     return thief
 end
