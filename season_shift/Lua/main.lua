@@ -237,7 +237,6 @@ update_states = {
         timer.update()
         tail.update()
         enemies.update()
-        move_camera()
         if thief.act == 'run1' then
             thief.update_run1()
         elseif thief.act == 'run2' and game_level == 9 then

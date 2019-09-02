@@ -398,11 +398,11 @@ function init_thief ()
                     change_animation(tail, 'run')
                     thief.state = 'run'
                     init_songzis({
-                      {73*8, 11*8},
-                      {75*8, 11*8},
-                      {69*8, 11*8},
-                      {72*8, 11*8},
-                      {77*8, 11*8},
+                      {584, 88},
+                      {600, 88},
+                      {552, 88},
+                      {576, 88},
+                      {616, 88},
                     })
                     thief_songzi.destroy()
                 end)
@@ -433,7 +433,7 @@ function init_sandy ()
         if sandy.x <= 592 then
             sandy.x = 592
             fade_out()
-            sandy.act == 'init'
+            sandy.act = 'init'
         end
     end
     return sandy

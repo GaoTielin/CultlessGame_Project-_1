@@ -10,11 +10,6 @@ newtimer = function ()
         local t = {'timeout', start, timeout, callback}
         o.timers[name] = t
     end
-    o.add_interval = function (name, interval, callback)
-        local start = time()
-        local t = {'interval', start, interval, callback}
-        o.timers[name] = t
-    end
     o.del = function (name)
         o.timers[name] = nil
     end
@@ -26,11 +21,6 @@ newtimer = function ()
                 if now - timer_start >= timeout then
                     callback()
                     o.del(name)
-                end
-            elseif timer_type == 'interval' then
-                if now - timer_start >= timeout then
-                    callback()
-                    o.add_interval(name, timeout, callback)
                 end
             end
         end
@@ -364,20 +354,6 @@ function exchange_obj(obj_1, obj_2)
     local mid_obj = obj_1
     return obj_2, mid_obj
 end
-
-function move_camera ()
-    local map_start = 0
-    local map_end = 1024
-    local cam_x = (player.pos_x - 64) + (player.width * 8) / 2
-    if cam_x < map_start then
-        cam_x = map_start
-    end
-    if cam_x > map_end - 128 then
-        cam_x = map_end - 128
-    end
-    camera(cam_x, 0)
-end
-
 
 function load_level (cart_name)
     -- load spritesheet
