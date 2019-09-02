@@ -175,6 +175,7 @@ function _init()
       end
     end
   end, 'chest_store')
+  change_level(game_level)
 end
 
 ------------游戏状态机-----------------
@@ -188,8 +189,6 @@ update_states = {
   end,
 
   play_update = function()
-
-
         player.check_position()
         map_ani_1.update()
         map_ani_2.update()
