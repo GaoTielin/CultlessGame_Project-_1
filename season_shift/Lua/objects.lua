@@ -121,25 +121,6 @@ function init_enemies (enemy_config)
     return o
 end
 
-function init_global_pinecone ()
-  local g = {
-    pinecone_list = {}
-  }
-  g.draw = function ()
-    for p in all(g.pinecone_list) do
-      if p.is_dropped then
-        -- hack way to let pinecone flcik
-        if time() % 0.5 < 0.25 then
-          spr(p.sp, p.pos_x, p.pos_y)
-        end
-      else
-        spr(p.sp, p.pos_x, p.pos_y)
-      end
-    end
-  end
-  return g
-end
-
 function draw_pinecone_ui()
     local ui_x = 125
     for i = 1, max_pinecone_num do
