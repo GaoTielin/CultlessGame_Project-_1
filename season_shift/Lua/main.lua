@@ -99,7 +99,7 @@ controller = {
 }
 
 function _init()
-  cls()
+  autumn_config = init_config(cfg_levels_autumn)
   game_level = 1
   camera_location = {
     x = 0,
@@ -145,17 +145,16 @@ function _init()
   end, "all")
 
   tail = init_tail()
-  cfg_levels = cfg_levels_autumn
+  cfg_levels = autumn_config
   change_camera = init_change_camera()
   tips = init_tips()
 
   -- snow = init_snow()
   -- leaves = init_leaves()
   chest = init_chest()
-  level1 = table_from_string(cfg_levels.level1)
-  enemies = init_enemies(level1.enemy_bees, level1.enemy_catepillers)
+  enemies = init_enemies(cfg_levels.level1.enemy_bees, cfg_levels.level1.enemy_catepillers)
   this_songzi_cfg = {}
-  for k,v in pairs(table_from_string(cfg_levels.level1).songzi) do
+  for k,v in pairs(cfg_levels.level1.songzi) do
     add(this_songzi_cfg, v)
   end
   if this_songzi_cfg then

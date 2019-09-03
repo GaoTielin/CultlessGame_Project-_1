@@ -139,7 +139,8 @@ function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
 end
 
 function change_map(change_cfg)
-  for k,v in pairs(change_cfg) do
-    mset(v.x, v.y, v.sp)
+  for v in all(change_cfg) do
+    local sv = string_to_array(v)
+    mset(sv[1], sv[2], sv[3])
   end
 end
