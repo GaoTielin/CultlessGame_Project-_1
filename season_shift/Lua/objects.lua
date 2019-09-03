@@ -84,13 +84,13 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
     return e
 end
 
-function init_enemies (enemy_config)
+function init_enemies (bees_config, catepillers_config)
     local o = {
         enemies = {}
     }
-    if enemy_config.bees then
-      for i=1,#enemy_config.bees do
-          local e = string_to_array(enemy_config.bees[i])
+    if bees_config then
+      for i=1,#bees_config do
+          local e = string_to_array(bees_config[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local flip_x = e[5]==1 and true or false
           local flip_y = e[6]==1 and true or false
@@ -98,9 +98,9 @@ function init_enemies (enemy_config)
           add(o.enemies, b)
       end
     end
-    if enemy_config.catepillers then
-      for i=1,#enemy_config.catepillers do
-          local e = string_to_array(enemy_config.catepillers[i])
+    if catepillers_config then
+      for i=1,#catepillers_config do
+          local e = string_to_array(catepillers_config[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local flip_x = e[5]==1 and true or false
           local flip_y = e[6]==1 and true or false
