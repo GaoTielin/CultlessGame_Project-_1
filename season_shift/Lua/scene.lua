@@ -188,3 +188,21 @@ function init_leaves(speed, num, hit_spr_flag)
     update = update,
   }
 end
+
+function init_tips()
+    local putin_tip = init_spr("putin_tip", 0, 12, 70, 1, 1, false, 0, 0)
+    local putin_tiped = false
+    init_animation(putin_tip, 0, 0, 5, "nomal", true)
+    init_animation(putin_tip, 157, 158, 5, "shine", true)
+    local function update()
+        if not putin_tiped and player_pinecone == 6 then
+            change_animation(putin_tip, "shine")
+        end
+        if putin_tiped and player_pinecone < 6 then
+            change_animation(putin_tip, "nomal")
+        end
+    end
+    return {
+        update = update,
+    }
+end

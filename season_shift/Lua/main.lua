@@ -147,6 +147,7 @@ function _init()
   tail = init_tail()
   cfg_levels = cfg_levels_autumn
   change_camera = init_change_camera()
+  tips = init_tips()
 
   -- snow = init_snow()
   -- leaves = init_leaves()
@@ -251,6 +252,7 @@ update_states = {
             thief.act = 'run1'
         end
         cloud.update()
+        tips.update()
     end,
 
     game_over_update = function()

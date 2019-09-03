@@ -123,20 +123,21 @@ function _init()
   player_max_v = cfg_player_max_v
 
   thief = init_thief()
+  sandy = init_sandy()
   player = init_player()
   player.can_jump = player.max_jump
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   jinji_hit = map_trigger_enter(player, 7, game_over, "all")
   lupai_hit = map_trigger_stay(player, 6, function()
-    -- if game_level ~= 1 then
+    if game_level == 4 or game_level == 9 then
         -- print("pass ❎", player.pos_x-5, player.pos_y - 8, 1)
         spr(175, player.pos_x, player.pos_y - 8)
         -- print("❎", player.pos_x, player.pos_y - 6, 1)
-    -- end
+    end
     if btnp(5) then
       if game_level == 9 then
-        fade_out()
-    elseif game_level == 4 or 1 then
+        sandy.act = 'show'
+      elseif game_level == 4 then
         game_level = 1
         change_level(1)
         -- local next_level = player_pinecone >= 10 then
@@ -149,6 +150,7 @@ function _init()
   tail = init_tail()
   cfg_levels = cfg_levels_autumn
   change_camera = init_change_camera()
+  tips = init_tips()
 
   -- snow = init_snow()
   -- leaves = init_leaves()
@@ -162,7 +164,6 @@ function _init()
     songzi = init_songzis(this_songzi_cfg)
   end
   -- pinecones of whole level
-  global_pinecone = init_global_pinecone()
   max_pinecone_num = 6
   player_pinecone = 1
   timer = newtimer()
@@ -239,11 +240,13 @@ update_states = {
         timer.update()
         tail.update()
         enemies.update()
-        move_camera()
         if thief.act == 'run1' then
             thief.update_run1()
         elseif thief.act == 'run2' and game_level == 9 then
             thief.update_run2()
+        end
+        if sandy.act == 'show' then
+            sandy.update()
         end
         if chest.pinecone == 10 then
             game_level = 5
@@ -252,6 +255,7 @@ update_states = {
             thief.act = 'run1'
         end
         cloud.update()
+        tips.update()
     end,
 
     game_over_update = function()
@@ -297,9 +301,9 @@ function nomal_draw()
     end
     -- snow.draw()
     chest.draw()
+    sandy.draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
     enemies.draw()
-    global_pinecone.draw()
     draw_pinecone_ui()
     mogu_hit()
     jinji_hit()
@@ -322,11 +326,6 @@ newtimer = function ()
         local t = {'timeout', start, timeout, callback}
         o.timers[name] = t
     end
-    o.add_interval = function (name, interval, callback)
-        local start = time()
-        local t = {'interval', start, interval, callback}
-        o.timers[name] = t
-    end
     o.del = function (name)
         o.timers[name] = nil
     end
@@ -338,11 +337,6 @@ newtimer = function ()
                 if now - timer_start >= timeout then
                     callback()
                     o.del(name)
-                end
-            elseif timer_type == 'interval' then
-                if now - timer_start >= timeout then
-                    callback()
-                    o.add_interval(name, timeout, callback)
                 end
             end
         end
@@ -396,8 +390,9 @@ function update_trigger()
     end
 end
 
-local function trigger(sprit_1, sprit_2)
+local function trigger(sprit_1, sprit_2, half_type)
     local hit = false
+
     local x1 = sprit_1.pos_x
     local x2 = sprit_2.pos_x
     local w1 = sprit_1.width * 8
@@ -406,6 +401,19 @@ local function trigger(sprit_1, sprit_2)
     local y2 = sprit_2.pos_y
     local h1 = sprit_1.height * 8
     local h2 = sprit_2.height * 8
+
+    if half_type == "up" then
+        h1 = h1/2
+        y1 = y1 + h1
+    elseif half_type == "down" then
+        h1 = h1/2
+    elseif half_type == "left" then
+        w1 = w1/2
+        x1 = x1 + w1
+    elseif half_type == "right" then
+        w1 = w1/2
+    end
+
     local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
     local xs = w1 * 0.5 + w2 * 0.5 - 2
     local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
@@ -416,11 +424,11 @@ local function trigger(sprit_1, sprit_2)
     return hit
 end
 
-function ontrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
+function ontrigger_enter(sprit_1, sprit_2, enter_func, trigger_name, half_type)
     local entered = false
     local is_trigger = false
     local function trigger_enter ()
-        is_trigger = trigger(sprit_1, sprit_2)
+        is_trigger = trigger(sprit_1, sprit_2, half_type)
         if not entered and is_trigger then
             enter_func()
             entered = true
@@ -671,26 +679,6 @@ function update_animation()
     end
 end
 
-------------�☉♥�♪�对象---------------
-function exchange_obj(obj_1, obj_2)
-    local mid_obj = obj_1
-    return obj_2, mid_obj
-end
-
-function move_camera ()
-    local map_start = 0
-    local map_end = 1024
-    local cam_x = (player.pos_x - 64) + (player.width * 8) / 2
-    if cam_x < map_start then
-        cam_x = map_start
-    end
-    if cam_x > map_end - 128 then
-        cam_x = map_end - 128
-    end
-    camera(cam_x, 0)
-end
-
-
 function load_level (cart_name)
     -- load spritesheet
     reload(0x0, 0x0, 0x1000, cart_name)
@@ -838,6 +826,7 @@ function string_to_array(str)
             num = ''
         end
     end
+    add(result, tonum(num))
     return result
 end
 
@@ -1053,6 +1042,24 @@ function init_leaves(speed, num, hit_spr_flag)
   }
 end
 
+function init_tips()
+    local putin_tip = init_spr("putin_tip", 0, 12, 70, 1, 1, false, 0, 0)
+    local putin_tiped = false
+    init_animation(putin_tip, 0, 0, 5, "nomal", true)
+    init_animation(putin_tip, 157, 158, 5, "shine", true)
+    local function update()
+        if not putin_tiped and player_pinecone == 6 then
+            change_animation(putin_tip, "shine")
+        end
+        if putin_tiped and player_pinecone < 6 then
+            change_animation(putin_tip, "nomal")
+        end
+    end
+    return {
+        update = update,
+    }
+end
+
 -->8
 -->map-3
 function get_map_flage(m_x, m_y)
@@ -1216,7 +1223,8 @@ function init_songzis(songzi_config)
     table = {},
   }
   for i = 1 , #songzi_config do
-    local pos_x, pos_y = songzi_config[i][1], songzi_config[i][2]
+    local s = string_to_array(songzi_config[i])
+    local pos_x, pos_y = s[1], s[2]
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()
@@ -1241,16 +1249,23 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
     if type == 'bee' then
         e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
         init_animation(e, 48, 50, 10, "move", true)
+        ontrigger_enter(e, player, function()
+          game_over()
+        end)
     elseif type == 'catepiller_x' then
         e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
+        ontrigger_enter(e, player, function()
+            game_over()
+        end, "up")
     elseif type == 'catepiller_y' then
         e = init_spr("catepiller_y", 34, pos_x, pos_y, 1, 1, false, 0, 0)
         init_animation(e, 36, 37, 10, "move", true)
+        ontrigger_enter(e, player, function()
+            game_over()
+        end, flip_x and "right" or "left")
     end
-    ontrigger_enter(e, player, function()
-      game_over()
-    end)
+
 
     e.flip_x = flip_x
     e.flip_y = flip_y
@@ -1285,21 +1300,21 @@ function init_enemies (enemy_config)
     }
     if enemy_config.bees then
       for i=1,#enemy_config.bees do
-          local e = enemy_config.bees[i]
+          local e = string_to_array(enemy_config.bees[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[6] or false
+          local flip_x = e[5]==1 and true or false
+          local flip_y = e[6]==1 and true or false
           local b = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'bee')
           add(o.enemies, b)
       end
     end
     if enemy_config.catepillers then
       for i=1,#enemy_config.catepillers do
-          local e = enemy_config.catepillers[i]
+          local e = string_to_array(enemy_config.catepillers[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[6] or false
-          local direction = e[7] and e[7] or 'x'
+          local flip_x = e[5]==1 and true or false
+          local flip_y = e[6]==1 and true or false
+          local direction = e[7]==1 and 'y' or 'x'
           local c
           if direction == 'x' then
               c = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'catepiller_x')
@@ -1322,25 +1337,6 @@ function init_enemies (enemy_config)
         end
     end
     return o
-end
-
-function init_global_pinecone ()
-  local g = {
-    pinecone_list = {}
-  }
-  g.draw = function ()
-    for p in all(g.pinecone_list) do
-      if p.is_dropped then
-        -- hack way to let pinecone flcik
-        if time() % 0.5 < 0.25 then
-          spr(p.sp, p.pos_x, p.pos_y)
-        end
-      else
-        spr(p.sp, p.pos_x, p.pos_y)
-      end
-    end
-  end
-  return g
 end
 
 function draw_pinecone_ui()
@@ -1601,11 +1597,11 @@ function init_thief ()
                     change_animation(tail, 'run')
                     thief.state = 'run'
                     init_songzis({
-                      {73*8, 11*8},
-                      {75*8, 11*8},
-                      {69*8, 11*8},
-                      {72*8, 11*8},
-                      {77*8, 11*8},
+                      '584,88',
+                      '600,88',
+                      '552,88',
+                      '576,88',
+                      '616,88',
                     })
                     thief_songzi.destroy()
                 end)
@@ -1622,6 +1618,24 @@ function init_thief ()
     init_animation(thief, 176, 177, 10, "climb", true)
     init_animation(thief, 178, 178, 10, "fall", false)
     return thief
+end
+
+function init_sandy ()
+    local sandy = {x=600, y=88}
+    sandy.act = 'init'
+    sandy.draw = function ()
+        spr(187, sandy.x, sandy.y, 1, 1, true)
+        sspr(16, 32, 16, 16, 600, 80)
+    end
+    sandy.update = function ()
+        sandy.x -= 0.1
+        if sandy.x <= 592 then
+            sandy.x = 592
+            fade_out()
+            sandy.act = 'init'
+        end
+    end
+    return sandy
 end
 
 -->8
@@ -1652,20 +1666,9 @@ cfg_levels_autumn = {
     },
     enemys = {
         -- �ˇ😐人�✽♪置�😐�◆🐱�ˇ��☉●�☉�为x�…�♥�😐y�…�♥�😐移�⌂��█远距离, �█�度, �▤��…��◆♪�…➡️, �▥��…�♪ˇ�⬅️��웃�█个�◆🐱�ˇ�表示�▤�水平�☉��▤�▤��∧直�☉�
-      bees = {
-        -- {6*8, 10*8, 16, 0.5},
-        -- {3*8, 11*8, 16, 0.5},
-      },
-      catepillers = {
-        -- {10*8, 10*8, 16, 0.5},
-        -- {5*8, 10*8, 16, 0.5},
-      },
     },
     songzi = {
-      -- {13*8, 8*8},
-      -- {3*8, 11*8},
-      -- {6*8, 11*8},
-      {5*8,11*8}
+      '40,88'
     },
   },
   level2 = {
@@ -1678,17 +1681,9 @@ cfg_levels_autumn = {
       y = 0,
     },
     enemys = { -- �ˇ😐人�✽♪置
-      caterpillar ={},
-      bees = {
-        -- {26*8, 6*8, 16, 0.5},
-      },
-      catepillers = {
-        --{25*8, 9*8, 8, 0.5, true,true, 'y'},
-      },
     },
     songzi = {
-      -- {13*8, 8*8},
-      {26*8, 6*8}
+      '208,48'
     },
   },
   level3 = {
@@ -1702,18 +1697,11 @@ cfg_levels_autumn = {
       y = 0,
     },
     enemys = { -- �ˇ😐人�✽♪置
-      caterpillar ={},
-      bees = {
-        -- {26*8, 6*8, 16, 0.5},
-      },
-      catepillers = {
-
-      },
 
     },
     songzi = {
-      {36*8,8*8},
-      {44*8,6*8},
+      '288,64',
+      '352,48',
     },
   },
   level4 = {
@@ -1726,16 +1714,15 @@ cfg_levels_autumn = {
       y = 0,
     },
     enemys = { -- �ˇ😐人�✽♪置
-      caterpillar ={},
       bees = {
-        {54*8, 8*8, 24, 0.5, false},
+        '432,64,24,0.5,0'
       },
       catepillers = {
-        {54*8, 9*8, 24, 0.5,true}
+        '432,72,24,0.5,1'
       },
     },
     songzi = {
-      {54*8, 9*8},
+      '432,72',
     },
   },
   level5 = {
@@ -1759,13 +1746,6 @@ cfg_levels_autumn = {
       y = 0,
     },
     enemys = { -- �ˇ😐人�✽♪置
-      caterpillar ={},
-      bees = {
-        -- {54*8, 7*8, 24, 0.5},
-      },
-      catepillers = {
-        -- {52*8, 9*8, 8, 0.5}
-      },
     },
     songzi = {
       -- {54*8, 9*8},
@@ -1781,12 +1761,11 @@ cfg_levels_autumn = {
       y = 0,
     },
     enemys = { -- �ˇ😐人�✽♪置
-      caterpillar ={},
       bees = {
         -- {26*8, 6*8, 16, 0.5},
       },
       catepillers = {
-        {27*8, 6*8, 8, 0.5}
+        '216,48,8,0.5'
       },
     },
     songzi = {
@@ -1802,13 +1781,12 @@ cfg_levels_autumn = {
       y = 0,
     },
     enemys = { -- �ˇ😐人�✽♪置
-      caterpillar ={},
       bees = {
-        {35*8, 8*8, 16, 0.5},
+        '280,64,16,0.5',
       },
       catepillers = {
-        {42*8, 8*8, 8, 0.5,true,true,'y'},
-        {40*8, 7*8, 8, 0.5,false,true,'y'},
+        '336,64,8,0.5,1,1,1',
+        '320,56,8,0.5,0,1,1',
       },
     },
     songzi = {
@@ -1824,13 +1802,12 @@ cfg_levels_autumn = {
       y = 0,
     },
     enemys = { -- �ˇ😐人�✽♪置
-      caterpillar ={},
       bees = {
-        {58*8, 8*8, 24, 0.5},
+        '464,64,24,0.5',
       },
       catepillers = {
-        {54*8, 9*8, 24, 0.5,false},
-        {54*8, 9*8, 24, 0.5,true},
+        '432,72,24,0.5,0',
+        '432,72,24,0.5,1',
       },
     },
     songzi = {
@@ -1846,13 +1823,6 @@ cfg_levels_autumn = {
       y = 0,
     },
     enemys = { -- �ˇ😐人�✽♪置
-      caterpillar ={},
-      bees = {
-        {54*8, 7*8, 24, 0.5},
-      },
-      catepillers = {
-        {56*8, 9*8, 8, 0.5}
-      },
     },
     songzi = {
     },
@@ -1932,14 +1902,14 @@ fff33f3ffff33f3fffffffffffffffff99949999fff4fffffff3fffffff3fffffffffffffffffaaf
 40997990049909004994977900000004000000000000000000000004497700004990000000000090970797790000000000660000004449000644496006000060
 04970000097700909770090000000000000000000000000000000000099000000099900000000000099009000000066006796000004449000064460000600600
 0099900000999000099900990000000000000000000000000000000000990000000000000000000000000099000067966a999600000440000006600000066000
-00040400400004000000000000000000000000000000000000000000000000000000000000000000000000000006a99969442600000000000000000007f07f00
-049009900900099000444000040000004000000000000000000000000000000000000000000000000000000000064442694426000000000000000000feefee20
-4900477904904779049999400040000009000000000000000044400000000000000000000000000000000000006644a96792796000000000000000008eeeee20
-490049000490490009000004009440000940000000044400049994000000040004400000000004000000040006799799949a9996000990000000000008eee200
-49049799049497904000000000099400009440000049994009000940044499904994040004440990044049906a449a44244944260099990000000000008e2000
-09049700049497090440040000000994000999944990000440000094499997799779499049994779499497796444994424494426000440000000000000020000
-00904990009049004994499400000000000000000000000000000000977049009907977999779000997790000622462262964260000440000000000000000000
-00040009000400994477944400000000000000000000000000000000994040990400094040990990099409400066606606606600000000000000000000000000
+00040400400004000000000000000000000000000000000000000000000000000000000000000000000000000006a99969442600000000000007800007f07f00
+0490099009000990004440000400000040000000000000000000000000000000000000000000000000000000000644426944260000078000000e8000feefee20
+4900477904904779049999400040000009000000000000000044400000000000000000000000000000000000006644a967927960000e800000e88e008eeeee20
+490049000490490009000004009440000940000000044400049994000000040004400000000004000000040006799799949a999600e88e007888888208eee200
+49049799049497904000000000099400009440000049994009000940044499904994040004440990044049906a449a4424494426788888820e888820008e2000
+090497000494970904400400000009940009999449900004400000944999977997794990499947794994977964449944244944260e88882000e8820000020000
+0090499000904900499449940000000000000000000000000000000097704900990797799977900099779000062246226296426000e88200000e200000000000
+00040009000400994477944400000000000000000000000000000000994040990400094040990990099409400066606606606600000e20000000000000000000
 00000000000d1d000001d0000000000000000000000000000000000000000d0000000d0000000000000000000000000000000000000000000000000000000000
 00d00d000d1000000d1001d00000000000d1d1000d1d1000000000000000d1100000d1100dd00d0000000000000000000000000006000000007d7000007d7000
 01000110d1000d001000000d00d1d000010000d0d0000d10d0000000000d166100d11661d111d1100dd0000000000600000000006f00000007d7d70007d7d700

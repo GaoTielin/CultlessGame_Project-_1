@@ -363,12 +363,6 @@ function update_animation()
     end
 end
 
-------------切换对象---------------
-function exchange_obj(obj_1, obj_2)
-    local mid_obj = obj_1
-    return obj_2, mid_obj
-end
-
 function load_level (cart_name)
     -- load spritesheet
     reload(0x0, 0x0, 0x1000, cart_name)
