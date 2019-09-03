@@ -374,7 +374,7 @@ function load_level (cart_name)
 end
 
 function init_change_camera()
-  local camera_pos = string_to_array(table_from_string(cfg_levels.level1).camera_pos)
+  local camera_pos = string_to_array(cfg_levels.level1.camera_pos)
   local old_camera_pos_x = camera_pos[1]*8
   local old_camera_pos_y = camera_pos[2]*8
   local now_camera_pos_x = camera_pos[1]*8
@@ -383,7 +383,7 @@ function init_change_camera()
   local flip_y = false
   local fix_driction = 0
   local function change(level)
-    local camera_pos = string_to_array(table_from_string(cfg_levels["level" .. level]).camera_pos)
+    local camera_pos = string_to_array(cfg_levels["level" .. level].camera_pos)
     now_camera_pos_x = camera_pos[1]*8
     now_camera_pos_y = camera_pos[2]*8
     flip_x = old_camera_pos_x > now_camera_pos_x
@@ -432,8 +432,9 @@ function game_over()
 end
 
 function change_level(level)
+  printh('change'..level..game_level)
   if game_level ~= level then
-    local current_level_songzi = table_from_string(cfg_levels["level" .. game_level]).songzi
+    local current_level_songzi = cfg_levels["level" .. game_level].songzi
     for i=1,#current_level_songzi do
       current_level_songzi[i] = this_songzi_cfg[i]
       this_songzi_cfg[i] = nil
@@ -448,7 +449,7 @@ function change_level(level)
     -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
-  local level_cfg = table_from_string(cfg_levels["level" .. level])
+  local level_cfg = cfg_levels["level" .. level]
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
   end
@@ -566,6 +567,14 @@ function table_from_string(str)
     i = i + 1
   end
   return tab
+end
+
+function init_config (config_table)
+    local result = {}
+    for level,data in pairs(config_table) do
+        result[level] = table_from_string(data)
+    end
+    return result
 end
 
 function _update()

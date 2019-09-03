@@ -13,8 +13,8 @@ function init_songzis(songzi_config)
     table = {},
   }
   for i = 1 , #songzi_config do
-    local s_cfg = string_to_array(songzi_config[i])
-    local pos_x, pos_y = s_cfg[1], s_cfg[2]
+    local s = string_to_array(songzi_config[i])
+    local pos_x, pos_y = s[1], s[2]
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()

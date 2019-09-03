@@ -21,5 +21,5 @@ cfg_levels_autumn = {
   level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
   level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,1,12320,56,8,0.5,0,1,1songzi',
   level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
-  level9 = 'player_start_pos0,5songzicamera_pos64enemy_catepillersenemy_bees'
+  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
 }
