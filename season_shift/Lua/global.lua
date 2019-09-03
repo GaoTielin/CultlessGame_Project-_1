@@ -516,6 +516,7 @@ function string_to_array(str)
             num = ''
         end
     end
+    add(result, tonum(num))
     return result
 end
 

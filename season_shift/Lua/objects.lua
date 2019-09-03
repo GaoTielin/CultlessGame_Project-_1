@@ -13,7 +13,8 @@ function init_songzis(songzi_config)
     table = {},
   }
   for i = 1 , #songzi_config do
-    local pos_x, pos_y = songzi_config[i][1], songzi_config[i][2]
+    local s = string_to_array(songzi_config[i])
+    local pos_x, pos_y = s[1], s[2]
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()
@@ -89,21 +90,21 @@ function init_enemies (enemy_config)
     }
     if enemy_config.bees then
       for i=1,#enemy_config.bees do
-          local e = enemy_config.bees[i]
+          local e = string_to_array(enemy_config.bees[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[6] or false
+          local flip_x = e[5]==1 and true or false
+          local flip_y = e[6]==1 and true or false
           local b = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'bee')
           add(o.enemies, b)
       end
     end
     if enemy_config.catepillers then
       for i=1,#enemy_config.catepillers do
-          local e = enemy_config.catepillers[i]
+          local e = string_to_array(enemy_config.catepillers[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[6] or false
-          local direction = e[7] and e[7] or 'x'
+          local flip_x = e[5]==1 and true or false
+          local flip_y = e[6]==1 and true or false
+          local direction = e[7]==1 and 'y' or 'x'
           local c
           if direction == 'x' then
               c = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'catepiller_x')
@@ -386,11 +387,11 @@ function init_thief ()
                     change_animation(tail, 'run')
                     thief.state = 'run'
                     init_songzis({
-                      {584, 88},
-                      {600, 88},
-                      {552, 88},
-                      {576, 88},
-                      {616, 88},
+                      '584,88',
+                      '600,88',
+                      '552,88',
+                      '576,88',
+                      '616,88',
                     })
                     thief_songzi.destroy()
                 end)
