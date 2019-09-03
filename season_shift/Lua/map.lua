@@ -3,6 +3,14 @@ function get_map_flage(m_x, m_y)
   return fget(mget(m_x/8+map_location.x,m_y/8+map_location.y))
 end
 
+map_trigger_tbl = {}
+
+function update_map_trigger()
+  for v in all(map_trigger_tbl) do
+    v()
+  end
+end
+
 function map_trigger(obj, flag, direction)
     local x = obj.pos_x
     local y = obj.pos_y
@@ -71,6 +79,7 @@ function map_trigger_enter(obj, map_flag, enter_func, direction)
         end
     end
 
+    add(map_trigger_tbl, trigger_enter)
     return trigger_enter
 end
 
@@ -81,6 +90,7 @@ function map_trigger_stay(obj, map_flag, stay_func, direction)
         end
     end
 
+    add(map_trigger_tbl, trigger_stay)
     return trigger_stay
 end
 
@@ -98,6 +108,7 @@ function map_trigger_exit(obj, map_flag, exit_func, direction)
         end
     end
 
+    add(map_trigger_tbl, trigger_exit)
     return trigger_exit
 end
 

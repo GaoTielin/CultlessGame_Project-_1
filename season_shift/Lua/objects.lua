@@ -148,6 +148,7 @@ function init_player()
   player.max_jump = 1
   player.can_jump = 1
   player.hand_songzi = 0
+  player.on_ground = false
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
@@ -186,33 +187,52 @@ function init_player()
     states_y = {},
   }
 
+  player.on_ground_function = function()
+    player.can_jump = player.max_jump
+    if player.state ~= "nomal" and player.vecter.y > 0 then
+      if player.vecter.x == 0 then
+        player.state = "nomal"
+        change_animation(player, "nomal")
+        change_animation(tail, "nomal")
+      else
+        player.state = "run"
+        change_animation(player, "run")
+        change_animation(tail, "run")
+      end
+    end
+    player.new_ground = 2
+
+    player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+
+    player.vecter.y = 0
+    player.on_ground = true
+  end
+
   player.hit = function()
     hit(player, 1, "all", function()
       -- player.vecter.x = 0
       -- player.vecter.y = 0
     end)
     hit(player, 1, "height", function()
-      player.can_jump = player.max_jump
-      if player.state ~= "nomal" and player.vecter.y > 0 then
-        if player.vecter.x == 0 then
-          player.state = "nomal"
-          change_animation(player, "nomal")
-          change_animation(tail, "nomal")
-        else
-          player.state = "run"
-          change_animation(player, "run")
-          change_animation(tail, "run")
-        end
-      end
-      player.new_ground = 2
-
-      player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
-      -- if player.vecter.y>0 then
-      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8
-      -- elseif player.vecter.y<0 then
-      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8 + 8-1
+      -- player.can_jump = player.max_jump
+      -- if player.state ~= "nomal" and player.vecter.y > 0 then
+      --   if player.vecter.x == 0 then
+      --     player.state = "nomal"
+      --     change_animation(player, "nomal")
+      --     change_animation(tail, "nomal")
+      --   else
+      --     player.state = "run"
+      --     change_animation(player, "run")
+      --     change_animation(tail, "run")
+      --   end
       -- end
-      player.vecter.y = 0
+      -- player.new_ground = 2
+      --
+      -- player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+      --
+      -- player.vecter.y = 0
+      -- player.on_ground = true
+      player.on_ground_function()
     end)
     hit(player, 1, "width", function()
       -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
@@ -319,7 +339,7 @@ function init_thief ()
     thief.fall_event = false
     thief.flip_x = false
     thief.draw_run1 = function ()
-        thief_mogu_hit()
+        -- thief_mogu_hit()
         spr(thief.sp, thief.pos_x, thief.pos_y, 1, 1)
         thief_songzi.pos_x = thief.pos_x
         thief_songzi.pos_y = thief.pos_y - 6
@@ -427,3 +447,55 @@ function init_sandy ()
     end
     return sandy
 end
+
+function init_box(pos_x, pos_y, bin_kuai)
+  local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
+  box.down_dis = 0
+  box.can_hit = false
+  map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+    mset(zhui_x/8, zhui_y/8, 16)
+  end, "up")
+  OnCllision(box, player, {
+    height = function()
+      player.on_ground_function()
+    end,
+    width = function()
+      if box.pos_x > player.pos_x then
+        box.pos_x = player.pos_x + 8
+      elseif box.pos_x < player.pos_x then
+        box.pos_x = player.pos_x - 8
+      end
+    end,
+  })
+  OnCllision(box, bin_kuai, {
+    height = function()
+      box.pos_y = bin_kuai.pos_y - 8
+      box.down_dis = 0
+      if box.can_hit then bin_kuai.destroy() end
+    end,
+  })
+  box.update = function()
+    if box.vecter.x ~= 0 then
+      box.vecter.x = box.vecter.x + ((box.vecter.x > 0) and -0.5 or 0.5)
+      if abs(box.vecter.x) < 0.5 then box.vecter.x = 0 end
+    end
+    hit(box, 1, "height", function()
+      box.down_dis = 0
+      box.can_hit = false
+    end, function()
+      if box.down_dis >= 16 then box.can_hit = true end
+      box.down_dis = box.down_dis + box.vecter.y
+    end)
+  end
+  return box
+end
+
+-- function init_boxs(box_config)
+--   local box_tbl = {
+--     table = {},
+--   }
+--   for i = 1 , #box_config do
+--     local b_x, b_y = box_config[1], box_config[2]
+--     box = init_box()
+--   end
+-- end

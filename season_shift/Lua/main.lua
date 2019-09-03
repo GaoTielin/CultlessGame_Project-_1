@@ -179,6 +179,10 @@ function _init()
     end
   end, 'chest_store')
   change_level(game_level)
+  -- bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
+  -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
+  -- box_1 = init_box(176, 72, bin_kuai_2)
+  -- box_2 = init_box(224, 32, bin_kuai)
 end
 
 ------------游戏状态机-----------------
@@ -221,6 +225,8 @@ update_states = {
           end
         end
 
+        box_1.update()
+        box_2.update()
         Update_Cllision()
         player.pos_x = player.pos_x + player.vecter.x
         player.pos_y = player.pos_y + player.vecter.y
@@ -302,9 +308,10 @@ function nomal_draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
     enemies.draw()
     draw_pinecone_ui()
-    mogu_hit()
-    jinji_hit()
-    lupai_hit()
+    -- mogu_hit()
+    -- jinji_hit()
+    -- lupai_hit()
+    update_map_trigger()
     Update_Trigger()
     -- map_col.update_trg()
     -- camera(player.pos_x-64, 0)

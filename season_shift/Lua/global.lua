@@ -56,6 +56,9 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
       if spr_obj.destroy_trigger_stay then
         spr_obj.destroy_trigger_stay()
       end
+      if spr_obj.destroy_cllision then
+        spr_obj.destroy_cllision()
+      end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
     end
@@ -251,6 +254,14 @@ function OnCllision(sprit_1, sprit_2, cllision_func)
             end
         end,
     }
+    local idx = #Cllision_Table + 1
+    sprit_1.destroy_cllision = function()
+      Cllision_Table[idx] = nil
+    end
+
+    sprit_2.destroy_cllision = function()
+      Cllision_Table[idx] = nil
+    end
     add(Cllision_Table, tbl)
 end
 ---------------------------------------
