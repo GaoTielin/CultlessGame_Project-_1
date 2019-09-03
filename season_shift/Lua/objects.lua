@@ -38,16 +38,23 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
     if type == 'bee' then
         e = init_spr("bee", 48, pos_x, pos_y, 1, 1, false, 0, 0)
         init_animation(e, 48, 50, 10, "move", true)
+        ontrigger_enter(e, player, function()
+          game_over()
+        end)
     elseif type == 'catepiller_x' then
         e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
+        ontrigger_enter(e, player, function()
+            game_over()
+        end, "up")
     elseif type == 'catepiller_y' then
         e = init_spr("catepiller_y", 34, pos_x, pos_y, 1, 1, false, 0, 0)
         init_animation(e, 36, 37, 10, "move", true)
+        ontrigger_enter(e, player, function()
+            game_over()
+        end, flip_x and "right" or "left")
     end
-    ontrigger_enter(e, player, function()
-      game_over()
-    end)
+
 
     e.flip_x = flip_x
     e.flip_y = flip_y

@@ -74,8 +74,9 @@ function Update_Trigger()
     end
 end
 
-local function Trigger(sprit_1, sprit_2)
+local function Trigger(sprit_1, sprit_2, half_type)
     local hit = false
+
     local x1 = sprit_1.pos_x
     local x2 = sprit_2.pos_x
     local w1 = sprit_1.width * 8
@@ -84,6 +85,19 @@ local function Trigger(sprit_1, sprit_2)
     local y2 = sprit_2.pos_y
     local h1 = sprit_1.height * 8
     local h2 = sprit_2.height * 8
+
+    if half_type == "up" then
+        h1 = h1/2
+        y1 = y1 + h1
+    elseif half_type == "down" then
+        h1 = h1/2
+    elseif half_type == "left" then
+        w1 = w1/2
+        x1 = x1 + w1
+    elseif half_type == "right" then
+        w1 = w1/2
+    end
+
     local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
     local xs = w1 * 0.5 + w2 * 0.5 - 2
     local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
@@ -94,11 +108,11 @@ local function Trigger(sprit_1, sprit_2)
     return hit
 end
 
-function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name)
+function OnTrigger_enter(sprit_1, sprit_2, enter_func, trigger_name, half_type)
     local entered = false
     local is_trigger = false
     local function trigger_enter ()
-        is_trigger = Trigger(sprit_1, sprit_2)
+        is_trigger = Trigger(sprit_1, sprit_2, half_type)
         if not entered and is_trigger then
             enter_func()
             entered = true
