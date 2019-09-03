@@ -465,6 +465,7 @@ function init_box(pos_x, pos_y, bin_kuai)
       elseif box.pos_x < player.pos_x then
         box.pos_x = player.pos_x - 8
       end
+      box.vecter.x = player.vecter.x
     end,
   })
   OnCllision(box, bin_kuai, {
@@ -476,8 +477,8 @@ function init_box(pos_x, pos_y, bin_kuai)
   })
   box.update = function()
     if box.vecter.x ~= 0 then
-      box.vecter.x = box.vecter.x + ((box.vecter.x > 0) and -0.5 or 0.5)
-      if abs(box.vecter.x) < 0.5 then box.vecter.x = 0 end
+      box.vecter.x = box.vecter.x + ((box.vecter.x > 0) and -0.1 or 0.1)
+      if abs(box.vecter.x) < 0.1 then box.vecter.x = 0 end
     end
     hit(box, 1, "height", function()
       box.down_dis = 0
