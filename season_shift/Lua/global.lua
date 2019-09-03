@@ -380,16 +380,18 @@ function load_level (cart_name)
 end
 
 function init_change_camera()
-  local old_camera_pos_x = cfg_levels.level1.camera_pos.x*8
-  local old_camera_pos_y = cfg_levels.level1.camera_pos.y*8
-  local now_camera_pos_x = cfg_levels.level1.camera_pos.x*8
-  local now_camera_pos_y = cfg_levels.level1.camera_pos.y*8
+  local camera_pos = string_to_array(table_from_string(cfg_levels.level1).camera_pos)
+  local old_camera_pos_x = camera_pos[1]*8
+  local old_camera_pos_y = camera_pos[2]*8
+  local now_camera_pos_x = camera_pos[1]*8
+  local now_camera_pos_y = camera_pos[2]*8
   local flip_x = false
   local flip_y = false
   local fix_driction = 0
   local function change(level)
-    now_camera_pos_x = cfg_levels["level" .. level].camera_pos.x*8
-    now_camera_pos_y = cfg_levels["level" .. level].camera_pos.y*8
+    local camera_pos = string_to_array(table_from_string(cfg_levels["level" .. level]).camera_pos)
+    now_camera_pos_x = camera_pos[1]*8
+    now_camera_pos_y = camera_pos[2]*8
     flip_x = old_camera_pos_x > now_camera_pos_x
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
@@ -437,8 +439,9 @@ end
 
 function change_level(level)
   if game_level ~= level then
-    for i=1,#cfg_levels["level" .. game_level].songzi do
-      cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+    local current_level_songzi = table_from_string(cfg_levels["level" .. game_level]).songzi
+    for i=1,#current_level_songzi do
+      current_level_songzi[i] = this_songzi_cfg[i]
       this_songzi_cfg[i] = nil
     end
   end
@@ -451,11 +454,11 @@ function change_level(level)
     -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
-  local level_cfg = cfg_levels["level" .. level]
+  local level_cfg = table_from_string(cfg_levels["level" .. level])
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
   end
-  enemies = init_enemies(level_cfg.enemys)
+  enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
       -- printh("level-i = " .. i, "dir")
@@ -465,11 +468,13 @@ function change_level(level)
       songzi = init_songzis(this_songzi_cfg)
     end
   end
-  local camera_pos_x = level_cfg.camera_pos.x*8
-  local camera_pos_y = level_cfg.camera_pos.y*8
+  local camera_pos = string_to_array(level_cfg.camera_pos)
+  local camera_pos_x = camera_pos[1]*8
+  local camera_pos_y = camera_pos[2]*8
   if level == game_level then
-    player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
-    player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+    local player_pos = string_to_array(level_cfg.player_start_pos)
+    player.pos_x = player_pos[1]*8 + camera_pos_x
+    player.pos_y = player_pos[2]*8 + camera_pos_y
   end
   player.hand_songzi = 0
   change_camera.change(level)
@@ -504,6 +509,14 @@ function fade(i)
     end
 end
 
+function fade_out()
+    for i=1,16 do
+        timer.add_timeout('fade'..i, i*0.1, function()
+            fade(i)
+        end)
+    end
+end
+
 function string_to_array(str)
     local result = {}
     local num = ''
@@ -520,12 +533,45 @@ function string_to_array(str)
     return result
 end
 
-function fade_out()
-    for i=1,16 do
-        timer.add_timeout('fade'..i, i*0.1, function()
-            fade(i)
-        end)
+function table_from_string(str)
+  local tab, is_key = {}, true
+  local key,val,is_on_key
+  local function reset()
+    key,val,is_on_key = '','',true
+  end
+  reset()
+  local i, len = 1, #str
+  while i <= len do
+    local char = sub(str, i, i)
+    -- token separator
+    if char == '\31' then
+      if is_on_key then
+        is_on_key = false
+      else
+        tab[tonum(key) or key] = val
+        reset()
+      end
+    -- subtable start
+    elseif char == '\29' then
+      local j,c = i,''
+      -- checking for subtable end character
+      while (c ~= '\30') do
+        j = j + 1
+        c = sub(str, j, j)
+      end
+      tab[tonum(key) or key] = table_from_string(sub(str,i+1,j-1))
+      reset()
+      i = j
+    else
+      if is_on_key then
+        key = key..char
+      else
+        val = val..char
+      end
     end
+    i = i + 1
+  end
+  return tab
 end
 
 function _update()

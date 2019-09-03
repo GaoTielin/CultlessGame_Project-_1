@@ -151,9 +151,10 @@ function _init()
   -- snow = init_snow()
   -- leaves = init_leaves()
   chest = init_chest()
-  enemies = init_enemies(cfg_levels.level1.enemys)
+  level1 = table_from_string(cfg_levels.level1)
+  enemies = init_enemies(level1.enemy_bees, level1.enemy_catepillers)
   this_songzi_cfg = {}
-  for k,v in pairs(cfg_levels.level1.songzi) do
+  for k,v in pairs(table_from_string(cfg_levels.level1).songzi) do
     add(this_songzi_cfg, v)
   end
   if this_songzi_cfg then
