@@ -217,7 +217,7 @@ function OnCllision(sprit_1, sprit_2, cllision_func)
             local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
             local ys = h1 / 2 + h2 / 2
 
-            print(xd)
+            -- print(xd)
             if xd <= xs and yd < ys then
                 sprit_1.vecter.x = 0
                 if cllision_func then
@@ -245,7 +245,7 @@ function OnCllision(sprit_1, sprit_2, cllision_func)
             local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
             local xs = w1 * 0.5 + w2 * 0.5
 
-            print(yd)
+            -- print(yd)
             if yd <= ys and xd < xs then
                 sprit_1.vecter.y = 0
                 if cllision_func then
@@ -443,7 +443,7 @@ function game_over()
 end
 
 function change_level(level)
-  printh('change'..level..game_level)
+  -- printh('change'..level..game_level)
   if game_level ~= level then
     local current_level_songzi = cfg_levels["level" .. game_level].songzi
     for i=1,#current_level_songzi do

@@ -208,6 +208,20 @@ function init_player()
     player.on_ground = true
   end
 
+  player.climb_function = function()
+      local map_y = player.pos_y + player.height*8+7
+      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
+        -- local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
+
+        player.state = "climb"
+        player.can_jump = 1
+        change_animation(player, "climb")
+        change_animation(tail, "climb")
+        player.is_physic = false
+        player.vecter.y = 0
+      end
+  end
+
   player.hit = function()
     hit(player, 1, "all", function()
       -- player.vecter.x = 0
@@ -240,17 +254,8 @@ function init_player()
         player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       end
       player.vecter.x = 0
-      local map_y = player.pos_y + player.height*8+7
-      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
-        local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
-        player.state = "climb"
-        player.can_jump = 1
-        change_animation(player, "climb")
-        change_animation(tail, "climb")
-        player.is_physic = false
-        player.vecter.y = 0
-      end
+      player.climb_function()
     end)
     hit(player, player.new_ground, "height", function()
       player.can_jump = player.max_jump
@@ -448,55 +453,143 @@ function init_sandy ()
     return sandy
 end
 
-function init_box(pos_x, pos_y, bin_kuai)
-  local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
-  box.down_dis = 0
-  box.can_hit = false
-  map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-    mset(zhui_x/8, zhui_y/8, 16)
-  end, "up")
-  OnCllision(box, player, {
-    height = function()
-      player.on_ground_function()
-    end,
-    width = function()
-      if box.pos_x > player.pos_x then
-        box.pos_x = player.pos_x + 8
-      elseif box.pos_x < player.pos_x then
-        box.pos_x = player.pos_x - 8
-      end
-      box.vecter.x = player.vecter.x
-    end,
-  })
-  OnCllision(box, bin_kuai, {
-    height = function()
-      box.pos_y = bin_kuai.pos_y - 8
-      box.down_dis = 0
-      if box.can_hit then bin_kuai.destroy() end
-    end,
-  })
-  box.update = function()
-    if box.vecter.x ~= 0 then
-      box.vecter.x = box.vecter.x + ((box.vecter.x > 0) and -0.1 or 0.1)
-      if abs(box.vecter.x) < 0.1 then box.vecter.x = 0 end
+function init_comoon_box(box)
+    box.down_dis = 0
+    box.can_hit = false
+    box.can_move = true
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      mset(zhui_x/8, zhui_y/8, 16)
+    end, "up")
+    OnCllision(box, player, {
+      height = function()
+        player.on_ground_function()
+      end,
+      width = function()
+          if not box.can_move then
+              player.vecter.x = 0
+          end
+          local player_v_x = player.vecter.x
+          if abs(player_v_x) >= cfg_box_max_v then
+              player.vecter.x = player_v_x > 0 and cfg_box_max_v or -1*cfg_box_max_v
+          end
+          box.vecter.x = player_v_x
+      end,
+    })
+    box.update = function()
+      hit(box, 1, "height", function()
+        box.down_dis = 0
+        box.can_hit = false
+      end, function()
+        if box.down_dis >= 16 then box.can_hit = true end
+        box.down_dis = box.down_dis + box.vecter.y
+      end)
+
+      hit(box, 1, "width", function()
+          box.can_move = false
+      end)
+      box.vecter.x = 0
     end
-    hit(box, 1, "height", function()
-      box.down_dis = 0
-      box.can_hit = false
-    end, function()
-      if box.down_dis >= 16 then box.can_hit = true end
-      box.down_dis = box.down_dis + box.vecter.y
-    end)
-  end
-  return box
 end
 
--- function init_boxs(box_config)
---   local box_tbl = {
---     table = {},
---   }
---   for i = 1 , #box_config do
---     local b_x, b_y = box_config[1], box_config[2]
---     box = init_box()
---   end
--- end
+function init_ices(ice_config)
+    local ices = {
+      table = {},
+    }
+    local function init_ice(pos_x, pos_y, is_songzi)
+        local sp = is_songzi and 143 or 159
+        local ice = init_spr("ice", sp, pos_x, pos_y, 1, 1, true, 0, 0)
+        init_comoon_box(ice)
+        ice.is_songzi = is_songzi
+
+        for v in all(ices.table) do
+            OnCllision(ice, v, {
+                width = function()
+                  ice.can_move = false
+                  ice.vecter.x = 0
+                end,
+                height = function()
+                    ice.pos_y = v.pos_y - 8
+                    ice.vecter.y = 0
+                    ice.down_dis = 0
+                    if ice.can_hit then
+                        v.destroy()
+                        ice.destroy()
+                    end
+                end,}
+            )
+        end
+        return ice
+    end
+
+    for i = 1 , #ice_config do
+        local pos_x, pos_y, is_songzi = ice_config[i][1], ice_config[i][2], ice_config[i][3]
+        ice = init_ice(pos_x, pos_y, is_songzi)
+        ice.idx = i
+        add(ices.table, ice)
+    end
+
+    ices.update = function()
+        for v in all(ices.table) do
+            v.update()
+        end
+    end
+
+    return ices
+end
+
+function init_boxs(box_config)
+  local boxs = {
+    table = {},
+  }
+
+  local function init_box(pos_x, pos_y)
+    local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
+
+    init_comoon_box(box)
+
+    for bin_kuai in all(ices) do
+        OnCllision(box, bin_kuai, {
+            width = function()
+              -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
+              box.can_move = false
+              box.vecter.x = 0
+            end,
+          height = function()
+            box.pos_y = bin_kuai.pos_y - 8
+            box.vecter.y = 0
+            box.down_dis = 0
+            if box.can_hit then bin_kuai.destroy() end
+          end,
+        })
+    end
+
+    for v in all(boxs.table) do
+        OnCllision(box, v, {
+          width = function()
+              box.vecter.x = v.vecter.x
+              box.can_move = false
+          end,
+          height = function()
+            box.pos_y = v.pos_y - 8
+            box.vecter.y = 0
+          end,
+        })
+    end
+
+    return box
+  end
+
+  for i = 1 , #box_config do
+    local b_x, b_y = box_config[i][1], box_config[i][2]
+    local box = init_box(b_x, b_y, bin_kuai)
+    box.idx = i
+    add(boxs.table, box)
+  end
+  boxs.update = function()
+      for v in all(boxs.table) do
+          v.update()
+      end
+  end
+
+  return boxs
+end

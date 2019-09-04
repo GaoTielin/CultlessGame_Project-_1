@@ -179,10 +179,12 @@ function _init()
     end
   end, 'chest_store')
   change_level(game_level)
-  -- bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
+  bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
   -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
   -- box_1 = init_box(176, 72, bin_kuai_2)
   -- box_2 = init_box(224, 32, bin_kuai)
+  ices = init_ices(ices_cfg)
+  boxs_table = init_boxs(boxs_cfg)
 end
 
 ------------游戏状态机-----------------
@@ -211,9 +213,14 @@ update_states = {
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()
         player.hit()
+
         for v in all(object_table) do
           if v.name ~= "player" then
-            v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+              if v.name == "box" or v.name == "ice" then
+                  v.vecter.y = v.vecter.y + (v.is_physic and cfg_box_gravity or 0)
+              else
+                  v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+              end
             hit(v, 1, "height", function()
               v.vecter.y = 0
             end)
@@ -224,9 +231,8 @@ update_states = {
             v.pos_y = v.pos_y + v.vecter.y
           end
         end
-
-        box_1.update()
-        box_2.update()
+        boxs_table.update()
+        ices.update()
         Update_Cllision()
         player.pos_x = player.pos_x + player.vecter.x
         player.pos_y = player.pos_y + player.vecter.y

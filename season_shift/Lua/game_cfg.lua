@@ -12,6 +12,19 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移��
   y = 5,
 }
 
+cfg_box_gravity = 0.1 --箱子的重力
+cfg_box_max_v = 1.5 --推箱子最大速度
+boxs_cfg = { --箱子配置
+    {176, 72},
+    {176, 64},
+    {176, 56},
+    {224, 32},
+}
+ices_cfg = { --冰块配置
+    {48, 88},
+
+}
+
 cfg_levels_autumn = {
   level1 = 'camera_pos0,0songzi140,88player_start_pos0,7enemy_catepillersenemy_bees',
   level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
