@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
---------------�🅾️��☉��▥�----------------
+--------------�🅾️��☉��▥�----------------
 map_location ={
     x = 0,
     y = 0,
@@ -102,7 +102,7 @@ controller = {
 }
 
 function _init()
-  cls()
+  autumn_config = init_config(cfg_levels_autumn)
   game_level = 1
   camera_location = {
     x = 0,
@@ -111,14 +111,14 @@ function _init()
   direction_flag = {
     x,
     y,
-  } --�∧��…➡️��♥签
+  } --�∧��…➡️�♥签
   cloud = init_cloud()
-  game_state_flag = "play"--游�☉◆�⌂��█▒��♥签
-  gravity = cfg_gravity-- �♥♪�⌂�
+  game_state_flag = "play"--游�☉◆�⌂��█▒�♥签
+  gravity = cfg_gravity-- �♥♪�⌂�
   update_state_flag = "play"
   draw_state_flage = "play"
   player_state_x_flag = "nomal"
-  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
+  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
@@ -148,14 +148,14 @@ function _init()
   end, "all")
 
   tail = init_tail()
-  cfg_levels = cfg_levels_autumn
+  cfg_levels = autumn_config
   change_camera = init_change_camera()
   tips = init_tips()
 
   -- snow = init_snow()
   -- leaves = init_leaves()
   chest = init_chest()
-  enemies = init_enemies(cfg_levels.level1.enemys)
+  enemies = init_enemies(cfg_levels.level1.enemy_bees, cfg_levels.level1.enemy_catepillers)
   this_songzi_cfg = {}
   for k,v in pairs(cfg_levels.level1.songzi) do
     add(this_songzi_cfg, v)
@@ -182,11 +182,17 @@ function _init()
     end
   end, 'chest_store')
   change_level(game_level)
+  bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
+  -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
+  -- box_1 = init_box(176, 72, bin_kuai_2)
+  -- box_2 = init_box(224, 32, bin_kuai)
+  ices = init_ices(ices_cfg)
+  boxs_table = init_boxs(boxs_cfg)
 end
 
-------------游�☉◆�⌂��█▒机-----------------
+------------游�☉◆�⌂��█▒机-----------------
 game_states = {
-----------update�⌂��█▒机--------------
+----------update�⌂��█▒机--------------
 update_states = {
   change_level_update = function()
     if change_camera.update() then
@@ -210,9 +216,14 @@ update_states = {
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()
         player.hit()
+
         for v in all(object_table) do
           if v.name ~= "player" then
-            v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+              if v.name == "box" or v.name == "ice" then
+                  v.vecter.y = v.vecter.y + (v.is_physic and cfg_box_gravity or 0)
+              else
+                  v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+              end
             hit(v, 1, "height", function()
               v.vecter.y = 0
             end)
@@ -223,7 +234,8 @@ update_states = {
             v.pos_y = v.pos_y + v.vecter.y
           end
         end
-
+        boxs_table.update()
+        ices.update()
         update_cllision()
         player.pos_x = player.pos_x + player.vecter.x
         player.pos_y = player.pos_y + player.vecter.y
@@ -264,7 +276,7 @@ update_states = {
   },
   ---------------------------------
 
-  -----------draw�⌂��█▒机-------------
+  -----------draw�⌂��█▒机-------------
 
   draw_states = {
     change_level_draw = function()
@@ -305,9 +317,10 @@ function nomal_draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
     enemies.draw()
     draw_pinecone_ui()
-    mogu_hit()
-    jinji_hit()
-    lupai_hit()
+    -- mogu_hit()
+    -- jinji_hit()
+    -- lupai_hit()
+    update_map_trigger()
     update_trigger()
     -- map_col.update_trg()
     -- camera(player.pos_x-64, 0)
@@ -316,7 +329,7 @@ end
 -->8
 --> global-1
 object_table = {}
----------------计�❎��▥�-------------------
+---------------计�❎��▥�-------------------
 newtimer = function ()
     local o = {
         timers = {}
@@ -346,7 +359,7 @@ end
 
 ----------------------------------------
 
-----------------实��⬅️�😐∧对象---------------
+----------------实�⬅️�😐∧对象---------------
 --sp(图�웃♥索�ˇ)--pos_x,pos_y(实�⬅️�😐∧�…�♥)--width,height(图�웃♥�▤度�😐宽度)--
 function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
     if not v_x then v_x = 0 end
@@ -372,6 +385,9 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
       if spr_obj.destroy_trigger_stay then
         spr_obj.destroy_trigger_stay()
       end
+      if spr_obj.destroy_cllision then
+        spr_obj.destroy_cllision()
+      end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
     end
@@ -381,7 +397,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
--------------��★��⧗碰�★���☉触�◆➡️��⬅️��웃--------------
+-------------�★�⧗碰�★��☉触�◆➡️�⬅️�웃--------------
 trigger_table = {}
 
 function update_trigger()
@@ -498,7 +514,7 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     return trigger_exit
 end
 
--------------��★��⧗碰�★���☉碰�★���⬅️��웃--------------
+-------------�★�⧗碰�★��☉碰�★��⬅️�웃--------------
 cllision_table = {}
 function update_cllision()
     for k, v in pairs(cllision_table) do
@@ -530,7 +546,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
             local ys = h1 / 2 + h2 / 2
 
-            print(xd)
+            -- print(xd)
             if xd <= xs and yd < ys then
                 sprit_1.vecter.x = 0
                 if cllision_func then
@@ -558,7 +574,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
             local xs = w1 * 0.5 + w2 * 0.5
 
-            print(yd)
+            -- print(yd)
             if yd <= ys and xd < xs then
                 sprit_1.vecter.y = 0
                 if cllision_func then
@@ -567,11 +583,19 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             end
         end,
     }
+    local idx = #cllision_table + 1
+    sprit_1.destroy_cllision = function()
+      cllision_table[idx] = nil
+    end
+
+    sprit_2.destroy_cllision = function()
+      cllision_table[idx] = nil
+    end
     add(cllision_table, tbl)
 end
 ---------------------------------------
 
---------------地形碰�★�-------------------
+--------------地形碰�★�-------------------
 --sprit_flag: palyer = 1, map = 2
 function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
     local next_x = sprit.pos_x + sprit.vecter.x
@@ -633,7 +657,7 @@ end
 ------------------------------------------
 
 
-----------------------�☉�建�⌂��⬆️�-------------------
+----------------------�☉�建�⌂��⬆️�-------------------
 function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     local update_time = 0
     local sp = first_spr
@@ -665,12 +689,12 @@ function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     end
 end
 
--------------�☉♥�♪��⌂��⬆️�----------------
+-------------�☉♥�♪��⌂��⬆️�----------------
 function change_animation(spr_obj, ani_flag)
     spr_obj.animation = spr_obj.animation_table[ani_flag]
 end
 
------------�⌂��⬆️��★��⬆️�---------------
+-----------�⌂��⬆️��★��⬆️�---------------
 function update_animation()
     for v in all(object_table) do
         if v.animation then
@@ -690,16 +714,18 @@ function load_level (cart_name)
 end
 
 function init_change_camera()
-  local old_camera_pos_x = cfg_levels.level1.camera_pos.x*8
-  local old_camera_pos_y = cfg_levels.level1.camera_pos.y*8
-  local now_camera_pos_x = cfg_levels.level1.camera_pos.x*8
-  local now_camera_pos_y = cfg_levels.level1.camera_pos.y*8
+  local camera_pos = string_to_array(cfg_levels.level1.camera_pos)
+  local old_camera_pos_x = camera_pos[1]*8
+  local old_camera_pos_y = camera_pos[2]*8
+  local now_camera_pos_x = camera_pos[1]*8
+  local now_camera_pos_y = camera_pos[2]*8
   local flip_x = false
   local flip_y = false
   local fix_driction = 0
   local function change(level)
-    now_camera_pos_x = cfg_levels["level" .. level].camera_pos.x*8
-    now_camera_pos_y = cfg_levels["level" .. level].camera_pos.y*8
+    local camera_pos = string_to_array(cfg_levels["level" .. level].camera_pos)
+    now_camera_pos_x = camera_pos[1]*8
+    now_camera_pos_y = camera_pos[2]*8
     flip_x = old_camera_pos_x > now_camera_pos_x
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
@@ -746,9 +772,11 @@ function game_over()
 end
 
 function change_level(level)
+  -- printh('change'..level..game_level)
   if game_level ~= level then
-    for i=1,#cfg_levels["level" .. game_level].songzi do
-      cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+    local current_level_songzi = cfg_levels["level" .. game_level].songzi
+    for i=1,#current_level_songzi do
+      current_level_songzi[i] = this_songzi_cfg[i]
       this_songzi_cfg[i] = nil
     end
   end
@@ -765,7 +793,7 @@ function change_level(level)
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
   end
-  enemies = init_enemies(level_cfg.enemys)
+  enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
       -- printh("level-i = " .. i, "dir")
@@ -775,11 +803,13 @@ function change_level(level)
       songzi = init_songzis(this_songzi_cfg)
     end
   end
-  local camera_pos_x = level_cfg.camera_pos.x*8
-  local camera_pos_y = level_cfg.camera_pos.y*8
+  local camera_pos = string_to_array(level_cfg.camera_pos)
+  local camera_pos_x = camera_pos[1]*8
+  local camera_pos_y = camera_pos[2]*8
   if level == game_level then
-    player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
-    player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+    local player_pos = string_to_array(level_cfg.player_start_pos)
+    player.pos_x = player_pos[1]*8 + camera_pos_x
+    player.pos_y = player_pos[2]*8 + camera_pos_y
   end
   player.hand_songzi = 0
   change_camera.change(level)
@@ -814,6 +844,14 @@ function fade(i)
     end
 end
 
+function fade_out()
+    for i=1,16 do
+        timer.add_timeout('fade'..i, i*0.1, function()
+            fade(i)
+        end)
+    end
+end
+
 function string_to_array(str)
     local result = {}
     local num = ''
@@ -830,12 +868,53 @@ function string_to_array(str)
     return result
 end
 
-function fade_out()
-    for i=1,16 do
-        timer.add_timeout('fade'..i, i*0.1, function()
-            fade(i)
-        end)
+function table_from_string(str)
+  local tab, is_key = {}, true
+  local key,val,is_on_key
+  local function reset()
+    key,val,is_on_key = '','',true
+  end
+  reset()
+  local i, len = 1, #str
+  while i <= len do
+    local char = sub(str, i, i)
+    -- token separator
+    if char == '\31' then
+      if is_on_key then
+        is_on_key = false
+      else
+        tab[tonum(key) or key] = val
+        reset()
+      end
+    -- subtable start
+    elseif char == '\29' then
+      local j,c = i,''
+      -- checking for subtable end character
+      while (c ~= '\30') do
+        j = j + 1
+        c = sub(str, j, j)
+      end
+      tab[tonum(key) or key] = table_from_string(sub(str,i+1,j-1))
+      reset()
+      i = j
+    else
+      if is_on_key then
+        key = key..char
+      else
+        val = val..char
+      end
     end
+    i = i + 1
+  end
+  return tab
+end
+
+function init_config (config_table)
+    local result = {}
+    for level,data in pairs(config_table) do
+        result[level] = table_from_string(data)
+    end
+    return result
 end
 
 function _update()
@@ -1066,6 +1145,14 @@ function get_map_flage(m_x, m_y)
   return fget(mget(m_x/8+map_location.x,m_y/8+map_location.y))
 end
 
+map_trigger_tbl = {}
+
+function update_map_trigger()
+  for v in all(map_trigger_tbl) do
+    v()
+  end
+end
+
 function map_trigger(obj, flag, direction)
     local x = obj.pos_x
     local y = obj.pos_y
@@ -1134,6 +1221,7 @@ function map_trigger_enter(obj, map_flag, enter_func, direction)
         end
     end
 
+    add(map_trigger_tbl, trigger_enter)
     return trigger_enter
 end
 
@@ -1144,6 +1232,7 @@ function map_trigger_stay(obj, map_flag, stay_func, direction)
         end
     end
 
+    add(map_trigger_tbl, trigger_stay)
     return trigger_stay
 end
 
@@ -1161,6 +1250,7 @@ function map_trigger_exit(obj, map_flag, exit_func, direction)
         end
     end
 
+    add(map_trigger_tbl, trigger_exit)
     return trigger_exit
 end
 
@@ -1202,8 +1292,9 @@ function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
 end
 
 function change_map(change_cfg)
-  for k,v in pairs(change_cfg) do
-    mset(v.x, v.y, v.sp)
+  for v in all(change_cfg) do
+    local sv = string_to_array(v)
+    mset(sv[1], sv[2], sv[3])
   end
 end
 
@@ -1223,8 +1314,8 @@ function init_songzis(songzi_config)
     table = {},
   }
   for i = 1 , #songzi_config do
-    local s = string_to_array(songzi_config[i])
-    local pos_x, pos_y = s[1], s[2]
+    local s_cfg = string_to_array(songzi_config[i])
+    local pos_x, pos_y = s_cfg[1], s_cfg[2]
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()
@@ -1294,13 +1385,13 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
     return e
 end
 
-function init_enemies (enemy_config)
+function init_enemies (bees_config, catepillers_config)
     local o = {
         enemies = {}
     }
-    if enemy_config.bees then
-      for i=1,#enemy_config.bees do
-          local e = string_to_array(enemy_config.bees[i])
+    if bees_config then
+      for i=1,#bees_config do
+          local e = string_to_array(bees_config[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local flip_x = e[5]==1 and true or false
           local flip_y = e[6]==1 and true or false
@@ -1308,9 +1399,9 @@ function init_enemies (enemy_config)
           add(o.enemies, b)
       end
     end
-    if enemy_config.catepillers then
-      for i=1,#enemy_config.catepillers do
-          local e = string_to_array(enemy_config.catepillers[i])
+    if catepillers_config then
+      for i=1,#catepillers_config do
+          local e = string_to_array(catepillers_config[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
           local flip_x = e[5]==1 and true or false
           local flip_y = e[6]==1 and true or false
@@ -1358,6 +1449,7 @@ function init_player()
   player.max_jump = 1
   player.can_jump = 1
   player.hand_songzi = 0
+  player.on_ground = false
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
@@ -1396,43 +1488,31 @@ function init_player()
     states_y = {},
   }
 
-  player.hit = function()
-    hit(player, 1, "all", function()
-      -- player.vecter.x = 0
-      -- player.vecter.y = 0
-    end)
-    hit(player, 1, "height", function()
-      player.can_jump = player.max_jump
-      if player.state ~= "nomal" and player.vecter.y > 0 then
-        if player.vecter.x == 0 then
-          player.state = "nomal"
-          change_animation(player, "nomal")
-          change_animation(tail, "nomal")
-        else
-          player.state = "run"
-          change_animation(player, "run")
-          change_animation(tail, "run")
-        end
+  player.on_ground_function = function()
+    player.can_jump = player.max_jump
+    if player.state ~= "nomal" and player.vecter.y > 0 then
+      if player.vecter.x == 0 then
+        player.state = "nomal"
+        change_animation(player, "nomal")
+        change_animation(tail, "nomal")
+      else
+        player.state = "run"
+        change_animation(player, "run")
+        change_animation(tail, "run")
       end
-      player.new_ground = 2
+    end
+    player.new_ground = 2
 
-      player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
-      -- if player.vecter.y>0 then
-      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8
-      -- elseif player.vecter.y<0 then
-      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8 + 8-1
-      -- end
-      player.vecter.y = 0
-    end)
-    hit(player, 1, "width", function()
-      -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
-      if player.vecter.x ~= 0 then
-        player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
-      end
-      player.vecter.x = 0
+    player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+
+    player.vecter.y = 0
+    player.on_ground = true
+  end
+
+  player.climb_function = function()
       local map_y = player.pos_y + player.height*8+7
       if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
-        local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
+        -- local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
         player.state = "climb"
         player.can_jump = 1
@@ -1441,6 +1521,42 @@ function init_player()
         player.is_physic = false
         player.vecter.y = 0
       end
+  end
+
+  player.hit = function()
+    hit(player, 1, "all", function()
+      -- player.vecter.x = 0
+      -- player.vecter.y = 0
+    end)
+    hit(player, 1, "height", function()
+      -- player.can_jump = player.max_jump
+      -- if player.state ~= "nomal" and player.vecter.y > 0 then
+      --   if player.vecter.x == 0 then
+      --     player.state = "nomal"
+      --     change_animation(player, "nomal")
+      --     change_animation(tail, "nomal")
+      --   else
+      --     player.state = "run"
+      --     change_animation(player, "run")
+      --     change_animation(tail, "run")
+      --   end
+      -- end
+      -- player.new_ground = 2
+      --
+      -- player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+      --
+      -- player.vecter.y = 0
+      -- player.on_ground = true
+      player.on_ground_function()
+    end)
+    hit(player, 1, "width", function()
+      -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+      if player.vecter.x ~= 0 then
+        player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+      end
+      player.vecter.x = 0
+
+      player.climb_function()
     end)
     hit(player, player.new_ground, "height", function()
       player.can_jump = player.max_jump
@@ -1529,7 +1645,7 @@ function init_thief ()
     thief.fall_event = false
     thief.flip_x = false
     thief.draw_run1 = function ()
-        thief_mogu_hit()
+        -- thief_mogu_hit()
         spr(thief.sp, thief.pos_x, thief.pos_y, 1, 1)
         thief_songzi.pos_x = thief.pos_x
         thief_songzi.pos_y = thief.pos_y - 6
@@ -1638,6 +1754,147 @@ function init_sandy ()
     return sandy
 end
 
+function init_comoon_box(box)
+    box.down_dis = 0
+    box.can_hit = false
+    box.can_move = true
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      mset(zhui_x/8, zhui_y/8, 16)
+    end, "up")
+    oncllision(box, player, {
+      height = function()
+        player.on_ground_function()
+      end,
+      width = function()
+          if not box.can_move then
+              player.vecter.x = 0
+          end
+          local player_v_x = player.vecter.x
+          if abs(player_v_x) >= cfg_box_max_v then
+              player.vecter.x = player_v_x > 0 and cfg_box_max_v or -1*cfg_box_max_v
+          end
+          box.vecter.x = player_v_x
+      end,
+    })
+    box.update = function()
+      hit(box, 1, "height", function()
+        box.down_dis = 0
+        box.can_hit = false
+      end, function()
+        if box.down_dis >= 16 then box.can_hit = true end
+        box.down_dis = box.down_dis + box.vecter.y
+      end)
+
+      hit(box, 1, "width", function()
+          box.can_move = false
+      end)
+      box.vecter.x = 0
+    end
+end
+
+function init_ices(ice_config)
+    local ices = {
+      table = {},
+    }
+    local function init_ice(pos_x, pos_y, is_songzi)
+        local sp = is_songzi and 143 or 159
+        local ice = init_spr("ice", sp, pos_x, pos_y, 1, 1, true, 0, 0)
+        init_comoon_box(ice)
+        ice.is_songzi = is_songzi
+
+        for v in all(ices.table) do
+            oncllision(ice, v, {
+                width = function()
+                  ice.can_move = false
+                  ice.vecter.x = 0
+                end,
+                height = function()
+                    ice.pos_y = v.pos_y - 8
+                    ice.vecter.y = 0
+                    ice.down_dis = 0
+                    if ice.can_hit then
+                        v.destroy()
+                        ice.destroy()
+                    end
+                end,}
+            )
+        end
+        return ice
+    end
+
+    for i = 1 , #ice_config do
+        local pos_x, pos_y, is_songzi = ice_config[i][1], ice_config[i][2], ice_config[i][3]
+        ice = init_ice(pos_x, pos_y, is_songzi)
+        ice.idx = i
+        add(ices.table, ice)
+    end
+
+    ices.update = function()
+        for v in all(ices.table) do
+            v.update()
+        end
+    end
+
+    return ices
+end
+
+function init_boxs(box_config)
+  local boxs = {
+    table = {},
+  }
+
+  local function init_box(pos_x, pos_y)
+    local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
+
+    init_comoon_box(box)
+
+    for bin_kuai in all(ices) do
+        oncllision(box, bin_kuai, {
+            width = function()
+              -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
+              box.can_move = false
+              box.vecter.x = 0
+            end,
+          height = function()
+            box.pos_y = bin_kuai.pos_y - 8
+            box.vecter.y = 0
+            box.down_dis = 0
+            if box.can_hit then bin_kuai.destroy() end
+          end,
+        })
+    end
+
+    for v in all(boxs.table) do
+        oncllision(box, v, {
+          width = function()
+              box.vecter.x = v.vecter.x
+              box.can_move = false
+          end,
+          height = function()
+            box.pos_y = v.pos_y - 8
+            box.vecter.y = 0
+          end,
+        })
+    end
+
+    return box
+  end
+
+  for i = 1 , #box_config do
+    local b_x, b_y = box_config[i][1], box_config[i][2]
+    local box = init_box(b_x, b_y, bin_kuai)
+    box.idx = i
+    add(boxs.table, box)
+  end
+  boxs.update = function()
+      for v in all(boxs.table) do
+          v.update()
+      end
+  end
+
+  return boxs
+end
+
 -->8
 -->game_cfg
 
@@ -1653,180 +1910,29 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移��
   y = 5,
 }
 
+cfg_box_gravity = 0.1 --箱�…�░�♥♪�⌂�
+cfg_box_max_v = 1.5 --�🅾️�箱�…�█大�█�度
+boxs_cfg = { --箱�…�✽♪置
+    {176, 72},
+    {176, 64},
+    {176, 56},
+    {224, 32},
+}
+ices_cfg = { --�●��❎�✽♪置
+    {48, 88},
+
+}
+
 cfg_levels_autumn = {
-  level1 = {
-
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 0,
-    },
-    enemys = {
-        -- �ˇ😐人�✽♪置�😐�◆🐱�ˇ��☉●�☉�为x�…�♥�😐y�…�♥�😐移�⌂��█远距离, �█�度, �▤��…��◆♪�…➡️, �▥��…�♪ˇ�⬅️��웃�█个�◆🐱�ˇ�表示�▤�水平�☉��▤�▤��∧直�☉�
-    },
-    songzi = {
-      '104,64'
-    },
-  },
-  level2 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃ps:相对�🅾️�➡️░�⬇️◆机
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 16,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-    },
-    songzi = {
-      '208,48'
-    },
-  },
-  level3 = {
-
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 32,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-
-    },
-    songzi = {
-      '288,64',
-      '352,48',
-    },
-  },
-  level4 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 48,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-      bees = {
-        '432,64,24,0.5,0'
-      },
-      catepillers = {
-        '432,72,24,0.5,1'
-      },
-    },
-    songzi = {
-      '432,72',
-    },
-  },
-  level5 = {
-    change_map = {
-      {x = 23, y = 11, sp = 2},
-      {x = 24, y = 11, sp = 2},
-      {x = 42, y = 7, sp = 16},
-      {x = 42, y = 8, sp = 16},
-      {x = 42, y = 9, sp = 16},
-      {x = 42, y = 10, sp = 16},
-      {x = 63, y = 9, sp = 16},
-      {x = 63, y = 10, sp = 16},
-      {x = 63, y = 11, sp = 16},
-    },
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-    },
-    songzi = {
-      -- {54*8, 9*8},
-    },
-  },
-  level6 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃ps:相对�🅾️�➡️░�⬇️◆机
-      x = 0,
-      y = 5,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 16,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-      bees = {
-        -- {26*8, 6*8, 16, 0.5},
-      },
-      catepillers = {
-        '216,48,8,0.5'
-      },
-    },
-    songzi = {
-    },
-  },
-  level7 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 5,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 32,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-      bees = {
-        '280,64,16,0.5',
-        '336,48,16,0.5',
-      },
-      catepillers = {
-        '336,64,8,0.5,1,1,1',
-      },
-    },
-    songzi = {
-    },
-  },
-  level8 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 5,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 48,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-      bees = {
-        '464,64,24,0.6',
-      },
-      catepillers = {
-        '432,72,24,0.5,0',
-        '432,72,24,0.5,1',
-      },
-    },
-    songzi = {
-    },
-  },
-  level9 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 5,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 64,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-    },
-    songzi = {
-    },
-  },
+  level1 = 'camera_pos0,0songzi140,88player_start_pos0,7enemy_catepillersenemy_bees',
+  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
+  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
+  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
+  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos0,7',
+  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
+  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,1,12320,56,8,0.5,0,1,1songzi',
+  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
+  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
 }
 
 __gfx__
