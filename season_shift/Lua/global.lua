@@ -443,7 +443,6 @@ function game_over()
 end
 
 function change_level(level)
-  -- printh('change'..level..game_level)
   if game_level ~= level then
     local current_level_songzi = cfg_levels["level" .. game_level].songzi
     for i=1,#current_level_songzi do
