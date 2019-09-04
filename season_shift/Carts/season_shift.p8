@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 -->main-0
---------------�🅾️��☉��▥�----------------
+--------------�🅾️��☉��▥�----------------
 map_location ={
     x = 0,
     y = 0,
@@ -102,7 +102,11 @@ controller = {
 }
 
 function _init()
+  game_season = "autum"
   autumn_config = init_config(cfg_levels_autumn)
+  winter_config = init_config(cfg_levels_winter)
+  -- spring_config = init_config(cfg_levels_spring)
+  -- summer_config = init_config(cfg_levels_summer)
   game_level = 1
   camera_location = {
     x = 0,
@@ -111,14 +115,14 @@ function _init()
   direction_flag = {
     x,
     y,
-  } --�∧��…➡️�♥签
+  } --�∧��…➡️��♥签
   cloud = init_cloud()
-  game_state_flag = "play"--游�☉◆�⌂��█▒�♥签
-  gravity = cfg_gravity-- �♥♪�⌂�
+  game_state_flag = "play"--游�☉◆�⌂��█▒��♥签
+  gravity = cfg_gravity-- �♥♪�⌂�
   update_state_flag = "play"
   draw_state_flage = "play"
   player_state_x_flag = "nomal"
-  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
+  player_acceleration_fast = cfg_player_acceleration_fast--�⌂��█�度
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
@@ -135,7 +139,7 @@ function _init()
         -- print("❎", player.pos_x, player.pos_y - 6, 1)
     end
     if btnp(5) then
-      if game_level == 9 then
+      if game_level == 9 and player_pinecone == 5 then
         sandy.act = 'show'
       elseif game_level == 4 then
         game_level = 1
@@ -154,6 +158,7 @@ function _init()
 
   -- snow = init_snow()
   -- leaves = init_leaves()
+  shake = init_screen_shake()
   chest = init_chest()
   enemies = init_enemies(cfg_levels.level1.enemy_bees, cfg_levels.level1.enemy_catepillers)
   this_songzi_cfg = {}
@@ -164,8 +169,8 @@ function _init()
     songzi = init_songzis(this_songzi_cfg)
   end
   -- pinecones of whole level
-  max_pinecone_num = 6
-  player_pinecone = 1
+  max_pinecone_num = 5
+  player_pinecone = 0
   timer = newtimer()
 
   map_ani_1 = init_map_animation(7, 15, 2, false)
@@ -190,9 +195,9 @@ function _init()
   boxs_table = init_boxs(boxs_cfg)
 end
 
-------------游�☉◆�⌂��█▒机-----------------
+------------游�☉◆�⌂��█▒机-----------------
 game_states = {
-----------update�⌂��█▒机--------------
+----------update�⌂��█▒机--------------
 update_states = {
   change_level_update = function()
     if change_camera.update() then
@@ -210,7 +215,7 @@ update_states = {
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
         if (btn (1) ) controller.right()
-        -- if (btnp (5)) change_level(2)
+        -- if (btnp (5)) season_shift("winter")
         -- if (btnp (5)) change_map(map_cfg)
 
         player.player_states.states_x[player_state_x_flag]()
@@ -264,10 +269,13 @@ update_states = {
             game_level = 5
             change_level(5)
             chest.pinecone -= 5
-            thief.act = 'run1'
+            timer.add_timeout('thief_show', 1, function()
+                thief.act = 'run1'
+            end)
         end
         cloud.update()
         tips.update()
+        shake.update()
     end,
 
     game_over_update = function()
@@ -276,7 +284,7 @@ update_states = {
   },
   ---------------------------------
 
-  -----------draw�⌂��█▒机-------------
+  -----------draw�⌂��█▒机-------------
 
   draw_states = {
     change_level_draw = function()
@@ -295,6 +303,7 @@ update_states = {
 }
 -----------------------------------
 function nomal_draw()
+    shake.draw()
     map(map_location.x, map_location.y)
     cloud.draw()
 
@@ -329,7 +338,7 @@ end
 -->8
 --> global-1
 object_table = {}
----------------计�❎��▥�-------------------
+---------------计�❎��▥�-------------------
 newtimer = function ()
     local o = {
         timers = {}
@@ -359,7 +368,7 @@ end
 
 ----------------------------------------
 
-----------------实�⬅️�😐∧对象---------------
+----------------实��⬅️�😐∧对象---------------
 --sp(图�웃♥索�ˇ)--pos_x,pos_y(实�⬅️�😐∧�…�♥)--width,height(图�웃♥�▤度�😐宽度)--
 function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
     if not v_x then v_x = 0 end
@@ -397,7 +406,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
 end
 ----------------------------------------
 
--------------�★�⧗碰�★��☉触�◆➡️�⬅️�웃--------------
+-------------��★��⧗碰�★���☉触�◆➡️��⬅️��웃--------------
 trigger_table = {}
 
 function update_trigger()
@@ -514,7 +523,7 @@ function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     return trigger_exit
 end
 
--------------�★�⧗碰�★��☉碰�★��⬅️�웃--------------
+-------------��★��⧗碰�★���☉碰�★���⬅️��웃--------------
 cllision_table = {}
 function update_cllision()
     for k, v in pairs(cllision_table) do
@@ -595,7 +604,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
 end
 ---------------------------------------
 
---------------地形碰�★�-------------------
+--------------地形碰�★�-------------------
 --sprit_flag: palyer = 1, map = 2
 function hit(sprit, hit_spr_flag, hit_side, hit_func, not_hit_func)
     local next_x = sprit.pos_x + sprit.vecter.x
@@ -657,7 +666,7 @@ end
 ------------------------------------------
 
 
-----------------------�☉�建�⌂��⬆️�-------------------
+----------------------�☉�建�⌂��⬆️�-------------------
 function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     local update_time = 0
     local sp = first_spr
@@ -689,12 +698,12 @@ function init_animation(spr_obj, first_spr, last_spr, play_time, ani_flag, loop)
     end
 end
 
--------------�☉♥�♪��⌂��⬆️�----------------
+-------------�☉♥�♪��⌂��⬆️�----------------
 function change_animation(spr_obj, ani_flag)
     spr_obj.animation = spr_obj.animation_table[ani_flag]
 end
 
------------�⌂��⬆️��★��⬆️�---------------
+-----------�⌂��⬆️��★��⬆️�---------------
 function update_animation()
     for v in all(object_table) do
         if v.animation then
@@ -730,6 +739,7 @@ function init_change_camera()
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
+    shake.camera_x = now_camera_pos_x
   end
   local function update()
     local changed_x = false
@@ -772,7 +782,6 @@ function game_over()
 end
 
 function change_level(level)
-  -- printh('change'..level..game_level)
   if game_level ~= level then
     local current_level_songzi = cfg_levels["level" .. game_level].songzi
     for i=1,#current_level_songzi do
@@ -813,6 +822,7 @@ function change_level(level)
   end
   player.hand_songzi = 0
   change_camera.change(level)
+  -- shake.state = 'start'
 end
 
 local fadetable = {
@@ -844,10 +854,13 @@ function fade(i)
     end
 end
 
-function fade_out()
+function fade_out(season)
     for i=1,16 do
         timer.add_timeout('fade'..i, i*0.1, function()
             fade(i)
+            if i == 16 and season then
+              season_shift(season)
+            end
         end)
     end
 end
@@ -983,13 +996,6 @@ function init_snow(speed, num, hit_spr_flag)
 end
 
 function init_cloud()
-  -- local cloud_speed_1 = 0.3
-  -- local cloud_speed_2 = 0.5
-  -- local map_x_1 = 0
-  -- local map_y_1 = 0
-  -- local map_x_2 = 0
-  -- local map_y_2 = 0
-
   local function update_location(need_x, speed)
     local cloud_x = need_x
     if cloud_x < -128 then
@@ -1014,12 +1020,7 @@ function init_cloud()
     }
     m.update = function()
       m.ex_x = update_location(m.ex_x, m.speed)
-      -- printh(m.ex_x, "dir")
     end
-    -- m.draw = function()
-    --   -- printh(m.ex_x, "dir")
-    --   map(m.x, m.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
-    -- end
     add(maps, m)
   end
 
@@ -1033,14 +1034,18 @@ function init_cloud()
   -- init_map(112, 28, 128, 24, 16, 4, 0.5)
 
   local function update()
-    for v in all(maps) do
-      v.update()
+    if game_season ~= "winter" then
+      for v in all(maps) do
+        v.update()
+      end
     end
   end
 
   local function draw()
-    for m in all(maps) do
-      map(m.x, m.y, m.map_x + m.ex_x + camera_location.x, m.map_y + camera_location.y, m.width, m.height)
+    if game_season ~= "winter" then
+      for m in all(maps) do
+        map(m.x, m.y, m.map_x + m.ex_x + camera_location.x, m.map_y + camera_location.y, m.width, m.height)
+      end
     end
   end
   return {
@@ -1137,6 +1142,49 @@ function init_tips()
     return {
         update = update,
     }
+end
+
+function init_screen_shake()
+    local shake = {}
+    local offset = 0
+    shake.state = 'init'
+    shake.camera_x = 0
+    shake.draw = function ()
+        if shake.state == 'start' then
+            local fade = 0.95
+            local offset_x=shake.camera_x+16-rnd(32)
+            local offset_y=16-rnd(32)
+            offset_x*=offset
+            offset_y*=offset
+            camera(offset_x,offset_y)
+            offset*=fade
+            if offset<0.5 then
+                offset=0
+            end
+        end
+    end
+    shake.update = function ()
+        if shake.state == 'start' then offset = 1 end
+    end
+    return shake
+end
+
+function season_shift(season)
+  if season == "winter" then
+    cfg_levels = winter_config
+  elseif season == "spring" then
+    cfg_levels = spring_config
+  elseif season == "summer" then
+    cfg_levels = summer_config
+  end
+
+  load_level(season..".p8")
+  game_level = 1
+  change_level(1)
+  game_season = season
+  map_ani_1 = init_map_animation(7, 15, 2, false)
+  map_ani_2 = init_map_animation(6, 15, 2, true)
+  pal()
 end
 
 -->8
@@ -1302,7 +1350,7 @@ end
 -- objects
 function init_chest ()
     local c = init_spr("chest", 139, 9, 80, 2, 2, true, 0, 0)
-     c.pinecone = 4
+     c.pinecone = 5
      c.draw = function ()
          print(c.pinecone..'/'..10, c.pos_x, c.pos_y, 4)
      end
@@ -1747,8 +1795,10 @@ function init_sandy ()
         sandy.x -= 0.1
         if sandy.x <= 592 then
             sandy.x = 592
-            fade_out()
+            fade_out("winter")
             sandy.act = 'init'
+            -- season_shift("winter")
+            pal()
         end
     end
     return sandy
@@ -1910,27 +1960,39 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移��
   y = 5,
 }
 
-cfg_box_gravity = 0.1 --箱�…�░�♥♪�⌂�
-cfg_box_max_v = 1.5 --�🅾️�箱�…�█大�█�度
-boxs_cfg = { --箱�…�✽♪置
+cfg_box_gravity = 0.1 --箱��…��░�♥♪�⌂�
+cfg_box_max_v = 1.5 --�🅾️�箱��…��█大�█�度
+boxs_cfg = { --箱��…�✽♪置
     {176, 72},
     {176, 64},
     {176, 56},
     {224, 32},
 }
-ices_cfg = { --�●��❎�✽♪置
+ices_cfg = { --�●���❎�✽♪置
     {48, 88},
 
 }
 
 cfg_levels_autumn = {
-  level1 = 'camera_pos0,0songzi140,88player_start_pos0,7enemy_catepillersenemy_bees',
+  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
   level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
   level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
   level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
-  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos0,7',
+  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
   level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
-  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,1,12320,56,8,0.5,0,1,1songzi',
+  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
+  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
+  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
+}
+
+cfg_levels_winter = {
+  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
+  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
+  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
+  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
+  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
+  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
+  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
   level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
   level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
 }
@@ -2084,3 +2146,51 @@ __map__
 1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000007700007500000000000000750000
 1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000000000007400000000000000770000
 1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000000000007700000000000000000000
+__sfx__
+002000002b0501f0502d0502b05029050280502b050260501e000240502605028050290502b0502d0502f050300501f0001f0002b05024000300501f0002b0501c0001c000280502b0501c000340500c00030050
+002000001a0001a0001a000320501a0003205034050320503000018000300502f0503200032050260002b050240002400024000280503000030050000002d05000000000002b05029050000002d0500000026050
+012000000000000000000002b0502d0502b05029050280502b0502605024000240502605028050290502b0502d0502f0503005000000000000000000000000000000000000000000000000000000000000000000
+002000000c04010040130001f0401004023040110401f040110401804017040150401304011040100400e0400c0400c000100000c040100401f040100400c040100401f040100400c040100401f0401c0400c040
+002000001f040210400c0400e0401504021040150400e0401504021040150400e0401504021040150401304011040100400e0400c0401004021040100400c0401004021040130400e04011040210401104023040
+002000001304015040130400c040100401f0401004023040110401f040110401304017050150501305011050100500e0500c05000000000000000000000000000000000000000000000000000000000000000000
+011000200c0551c0550e0551c055100551c055110551c055130551c055150551c055170551c055180551c0551a0551c0551c0551c0551d0551c0551f0551c055210551c055230551c05524055280552605528055
+000300003a65319653256530d65324653106531d6531a6531865316643156431363311633106230e6230b61308613056130060300603006030060300603006030060000600006000060000600006000060000600
+000400001d77035760357503574035700357003570035700357003070030700307000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700
+00030000082400a2500d2603f6603f6503f6403f6303f610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010300000d07010070160702207000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0102000011070130701a0702407000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011c002024750187501d0501805021050180502305018050280501805023050180502305013050210501805023050130501f050130501f05013050210501f050100501f0500e0501f0520c0501f052130501f052
+011200002334029340003002934529340283402430026340243400030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0114000028050000002805024000280502400028050000002805000000280502400028050240002805000000260502805021050260502805000000210502605028050210501a0502805021050000002605028050
+011400001c050000001c050000001c050000001c050000001c050000001c050000001c050000001c0500000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0114000010050000001c0500000010050000001c0500000010050000001c0500000010050000001c0500000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011400000405000000100500000004050000001005000000040500000010050000000405000000100500000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0114000021050260502805000000210502605028050210501a050280502105000000280500000028050000002805000000280502400028050240002805024000280502400028050240002f050180502f0502e050
+011400000000000000000000000000000000000000000000000000000000000000001c050000001c050000001c050000001c050000001c050000001c050000001c050000001c0500000000000000000000000000
+0114000000000000000000000000000000000000000000000000000000000000000010050000001c0500000010050000001c0500000010050000001c0500000010050000001c0500000000000000000000000000
+011400000000000000000000000000000000000000000000000000000000000000000405000000100500000004050000001005000000040500000010050000000405000000100500000000000000000000000000
+011400002f0502e0502d0502e0502d0502b0502d0502b0502f050300502f0502e0502f0502e0502d0502f0502d0502b0502d0502b050240002f050180502f0502e0502f0502e0502d0502e0502d0502b0502d050
+0114000000000000001c05000000000000000000000000001005000000000000000000000000001c0500000000000000000000000000000001005000000000000000000000000001c05000000000000000000000
+011400000000000000100500000000000000000000000000040500000000000000000000000000100500000000000000000000000000000000405000000000000000000000000001005000000000000000000000
+011400002b0502f050300502f0502e0502f0502e0502d0502f0502d0502b0502d0502b05000000280502400028050240002805024000280502400028050240002805024000280502400028050240002805024000
+01140000000001005000000000000000000000000001c0500000000000000000000000000000001c050000001c050000001c050000001c050000001c050000001c050000001c050000001c050000001c05000000
+01140000000000405000000000000000000000000001005000000000000000000000000000000010050000001c0500000010050000001c0500000010050000001c0500000010050000001c050000001005000000
+011400000000000000000000000000000000000000000000000000000000000000000000000000040500000010050000000405000000100500000004050000001005000000040500000010050000000405000000
+00100000181471a1471c1571d2571f1672116723177241773e7070000600004000040000400000000010000100000000000000000000000000000000000000000000000000000000000000000000000000000000
+000a0000232422625228262292722b2722b2622a2522724224242212421d2321b2221822214222102120a21205212002120020200104351043510435104000040000500005000000000100001000010000115101
+0110002024255182551d2551825521255182552325518255282551825523255182552325513255212551825523255132551f255132551f25513255212551f255102551f2550e2551f2550c2551f255132551f255
+0110002024550185501d5501855021550185502355018550285501855023550185502355013550215501855023550135501f550135501f55013550215501f550105501f5500e5501f5500c5501f550135501f550
+010400000c04105641090310362101011050010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+__music__
+01 00036144
+00 01046144
+04 02054644
+00 41424344
+00 41424344
+01 0e0f1011
+00 12131415
+00 16171859
+02 191a1b1c
+00 41424344
+00 41424344
+00 1f202144
