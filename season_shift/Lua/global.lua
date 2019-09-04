@@ -401,6 +401,7 @@ function init_change_camera()
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
+    shake.camera_x = now_camera_pos_x
   end
   local function update()
     local changed_x = false
@@ -443,7 +444,6 @@ function game_over()
 end
 
 function change_level(level)
-  -- printh('change'..level..game_level)
   if game_level ~= level then
     local current_level_songzi = cfg_levels["level" .. game_level].songzi
     for i=1,#current_level_songzi do
@@ -484,6 +484,7 @@ function change_level(level)
   end
   player.hand_songzi = 0
   change_camera.change(level)
+  shake.state = 'start'
 end
 
 local fadetable = {

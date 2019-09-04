@@ -132,7 +132,7 @@ function _init()
         -- print("❎", player.pos_x, player.pos_y - 6, 1)
     end
     if btnp(5) then
-      if game_level == 9 then
+      if game_level == 9 and player_pinecone == 5 then
         sandy.act = 'show'
       elseif game_level == 4 then
         game_level = 1
@@ -151,6 +151,7 @@ function _init()
 
   -- snow = init_snow()
   -- leaves = init_leaves()
+  shake = init_screen_shake()
   chest = init_chest()
   enemies = init_enemies(cfg_levels.level1.enemy_bees, cfg_levels.level1.enemy_catepillers)
   this_songzi_cfg = {}
@@ -161,8 +162,8 @@ function _init()
     songzi = init_songzis(this_songzi_cfg)
   end
   -- pinecones of whole level
-  max_pinecone_num = 6
-  player_pinecone = 1
+  max_pinecone_num = 5
+  player_pinecone = 0
   timer = newtimer()
 
   map_ani_1 = init_map_animation(7, 15, 2, false)
@@ -261,10 +262,13 @@ update_states = {
             game_level = 5
             change_level(5)
             chest.pinecone -= 5
-            thief.act = 'run1'
+            timer.add_timeout('thief_show', 1, function()
+                thief.act = 'run1'
+            end)
         end
         cloud.update()
         tips.update()
+        shake.update()
     end,
 
     game_over_update = function()
@@ -292,6 +296,7 @@ update_states = {
 }
 -----------------------------------
 function nomal_draw()
+    shake.draw()
     map(map_location.x, map_location.y)
     cloud.draw()
 

@@ -206,3 +206,28 @@ function init_tips()
         update = update,
     }
 end
+
+function init_screen_shake()
+    local shake = {}
+    local offset = 0
+    shake.state = 'init'
+    shake.camera_x = 0
+    shake.draw = function ()
+        if shake.state == 'start' then
+            local fade = 0.95
+            local offset_x=shake.camera_x+16-rnd(32)
+            local offset_y=16-rnd(32)
+            offset_x*=offset
+            offset_y*=offset
+            camera(offset_x,offset_y)
+            offset*=fade
+            if offset<0.5 then
+                offset=0
+            end
+        end
+    end
+    shake.update = function ()
+        if shake.state == 'start' then offset = 1 end
+    end
+    return shake
+end
