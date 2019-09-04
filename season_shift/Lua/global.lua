@@ -484,7 +484,7 @@ function change_level(level)
   end
   player.hand_songzi = 0
   change_camera.change(level)
-  shake.state = 'start'
+  -- shake.state = 'start'
 end
 
 local fadetable = {
@@ -516,10 +516,13 @@ function fade(i)
     end
 end
 
-function fade_out()
+function fade_out(season)
     for i=1,16 do
         timer.add_timeout('fade'..i, i*0.1, function()
             fade(i)
+            if i == 16 and season then
+              season_shift(season)
+            end
         end)
     end
 end

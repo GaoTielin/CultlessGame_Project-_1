@@ -51,13 +51,6 @@ function init_snow(speed, num, hit_spr_flag)
 end
 
 function init_cloud()
-  -- local cloud_speed_1 = 0.3
-  -- local cloud_speed_2 = 0.5
-  -- local map_x_1 = 0
-  -- local map_y_1 = 0
-  -- local map_x_2 = 0
-  -- local map_y_2 = 0
-
   local function update_location(need_x, speed)
     local cloud_x = need_x
     if cloud_x < -128 then
@@ -82,12 +75,7 @@ function init_cloud()
     }
     m.update = function()
       m.ex_x = update_location(m.ex_x, m.speed)
-      -- printh(m.ex_x, "dir")
     end
-    -- m.draw = function()
-    --   -- printh(m.ex_x, "dir")
-    --   map(m.x, m.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
-    -- end
     add(maps, m)
   end
 
@@ -101,14 +89,18 @@ function init_cloud()
   -- init_map(112, 28, 128, 24, 16, 4, 0.5)
 
   local function update()
-    for v in all(maps) do
-      v.update()
+    if game_season ~= "winter" then
+      for v in all(maps) do
+        v.update()
+      end
     end
   end
 
   local function draw()
-    for m in all(maps) do
-      map(m.x, m.y, m.map_x + m.ex_x + camera_location.x, m.map_y + camera_location.y, m.width, m.height)
+    if game_season ~= "winter" then
+      for m in all(maps) do
+        map(m.x, m.y, m.map_x + m.ex_x + camera_location.x, m.map_y + camera_location.y, m.width, m.height)
+      end
     end
   end
   return {
@@ -195,10 +187,10 @@ function init_tips()
     init_animation(putin_tip, 0, 0, 5, "nomal", true)
     init_animation(putin_tip, 157, 158, 5, "shine", true)
     local function update()
-        if not putin_tiped and player_pinecone == 6 then
+        if not putin_tiped and player_pinecone == 5 then
             change_animation(putin_tip, "shine")
         end
-        if putin_tiped and player_pinecone < 6 then
+        if putin_tiped and player_pinecone < 5 then
             change_animation(putin_tip, "nomal")
         end
     end
@@ -230,4 +222,22 @@ function init_screen_shake()
         if shake.state == 'start' then offset = 1 end
     end
     return shake
+end
+
+function season_shift(season)
+  if season == "winter" then
+    cfg_levels = winter_config
+  elseif season == "spring" then
+    cfg_levels = spring_config
+  elseif season == "summer" then
+    cfg_levels = summer_config
+  end
+
+  load_level(season..".p8")
+  game_level = 1
+  change_level(1)
+  game_season = season
+  map_ani_1 = init_map_animation(7, 15, 2, false)
+  map_ani_2 = init_map_animation(6, 15, 2, true)
+  pal()
 end

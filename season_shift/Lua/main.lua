@@ -99,7 +99,11 @@ controller = {
 }
 
 function _init()
+  game_season = "autum"
   autumn_config = init_config(cfg_levels_autumn)
+  winter_config = init_config(cfg_levels_winter)
+  -- spring_config = init_config(cfg_levels_spring)
+  -- summer_config = init_config(cfg_levels_summer)
   game_level = 1
   camera_location = {
     x = 0,
@@ -208,7 +212,7 @@ update_states = {
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
         if (btn (1) ) controller.right()
-        -- if (btnp (5)) change_level(2)
+        -- if (btnp (5)) season_shift("winter")
         -- if (btnp (5)) change_map(map_cfg)
 
         player.player_states.states_x[player_state_x_flag]()

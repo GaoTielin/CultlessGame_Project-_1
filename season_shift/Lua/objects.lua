@@ -446,8 +446,10 @@ function init_sandy ()
         sandy.x -= 0.1
         if sandy.x <= 592 then
             sandy.x = 592
-            fade_out()
+            fade_out("winter")
             sandy.act = 'init'
+            -- season_shift("winter")
+            
         end
     end
     return sandy
