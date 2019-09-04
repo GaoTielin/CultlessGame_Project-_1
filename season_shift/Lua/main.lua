@@ -151,6 +151,7 @@ function _init()
 
   -- snow = init_snow()
   -- leaves = init_leaves()
+  shake = init_screen_shake()
   chest = init_chest()
   enemies = init_enemies(cfg_levels.level1.enemy_bees, cfg_levels.level1.enemy_catepillers)
   this_songzi_cfg = {}
@@ -267,6 +268,7 @@ update_states = {
         end
         cloud.update()
         tips.update()
+        shake.update()
     end,
 
     game_over_update = function()
@@ -294,6 +296,7 @@ update_states = {
 }
 -----------------------------------
 function nomal_draw()
+    shake.draw()
     map(map_location.x, map_location.y)
     cloud.draw()
 
