@@ -94,24 +94,6 @@ function map_trigger_stay(obj, map_flag, stay_func, direction)
     return trigger_stay
 end
 
-function map_trigger_exit(obj, map_flag, exit_func, direction)
-    local entered = false
-    local is_trigger = false
-    local function trigger_exit()
-        is_trigger = map_trigger(obj, map_flag, direction)
-        if not entered and is_trigger then
-            entered = true
-        end
-        if entered and not is_trigger then
-            exit_func()
-            entered = false
-        end
-    end
-
-    add(map_trigger_tbl, trigger_exit)
-    return trigger_exit
-end
-
 function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
     local time = 0
     max_sp = max_sp*(is_flip and -1 or 1)
