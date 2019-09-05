@@ -85,11 +85,11 @@ cfg_levels_autumn = {
     player_start_pos = '0,5',
     camera_pos = '32,0',
     enemy_bees = {
-        '280,64,16,0.5'
+        '280,64,16,0.5',
+        '336,48,16,0.5',
     },
     enemy_catepillers = {
         '336,64,8,0.5,1,1,1',
-        '320,56,8,0.5,0,1,1'
     },
     songzi = {},
   },
@@ -97,7 +97,7 @@ cfg_levels_autumn = {
     player_start_pos = '0,5',
     camera_pos = '48,0',
     enemy_bees = {
-        '464,64,24,0.5'
+        '464,64,24,0.6'
     },
     enemy_catepillers = {
         '432,72,24,0.5,0',
