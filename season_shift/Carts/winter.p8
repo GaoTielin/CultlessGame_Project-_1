@@ -28,7 +28,7 @@ controller = {
        player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
       local map_y = player.pos_y + player.height*8 - 1
-      if get_map_flage(map_x, map_y) ~= 1 then
+      if get_map_flage(map_x, map_y) ~= player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -42,7 +42,7 @@ controller = {
         player.pos_y += cfg_climb_speed
       local map_y = player.pos_y + player.height + 10
       local map_x = player.pos_x  + (player.flip_x and -1 or (player.width*8))
-      if get_map_flage(player.pos_x, map_y) == 1 or get_map_flage(map_x, map_y) ~= 1 then
+      if get_map_flage(player.pos_x, map_y) == 1 or get_map_flage(map_x, map_y) ~= player.climb_flag or get_map_flage(player.pos_x, map_y) == player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -66,7 +66,7 @@ controller = {
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
-     if get_map_flage(map_x, map_y) ~= 1 then
+     if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
        player.is_physic = true
@@ -91,7 +91,7 @@ controller = {
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
-     if get_map_flage(map_x, map_y) ~= 1 then
+     if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
        player.is_physic = true
@@ -102,7 +102,11 @@ controller = {
 }
 
 function _init()
-  cls()
+  game_season = "autum"
+  autumn_config = init_config(cfg_levels_autumn)
+  winter_config = init_config(cfg_levels_winter)
+  -- spring_config = init_config(cfg_levels_spring)
+  -- summer_config = init_config(cfg_levels_summer)
   game_level = 1
   camera_location = {
     x = 0,
@@ -135,7 +139,7 @@ function _init()
         -- print("❎", player.pos_x, player.pos_y - 6, 1)
     end
     if btnp(5) then
-      if game_level == 9 then
+      if game_level == 9 and player_pinecone == 5 then
         sandy.act = 'show'
       elseif game_level == 4 then
         game_level = 1
@@ -148,13 +152,15 @@ function _init()
   end, "all")
 
   tail = init_tail()
-  cfg_levels = cfg_levels_autumn
+  cfg_levels = autumn_config
   change_camera = init_change_camera()
+  tips = init_tips()
 
   -- snow = init_snow()
   -- leaves = init_leaves()
+  shake = init_screen_shake()
   chest = init_chest()
-  enemies = init_enemies(cfg_levels.level1.enemys)
+  enemies = init_enemies(cfg_levels.level1.enemy_bees, cfg_levels.level1.enemy_catepillers)
   this_songzi_cfg = {}
   for k,v in pairs(cfg_levels.level1.songzi) do
     add(this_songzi_cfg, v)
@@ -163,8 +169,8 @@ function _init()
     songzi = init_songzis(this_songzi_cfg)
   end
   -- pinecones of whole level
-  max_pinecone_num = 6
-  player_pinecone = 1
+  max_pinecone_num = 5
+  player_pinecone = 0
   timer = newtimer()
 
   map_ani_1 = init_map_animation(7, 15, 2, false)
@@ -181,6 +187,12 @@ function _init()
     end
   end, 'chest_store')
   change_level(game_level)
+  bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
+  -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
+  -- box_1 = init_box(176, 72, bin_kuai_2)
+  -- box_2 = init_box(224, 32, bin_kuai)
+  ices = init_ices(ices_cfg)
+  boxs_table = init_boxs(boxs_cfg)
 end
 
 ------------游�☉◆�⌂��█▒机-----------------
@@ -195,6 +207,7 @@ update_states = {
 
   play_update = function()
         player.check_position()
+        player.update()
         map_ani_1.update()
         map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
@@ -203,15 +216,20 @@ update_states = {
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
         if (btn (1) ) controller.right()
-        -- if (btnp (5)) change_level(2)
+        -- if (btnp (5)) season_shift("winter")
         -- if (btnp (5)) change_map(map_cfg)
 
         player.player_states.states_x[player_state_x_flag]()
         -- player_states.states_y[player_state_y_flag]()
         player.hit()
+
         for v in all(object_table) do
           if v.name ~= "player" then
-            v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+              if v.name == "box" or v.name == "ice" then
+                  v.vecter.y = v.vecter.y + (v.is_physic and cfg_box_gravity or 0)
+              else
+                  v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
+              end
             hit(v, 1, "height", function()
               v.vecter.y = 0
             end)
@@ -222,7 +240,8 @@ update_states = {
             v.pos_y = v.pos_y + v.vecter.y
           end
         end
-
+        boxs_table.update()
+        ices.update()
         update_cllision()
         player.pos_x = player.pos_x + player.vecter.x
         player.pos_y = player.pos_y + player.vecter.y
@@ -251,9 +270,13 @@ update_states = {
             game_level = 5
             change_level(5)
             chest.pinecone -= 5
-            thief.act = 'run1'
+            timer.add_timeout('thief_show', 1, function()
+                thief.act = 'run1'
+            end)
         end
         cloud.update()
+        tips.update()
+        shake.update()
     end,
 
     game_over_update = function()
@@ -281,6 +304,7 @@ update_states = {
 }
 -----------------------------------
 function nomal_draw()
+    shake.draw()
     map(map_location.x, map_location.y)
     cloud.draw()
 
@@ -303,9 +327,10 @@ function nomal_draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
     enemies.draw()
     draw_pinecone_ui()
-    mogu_hit()
-    jinji_hit()
-    lupai_hit()
+    -- mogu_hit()
+    -- jinji_hit()
+    -- lupai_hit()
+    update_map_trigger()
     update_trigger()
     -- map_col.update_trg()
     -- camera(player.pos_x-64, 0)
@@ -369,6 +394,9 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
       end
       if spr_obj.destroy_trigger_stay then
         spr_obj.destroy_trigger_stay()
+      end
+      if spr_obj.destroy_cllision then
+        spr_obj.destroy_cllision()
       end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
@@ -469,32 +497,6 @@ function ontrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
     return trigger_stay
 end
 
-function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
-    local entered = false
-    local is_trigger = false
-    local function trigger_exit()
-        is_trigger = trigger(sprit_1, sprit_2)
-        if not entered and is_trigger then
-            entered = true
-        end
-        if entered and not is_trigger then
-            exit_func()
-            entered = false
-        end
-    end
-
-    local idx = #trigger_table + 1
-    add(trigger_table, trigger_exit)
-    sprit_1.destroy_trigger_exit = function()
-      trigger_table[idx] = nil
-    end
-
-    sprit_2.destroy_trigger_exit = function()
-      trigger_table[idx] = nil
-    end
-
-    return trigger_exit
-end
 
 -------------�★�⧗碰�★��☉碰�★��⬅️�웃--------------
 cllision_table = {}
@@ -528,7 +530,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             local yd = abs((y1 + (h1 / 2)) - (y2 + (h2 / 2)))
             local ys = h1 / 2 + h2 / 2
 
-            print(xd)
+            -- print(xd)
             if xd <= xs and yd < ys then
                 sprit_1.vecter.x = 0
                 if cllision_func then
@@ -556,7 +558,7 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             local xd = abs((x1 + (w1 / 2)) - (x2 + (w2 / 2)))
             local xs = w1 * 0.5 + w2 * 0.5
 
-            print(yd)
+            -- print(yd)
             if yd <= ys and xd < xs then
                 sprit_1.vecter.y = 0
                 if cllision_func then
@@ -565,6 +567,14 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             end
         end,
     }
+    local idx = #cllision_table + 1
+    sprit_1.destroy_cllision = function()
+      cllision_table[idx] = nil
+    end
+
+    sprit_2.destroy_cllision = function()
+      cllision_table[idx] = nil
+    end
     add(cllision_table, tbl)
 end
 ---------------------------------------
@@ -677,12 +687,6 @@ function update_animation()
     end
 end
 
-------------�☉♥�♪�对象---------------
-function exchange_obj(obj_1, obj_2)
-    local mid_obj = obj_1
-    return obj_2, mid_obj
-end
-
 function load_level (cart_name)
     -- load spritesheet
     reload(0x0, 0x0, 0x1000, cart_name)
@@ -694,20 +698,23 @@ function load_level (cart_name)
 end
 
 function init_change_camera()
-  local old_camera_pos_x = cfg_levels.level1.camera_pos.x*8
-  local old_camera_pos_y = cfg_levels.level1.camera_pos.y*8
-  local now_camera_pos_x = cfg_levels.level1.camera_pos.x*8
-  local now_camera_pos_y = cfg_levels.level1.camera_pos.y*8
+  local camera_pos = string_to_array(cfg_levels.level1.camera_pos)
+  local old_camera_pos_x = camera_pos[1]*8
+  local old_camera_pos_y = camera_pos[2]*8
+  local now_camera_pos_x = camera_pos[1]*8
+  local now_camera_pos_y = camera_pos[2]*8
   local flip_x = false
   local flip_y = false
   local fix_driction = 0
   local function change(level)
-    now_camera_pos_x = cfg_levels["level" .. level].camera_pos.x*8
-    now_camera_pos_y = cfg_levels["level" .. level].camera_pos.y*8
+    local camera_pos = string_to_array(cfg_levels["level" .. level].camera_pos)
+    now_camera_pos_x = camera_pos[1]*8
+    now_camera_pos_y = camera_pos[2]*8
     flip_x = old_camera_pos_x > now_camera_pos_x
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
+    shake.camera_x = now_camera_pos_x
   end
   local function update()
     local changed_x = false
@@ -751,8 +758,9 @@ end
 
 function change_level(level)
   if game_level ~= level then
-    for i=1,#cfg_levels["level" .. game_level].songzi do
-      cfg_levels["level" .. game_level].songzi[i] = this_songzi_cfg[i]
+    local current_level_songzi = cfg_levels["level" .. game_level].songzi
+    for i=1,#current_level_songzi do
+      current_level_songzi[i] = this_songzi_cfg[i]
       this_songzi_cfg[i] = nil
     end
   end
@@ -769,7 +777,7 @@ function change_level(level)
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
   end
-  enemies = init_enemies(level_cfg.enemys)
+  enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
       -- printh("level-i = " .. i, "dir")
@@ -779,14 +787,17 @@ function change_level(level)
       songzi = init_songzis(this_songzi_cfg)
     end
   end
-  local camera_pos_x = level_cfg.camera_pos.x*8
-  local camera_pos_y = level_cfg.camera_pos.y*8
+  local camera_pos = string_to_array(level_cfg.camera_pos)
+  local camera_pos_x = camera_pos[1]*8
+  local camera_pos_y = camera_pos[2]*8
   if level == game_level then
-    player.pos_x = level_cfg.player_start_pos.x*8 + camera_pos_x
-    player.pos_y = level_cfg.player_start_pos.y*8 + camera_pos_y
+    local player_pos = string_to_array(level_cfg.player_start_pos)
+    player.pos_x = player_pos[1]*8 + camera_pos_x
+    player.pos_y = player_pos[2]*8 + camera_pos_y
   end
   player.hand_songzi = 0
   change_camera.change(level)
+  -- shake.state = 'start'
 end
 
 local fadetable = {
@@ -818,6 +829,17 @@ function fade(i)
     end
 end
 
+function fade_out(season)
+    for i=1,16 do
+        timer.add_timeout('fade'..i, i*0.1, function()
+            fade(i)
+            if i == 16 and season then
+              season_shift(season)
+            end
+        end)
+    end
+end
+
 function string_to_array(str)
     local result = {}
     local num = ''
@@ -830,15 +852,57 @@ function string_to_array(str)
             num = ''
         end
     end
+    add(result, tonum(num))
     return result
 end
 
-function fade_out()
-    for i=1,16 do
-        timer.add_timeout('fade'..i, i*0.1, function()
-            fade(i)
-        end)
+function table_from_string(str)
+  local tab, is_key = {}, true
+  local key,val,is_on_key
+  local function reset()
+    key,val,is_on_key = '','',true
+  end
+  reset()
+  local i, len = 1, #str
+  while i <= len do
+    local char = sub(str, i, i)
+    -- token separator
+    if char == '\31' then
+      if is_on_key then
+        is_on_key = false
+      else
+        tab[tonum(key) or key] = val
+        reset()
+      end
+    -- subtable start
+    elseif char == '\29' then
+      local j,c = i,''
+      -- checking for subtable end character
+      while (c ~= '\30') do
+        j = j + 1
+        c = sub(str, j, j)
+      end
+      tab[tonum(key) or key] = table_from_string(sub(str,i+1,j-1))
+      reset()
+      i = j
+    else
+      if is_on_key then
+        key = key..char
+      else
+        val = val..char
+      end
     end
+    i = i + 1
+  end
+  return tab
+end
+
+function init_config (config_table)
+    local result = {}
+    for level,data in pairs(config_table) do
+        result[level] = table_from_string(data)
+    end
+    return result
 end
 
 function _update()
@@ -907,13 +971,6 @@ function init_snow(speed, num, hit_spr_flag)
 end
 
 function init_cloud()
-  -- local cloud_speed_1 = 0.3
-  -- local cloud_speed_2 = 0.5
-  -- local map_x_1 = 0
-  -- local map_y_1 = 0
-  -- local map_x_2 = 0
-  -- local map_y_2 = 0
-
   local function update_location(need_x, speed)
     local cloud_x = need_x
     if cloud_x < -128 then
@@ -938,12 +995,7 @@ function init_cloud()
     }
     m.update = function()
       m.ex_x = update_location(m.ex_x, m.speed)
-      -- printh(m.ex_x, "dir")
     end
-    -- m.draw = function()
-    --   -- printh(m.ex_x, "dir")
-    --   map(m.x, m.y, m.map_x + m.ex_x, m.map_y, m.width, m.height)
-    -- end
     add(maps, m)
   end
 
@@ -957,14 +1009,18 @@ function init_cloud()
   -- init_map(112, 28, 128, 24, 16, 4, 0.5)
 
   local function update()
-    for v in all(maps) do
-      v.update()
+    if game_season ~= "winter" then
+      for v in all(maps) do
+        v.update()
+      end
     end
   end
 
   local function draw()
-    for m in all(maps) do
-      map(m.x, m.y, m.map_x + m.ex_x + camera_location.x, m.map_y + camera_location.y, m.width, m.height)
+    if game_season ~= "winter" then
+      for m in all(maps) do
+        map(m.x, m.y, m.map_x + m.ex_x + camera_location.x, m.map_y + camera_location.y, m.width, m.height)
+      end
     end
   end
   return {
@@ -1045,10 +1101,79 @@ function init_leaves(speed, num, hit_spr_flag)
   }
 end
 
+function init_tips()
+    local putin_tip = init_spr("putin_tip", 0, 12, 70, 1, 1, false, 0, 0)
+    local putin_tiped = false
+    init_animation(putin_tip, 0, 0, 5, "nomal", true)
+    init_animation(putin_tip, 157, 158, 5, "shine", true)
+    local function update()
+        if not putin_tiped and player_pinecone == 5 then
+            change_animation(putin_tip, "shine")
+        end
+        if putin_tiped and player_pinecone < 5 then
+            change_animation(putin_tip, "nomal")
+        end
+    end
+    return {
+        update = update,
+    }
+end
+
+function init_screen_shake()
+    local shake = {}
+    local offset = 0
+    shake.state = 'init'
+    shake.camera_x = 0
+    shake.draw = function ()
+        if shake.state == 'start' then
+            local fade = 0.95
+            local offset_x=shake.camera_x+16-rnd(32)
+            local offset_y=16-rnd(32)
+            offset_x*=offset
+            offset_y*=offset
+            camera(offset_x,offset_y)
+            offset*=fade
+            if offset<0.5 then
+                offset=0
+            end
+        end
+    end
+    shake.update = function ()
+        if shake.state == 'start' then offset = 1 end
+    end
+    return shake
+end
+
+function season_shift(season)
+  if season == "winter" then
+    cfg_levels = winter_config
+  elseif season == "spring" then
+    cfg_levels = spring_config
+  elseif season == "summer" then
+    cfg_levels = summer_config
+  end
+
+  load_level(season..".p8")
+  game_level = 1
+  change_level(1)
+  game_season = season
+  map_ani_1 = init_map_animation(7, 15, 2, false)
+  map_ani_2 = init_map_animation(6, 15, 2, true)
+  pal()
+end
+
 -->8
 -->map-3
 function get_map_flage(m_x, m_y)
   return fget(mget(m_x/8+map_location.x,m_y/8+map_location.y))
+end
+
+map_trigger_tbl = {}
+
+function update_map_trigger()
+  for v in all(map_trigger_tbl) do
+    v()
+  end
 end
 
 function map_trigger(obj, flag, direction)
@@ -1119,6 +1244,7 @@ function map_trigger_enter(obj, map_flag, enter_func, direction)
         end
     end
 
+    add(map_trigger_tbl, trigger_enter)
     return trigger_enter
 end
 
@@ -1129,24 +1255,8 @@ function map_trigger_stay(obj, map_flag, stay_func, direction)
         end
     end
 
+    add(map_trigger_tbl, trigger_stay)
     return trigger_stay
-end
-
-function map_trigger_exit(obj, map_flag, exit_func, direction)
-    local entered = false
-    local is_trigger = false
-    local function trigger_exit()
-        is_trigger = map_trigger(obj, map_flag, direction)
-        if not entered and is_trigger then
-            entered = true
-        end
-        if entered and not is_trigger then
-            exit_func()
-            entered = false
-        end
-    end
-
-    return trigger_exit
 end
 
 function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
@@ -1187,8 +1297,9 @@ function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
 end
 
 function change_map(change_cfg)
-  for k,v in pairs(change_cfg) do
-    mset(v.x, v.y, v.sp)
+  for v in all(change_cfg) do
+    local sv = string_to_array(v)
+    mset(sv[1], sv[2], sv[3])
   end
 end
 
@@ -1196,7 +1307,7 @@ end
 -- objects
 function init_chest ()
     local c = init_spr("chest", 139, 9, 80, 2, 2, true, 0, 0)
-     c.pinecone = 4
+     c.pinecone = 5
      c.draw = function ()
          print(c.pinecone..'/'..10, c.pos_x, c.pos_y, 4)
      end
@@ -1208,7 +1319,8 @@ function init_songzis(songzi_config)
     table = {},
   }
   for i = 1 , #songzi_config do
-    local pos_x, pos_y = songzi_config[i][1], songzi_config[i][2]
+    local s_cfg = string_to_array(songzi_config[i])
+    local pos_x, pos_y = s_cfg[1], s_cfg[2]
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()
@@ -1278,27 +1390,27 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
     return e
 end
 
-function init_enemies (enemy_config)
+function init_enemies (bees_config, catepillers_config)
     local o = {
         enemies = {}
     }
-    if enemy_config.bees then
-      for i=1,#enemy_config.bees do
-          local e = enemy_config.bees[i]
+    if bees_config then
+      for i=1,#bees_config do
+          local e = string_to_array(bees_config[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[6] or false
+          local flip_x = e[5]==1 and true or false
+          local flip_y = e[6]==1 and true or false
           local b = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'bee')
           add(o.enemies, b)
       end
     end
-    if enemy_config.catepillers then
-      for i=1,#enemy_config.catepillers do
-          local e = enemy_config.catepillers[i]
+    if catepillers_config then
+      for i=1,#catepillers_config do
+          local e = string_to_array(catepillers_config[i])
           local pos_x, pos_y, max_range, speed = e[1], e[2], e[3], e[4]
-          local flip_x = e[5] and e[5] or false
-          local flip_y = e[6] and e[6] or false
-          local direction = e[7] and e[7] or 'x'
+          local flip_x = e[5]==1 and true or false
+          local flip_y = e[6]==1 and true or false
+          local direction = e[7]==1 and 'y' or 'x'
           local c
           if direction == 'x' then
               c = init_enemy(pos_x, pos_y, max_range, speed, flip_x, flip_y, 'catepiller_x')
@@ -1342,6 +1454,10 @@ function init_player()
   player.max_jump = 1
   player.can_jump = 1
   player.hand_songzi = 0
+  player.on_ground = false
+  player.climb_flag = 1
+  player.on_floor = 0
+  player.on_ice = 0
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
@@ -1380,43 +1496,31 @@ function init_player()
     states_y = {},
   }
 
-  player.hit = function()
-    hit(player, 1, "all", function()
-      -- player.vecter.x = 0
-      -- player.vecter.y = 0
-    end)
-    hit(player, 1, "height", function()
-      player.can_jump = player.max_jump
-      if player.state ~= "nomal" and player.vecter.y > 0 then
-        if player.vecter.x == 0 then
-          player.state = "nomal"
-          change_animation(player, "nomal")
-          change_animation(tail, "nomal")
-        else
-          player.state = "run"
-          change_animation(player, "run")
-          change_animation(tail, "run")
-        end
+  player.on_ground_function = function()
+    player.can_jump = player.max_jump
+    if player.state ~= "nomal" and player.vecter.y > 0 then
+      if player.vecter.x == 0 then
+        player.state = "nomal"
+        change_animation(player, "nomal")
+        change_animation(tail, "nomal")
+      else
+        player.state = "run"
+        change_animation(player, "run")
+        change_animation(tail, "run")
       end
-      player.new_ground = 2
+    end
+    player.new_ground = 2
 
-      player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
-      -- if player.vecter.y>0 then
-      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8
-      -- elseif player.vecter.y<0 then
-      --    player.pos_y = flr((player.pos_y + player.vecter.y)/8)*8 + 8-1
-      -- end
-      player.vecter.y = 0
-    end)
-    hit(player, 1, "width", function()
-      -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
-      if player.vecter.x ~= 0 then
-        player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
-      end
-      player.vecter.x = 0
+    player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+
+    player.vecter.y = 0
+    player.on_ground = true
+  end
+
+  player.climb_function = function(map_flag)
       local map_y = player.pos_y + player.height*8+7
-      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
-        local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
+      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= map_flag then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
+        -- local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
         player.state = "climb"
         player.can_jump = 1
@@ -1424,7 +1528,33 @@ function init_player()
         change_animation(tail, "climb")
         player.is_physic = false
         player.vecter.y = 0
+        player.climb_flag = map_flag
       end
+  end
+
+  player.update = function()
+      if player.on_floor > 2 and player.on_ice > 2 then
+          player.can_jump = 0
+      end
+  end
+
+  player.hit = function()
+    hit(player, 1, "height", function()
+        player_acceleration_fast = cfg_player_acceleration_fast
+        player_acceleration_low = cfg_player_acceleration_low
+        player_max_v = cfg_player_max_v
+      player.on_ground_function()
+      player.on_floor = 0
+      end,function()
+          player.on_floor = player.on_floor + 1
+    end)
+    hit(player, 1, "width", function()
+      if player.vecter.x ~= 0 then
+        player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+      end
+      player.vecter.x = 0
+
+      player.climb_function(1)
     end)
     hit(player, player.new_ground, "height", function()
       player.can_jump = player.max_jump
@@ -1432,6 +1562,24 @@ function init_player()
     end)
     hit(player, player.new_ground, "width", function()
       player.vecter.x = 0
+    end)
+
+    hit(player, 14, "height", function()
+        player_acceleration_fast = cfg_ice_acceleration_fast
+        player_acceleration_low = cfg_ice_acceleration_low
+        player_max_v = cfg_ice_max_v
+        player.on_ground_function()
+        player.on_ice = 0
+    end,function()
+        player.on_ice = player.on_ice + 1
+    end)
+    hit(player, 14, "width", function()
+        if player.vecter.x ~= 0 then
+          player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+        end
+        player.vecter.x = 0
+
+        player.climb_function(14)
     end)
   end
 
@@ -1513,7 +1661,7 @@ function init_thief ()
     thief.fall_event = false
     thief.flip_x = false
     thief.draw_run1 = function ()
-        thief_mogu_hit()
+        -- thief_mogu_hit()
         spr(thief.sp, thief.pos_x, thief.pos_y, 1, 1)
         thief_songzi.pos_x = thief.pos_x
         thief_songzi.pos_y = thief.pos_y - 6
@@ -1581,11 +1729,11 @@ function init_thief ()
                     change_animation(tail, 'run')
                     thief.state = 'run'
                     init_songzis({
-                      {584, 88},
-                      {600, 88},
-                      {552, 88},
-                      {576, 88},
-                      {616, 88},
+                      '584,88',
+                      '600,88',
+                      '552,88',
+                      '576,88',
+                      '616,88',
                     })
                     thief_songzi.destroy()
                 end)
@@ -1615,11 +1763,154 @@ function init_sandy ()
         sandy.x -= 0.1
         if sandy.x <= 592 then
             sandy.x = 592
-            fade_out()
+            fade_out("winter")
             sandy.act = 'init'
+            -- season_shift("winter")
+
         end
     end
     return sandy
+end
+
+function init_comoon_box(box)
+    box.down_dis = 0
+    box.can_hit = false
+    box.can_move = true
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      mset(zhui_x/8, zhui_y/8, 16)
+    end, "up")
+    oncllision(box, player, {
+      height = function()
+        player.on_ground_function()
+      end,
+      width = function()
+          if not box.can_move then
+              player.vecter.x = 0
+          end
+          local player_v_x = player.vecter.x
+          if abs(player_v_x) >= cfg_box_max_v then
+              player.vecter.x = player_v_x > 0 and cfg_box_max_v or -1*cfg_box_max_v
+          end
+          box.vecter.x = player_v_x
+      end,
+    })
+    box.update = function()
+      hit(box, 1, "height", function()
+        box.down_dis = 0
+        box.can_hit = false
+      end, function()
+        if box.down_dis >= 16 then box.can_hit = true end
+        box.down_dis = box.down_dis + box.vecter.y
+      end)
+
+      hit(box, 1, "width", function()
+          box.can_move = false
+      end)
+      box.vecter.x = 0
+    end
+end
+
+function init_ices(ice_config)
+    local ices = {
+      table = {},
+    }
+    local function init_ice(pos_x, pos_y, is_songzi)
+        local sp = is_songzi and 143 or 159
+        local ice = init_spr("ice", sp, pos_x, pos_y, 1, 1, true, 0, 0)
+        init_comoon_box(ice)
+        ice.is_songzi = is_songzi
+
+        for v in all(ices.table) do
+            oncllision(ice, v, {
+                width = function()
+                  ice.can_move = false
+                  ice.vecter.x = 0
+                end,
+                height = function()
+                    ice.pos_y = v.pos_y - 8
+                    ice.vecter.y = 0
+                    ice.down_dis = 0
+                    if ice.can_hit then
+                        v.destroy()
+                        ice.destroy()
+                    end
+                end,}
+            )
+        end
+        return ice
+    end
+
+    for i = 1 , #ice_config do
+        local pos_x, pos_y, is_songzi = ice_config[i][1], ice_config[i][2], ice_config[i][3]
+        ice = init_ice(pos_x, pos_y, is_songzi)
+        ice.idx = i
+        add(ices.table, ice)
+    end
+
+    ices.update = function()
+        for v in all(ices.table) do
+            v.update()
+        end
+    end
+
+    return ices
+end
+
+function init_boxs(box_config)
+  local boxs = {
+    table = {},
+  }
+
+  local function init_box(pos_x, pos_y)
+    local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
+
+    init_comoon_box(box)
+
+    for bin_kuai in all(ices) do
+        oncllision(box, bin_kuai, {
+            width = function()
+              -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
+              box.can_move = false
+              box.vecter.x = 0
+            end,
+          height = function()
+            box.pos_y = bin_kuai.pos_y - 8
+            box.vecter.y = 0
+            box.down_dis = 0
+            if box.can_hit then bin_kuai.destroy() end
+          end,
+        })
+    end
+
+    for v in all(boxs.table) do
+        oncllision(box, v, {
+          width = function()
+              box.vecter.x = v.vecter.x
+              box.can_move = false
+          end,
+          height = function()
+            box.pos_y = v.pos_y - 8
+            box.vecter.y = 0
+          end,
+        })
+    end
+
+    return box
+  end
+
+  for i = 1 , #box_config do
+    local b_x, b_y = box_config[i][1], box_config[i][2]
+    local box = init_box(b_x, b_y, bin_kuai)
+    box.idx = i
+    add(boxs.table, box)
+  end
+  boxs.update = function()
+      for v in all(boxs.table) do
+          v.update()
+      end
+  end
+
+  return boxs
 end
 
 -->8
@@ -1627,194 +1918,56 @@ end
 
 cfg_player_acceleration_fast = 0.3 -- �➡️步�⌂��█�度
 cfg_player_acceleration_low = 0.6 -- �➡️步�♥◆�█�度
+cfg_player_max_v = 1.8 -- �█大�█�度
+cfg_ice_acceleration_fast = 0.1--�●�面�⌂��█�度
+cfg_ice_acceleration_low = 0.1--�●�面�♥◆�█�度
+cfg_ice_max_v = 3 -- �●�面�█大�█�度
+
 cfg_jump_speed = 3 -- 跳�⬇️�█�度
 cfg_climb_speed = 1.6 -- �☉��▥�█�度
 cfg_gravity = 0.3 -- �♥♪�⌂�(�…➡️�⬅️�░�⌂��█�度)
-cfg_player_max_v = 1.8 -- �█大�█�度
+
 cfg_mogu_jump = 4 -- �♥♥�▤➡️�◆♥跳�⬇️�█�度
 cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移�⌂��█�度
   x = 5,
   y = 5,
 }
 
+cfg_box_gravity = 0.1 --箱�…�░�♥♪�⌂�
+cfg_box_max_v = 1.5 --�🅾️�箱�…�█大�█�度
+boxs_cfg = { --箱�…�✽♪置
+    -- {176, 72},
+    -- {176, 64},
+    -- {176, 56},
+    -- {224, 32},
+}
+ices_cfg = { --�●��❎�✽♪置
+    -- {48, 88},
+
+}
+
 cfg_levels_autumn = {
-  level1 = {
+  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
+  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
+  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
+  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
+  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
+  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
+  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
+  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
+  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
+}
 
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 0,
-    },
-    enemys = {
-        -- �ˇ😐人�✽♪置�😐�◆🐱�ˇ��☉●�☉�为x�…�♥�😐y�…�♥�😐移�⌂��█远距离, �█�度, �▤��…��◆♪�…➡️, �▥��…�♪ˇ�⬅️��웃�█个�◆🐱�ˇ�表示�▤�水平�☉��▤�▤��∧直�☉�
-    },
-    songzi = {
-      -- {13*8, 8*8},
-      -- {3*8, 11*8},
-      -- {6*8, 11*8},
-      {40,88}
-    },
-  },
-  level2 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃ps:相对�🅾️�➡️░�⬇️◆机
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 16,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-    },
-    songzi = {
-      -- {13*8, 8*8},
-      {208, 48}
-    },
-  },
-  level3 = {
-
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 32,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-
-    },
-    songzi = {
-      {288,64},
-      {352,48},
-    },
-  },
-  level4 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 48,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-      bees = {
-        {432, 64, 24, 0.5, false},
-      },
-      catepillers = {
-        {432, 72, 24, 0.5,true}
-      },
-    },
-    songzi = {
-      {432, 72},
-    },
-  },
-  level5 = {
-    change_map = {
-      {x = 23, y = 11, sp = 2},
-      {x = 24, y = 11, sp = 2},
-      {x = 42, y = 7, sp = 16},
-      {x = 42, y = 8, sp = 16},
-      {x = 42, y = 9, sp = 16},
-      {x = 42, y = 10, sp = 16},
-      {x = 63, y = 9, sp = 16},
-      {x = 63, y = 10, sp = 16},
-      {x = 63, y = 11, sp = 16},
-    },
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 7,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-    },
-    songzi = {
-      -- {54*8, 9*8},
-    },
-  },
-  level6 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃ps:相对�🅾️�➡️░�⬇️◆机
-      x = 0,
-      y = 5,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 16,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-      bees = {
-        -- {26*8, 6*8, 16, 0.5},
-      },
-      catepillers = {
-        {216, 48, 8, 0.5}
-      },
-    },
-    songzi = {
-    },
-  },
-  level7 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 5,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 32,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-      bees = {
-        {280, 64, 16, 0.5},
-      },
-      catepillers = {
-        {336, 64, 8, 0.5,true,true,'y'},
-        {320, 56, 8, 0.5,false,true,'y'},
-      },
-    },
-    songzi = {
-    },
-  },
-  level8 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 5,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 48,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-      bees = {
-        {464, 64, 24, 0.5},
-      },
-      catepillers = {
-        {432, 72, 24, 0.5,false},
-        {432, 72, 24, 0.5,true},
-      },
-    },
-    songzi = {
-    },
-  },
-  level9 = {
-    player_start_pos = { -- �★�웃�起�⬅️在�✽��♪�中�░�♪置 �♪ˇ�♪�☉格�웃
-      x = 0,
-      y = 5,
-    },
-    camera_pos = { -- 相机�♪置 �♪ˇ�♪�☉格�웃
-      x = 64,
-      y = 0,
-    },
-    enemys = { -- �ˇ😐人�✽♪置
-    },
-    songzi = {
-    },
-  },
+cfg_levels_winter = {
+  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
+  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
+  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
+  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
+  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
+  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
+  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
+  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
+  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
 }
 
 __gfx__
@@ -1931,7 +2084,7 @@ d6dddd126d6dd152251dd6d621dddd6d0c3367c000333b0c0003b00006333b600600006000994900
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008200000008200
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000002000
 __gff__
-0001070200000000000000000000000000010000070707070000000000000000000100000000808000000000000000000000000101008040000000000000000080800000804000400000000000000000804000000300004000000000000000000000000006060000000000000000000000000000000000000000000000000000
+0001070200000000000000000000000000010000070707070000000000000000000100000000808000000000000000000000000e01008040000000000000000080800000804000400000000000000000804000000300004000000000000000000000000006060000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
@@ -1941,9 +2094,9 @@ __map__
 00000000000063001076771010621010101010104010101010601010101010001010101010101071101010101010101010101010406010001010101010101010101008090a0b0c0d0e0f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 18191a1b1c1d1e1f4010101071101010401010101010101010101010101010101010101010100234101010101010101010101000106010101010101010101010101018191a1b1c1d1e1f000010001010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 28292a2b2c2d2e2f1010101010101010101010101010101010101010101010101010101010100233101010101010101010101010106010101010101010101010001028292a2b2c2d2e2f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-38393a3b3c3d3e3f1010101010101010731010101010101010103434341010101010107410100233101002343410101010101010101010101010101010101010101038393a3b3c3d3e3f101000101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-48494a4b4c4d4e4f1000107510104410101010101010711010103310331010101010101010101033101002333310101010101010101010101010101010101010101048494a4b4c4d4e4f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-58595a5b5c5d5e5f1010101010343434101010101010711010103310331010101010103434101010101002333310101010101010101010101010101010101002101058595a5b5c5d5e5f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+38393a3b3c3d3e3f1010101010101010731010101010101010101010101010101010107410100233101002343410101010101010101010101010101010101010101038393a3b3c3d3e3f101000101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+48494a4b4c4d4e4f1000107510104410101010101010711010101010101010101010101010101033101002333310101010101010101010101010101010101010101048494a4b4c4d4e4f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+58595a5b5c5d5e5f1010101010343434333333333333333333333333333333333333333434101010101002333310101010101010101010101010101010101002101058595a5b5c5d5e5f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 46476a6b6c6d6e424371713333331010331010103434341010103351331010101010103310101010105402333334101010101034343434343434106510101002464768696a6b6c6d6e6f104243101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 56577a7b7c7d64525354711010101010105071333310100202333361331210441012543344711033333333337133107110503333331012103333333333101002565778647a7b7c7d357f265253507070101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 0101010101010101010101040506060601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101001010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010

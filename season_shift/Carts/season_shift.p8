@@ -28,7 +28,7 @@ controller = {
        player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
       local map_y = player.pos_y + player.height*8 - 1
-      if get_map_flage(map_x, map_y) ~= 1 then
+      if get_map_flage(map_x, map_y) ~= player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -42,7 +42,7 @@ controller = {
         player.pos_y += cfg_climb_speed
       local map_y = player.pos_y + player.height + 10
       local map_x = player.pos_x  + (player.flip_x and -1 or (player.width*8))
-      if get_map_flage(player.pos_x, map_y) == 1 or get_map_flage(map_x, map_y) ~= 1 then
+      if get_map_flage(player.pos_x, map_y) == 1 or get_map_flage(map_x, map_y) ~= player.climb_flag or get_map_flage(player.pos_x, map_y) == player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -66,7 +66,7 @@ controller = {
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
-     if get_map_flage(map_x, map_y) ~= 1 then
+     if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
        player.is_physic = true
@@ -91,7 +91,7 @@ controller = {
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
-     if get_map_flage(map_x, map_y) ~= 1 then
+     if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
        player.is_physic = true
@@ -207,6 +207,7 @@ update_states = {
 
   play_update = function()
         player.check_position()
+        player.update()
         map_ani_1.update()
         map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
@@ -496,32 +497,6 @@ function ontrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
     return trigger_stay
 end
 
-function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
-    local entered = false
-    local is_trigger = false
-    local function trigger_exit()
-        is_trigger = trigger(sprit_1, sprit_2)
-        if not entered and is_trigger then
-            entered = true
-        end
-        if entered and not is_trigger then
-            exit_func()
-            entered = false
-        end
-    end
-
-    local idx = #trigger_table + 1
-    add(trigger_table, trigger_exit)
-    sprit_1.destroy_trigger_exit = function()
-      trigger_table[idx] = nil
-    end
-
-    sprit_2.destroy_trigger_exit = function()
-      trigger_table[idx] = nil
-    end
-
-    return trigger_exit
-end
 
 -------------��★��⧗碰�★���☉碰�★���⬅️��웃--------------
 cllision_table = {}
@@ -1132,10 +1107,10 @@ function init_tips()
     init_animation(putin_tip, 0, 0, 5, "nomal", true)
     init_animation(putin_tip, 157, 158, 5, "shine", true)
     local function update()
-        if not putin_tiped and player_pinecone == 6 then
+        if not putin_tiped and player_pinecone == 5 then
             change_animation(putin_tip, "shine")
         end
-        if putin_tiped and player_pinecone < 6 then
+        if putin_tiped and player_pinecone < 5 then
             change_animation(putin_tip, "nomal")
         end
     end
@@ -1282,24 +1257,6 @@ function map_trigger_stay(obj, map_flag, stay_func, direction)
 
     add(map_trigger_tbl, trigger_stay)
     return trigger_stay
-end
-
-function map_trigger_exit(obj, map_flag, exit_func, direction)
-    local entered = false
-    local is_trigger = false
-    local function trigger_exit()
-        is_trigger = map_trigger(obj, map_flag, direction)
-        if not entered and is_trigger then
-            entered = true
-        end
-        if entered and not is_trigger then
-            exit_func()
-            entered = false
-        end
-    end
-
-    add(map_trigger_tbl, trigger_exit)
-    return trigger_exit
 end
 
 function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
@@ -1498,6 +1455,9 @@ function init_player()
   player.can_jump = 1
   player.hand_songzi = 0
   player.on_ground = false
+  player.climb_flag = 1
+  player.on_floor = 0
+  player.on_ice = 0
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
@@ -1557,9 +1517,9 @@ function init_player()
     player.on_ground = true
   end
 
-  player.climb_function = function()
+  player.climb_function = function(map_flag)
       local map_y = player.pos_y + player.height*8+7
-      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
+      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= map_flag then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
         -- local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
         player.state = "climb"
@@ -1568,43 +1528,33 @@ function init_player()
         change_animation(tail, "climb")
         player.is_physic = false
         player.vecter.y = 0
+        player.climb_flag = map_flag
+      end
+  end
+
+  player.update = function()
+      if player.on_floor > 2 and player.on_ice > 2 then
+          player.can_jump = 0
       end
   end
 
   player.hit = function()
-    hit(player, 1, "all", function()
-      -- player.vecter.x = 0
-      -- player.vecter.y = 0
-    end)
     hit(player, 1, "height", function()
-      -- player.can_jump = player.max_jump
-      -- if player.state ~= "nomal" and player.vecter.y > 0 then
-      --   if player.vecter.x == 0 then
-      --     player.state = "nomal"
-      --     change_animation(player, "nomal")
-      --     change_animation(tail, "nomal")
-      --   else
-      --     player.state = "run"
-      --     change_animation(player, "run")
-      --     change_animation(tail, "run")
-      --   end
-      -- end
-      -- player.new_ground = 2
-      --
-      -- player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
-      --
-      -- player.vecter.y = 0
-      -- player.on_ground = true
+        player_acceleration_fast = cfg_player_acceleration_fast
+        player_acceleration_low = cfg_player_acceleration_low
+        player_max_v = cfg_player_max_v
       player.on_ground_function()
+      player.on_floor = 0
+      end,function()
+          player.on_floor = player.on_floor + 1
     end)
     hit(player, 1, "width", function()
-      -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       if player.vecter.x ~= 0 then
         player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       end
       player.vecter.x = 0
 
-      player.climb_function()
+      player.climb_function(1)
     end)
     hit(player, player.new_ground, "height", function()
       player.can_jump = player.max_jump
@@ -1612,6 +1562,24 @@ function init_player()
     end)
     hit(player, player.new_ground, "width", function()
       player.vecter.x = 0
+    end)
+
+    hit(player, 14, "height", function()
+        player_acceleration_fast = cfg_ice_acceleration_fast
+        player_acceleration_low = cfg_ice_acceleration_low
+        player_max_v = cfg_ice_max_v
+        player.on_ground_function()
+        player.on_ice = 0
+    end,function()
+        player.on_ice = player.on_ice + 1
+    end)
+    hit(player, 14, "width", function()
+        if player.vecter.x ~= 0 then
+          player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+        end
+        player.vecter.x = 0
+
+        player.climb_function(14)
     end)
   end
 
@@ -1798,7 +1766,7 @@ function init_sandy ()
             fade_out("winter")
             sandy.act = 'init'
             -- season_shift("winter")
-            pal()
+
         end
     end
     return sandy
@@ -1950,10 +1918,15 @@ end
 
 cfg_player_acceleration_fast = 0.3 -- �➡️步�⌂��█�度
 cfg_player_acceleration_low = 0.6 -- �➡️步�♥◆�█�度
+cfg_player_max_v = 1.8 -- �█大�█�度
+cfg_ice_acceleration_fast = 0.1--�●�面�⌂��█�度
+cfg_ice_acceleration_low = 0.1--�●�面�♥◆�█�度
+cfg_ice_max_v = 3 -- �●�面��█大�█�度
+
 cfg_jump_speed = 3 -- 跳�⬇️�█�度
 cfg_climb_speed = 1.6 -- �☉��▥�█�度
 cfg_gravity = 0.3 -- �♥♪�⌂�(�…➡️�⬅️�░�⌂��█�度)
-cfg_player_max_v = 1.8 -- �█大�█�度
+
 cfg_mogu_jump = 4 -- �♥♥�▤➡️�◆♥跳�⬇️�█�度
 cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移�⌂��█�度
   x = 5,
@@ -1963,13 +1936,13 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移��
 cfg_box_gravity = 0.1 --箱��…��░�♥♪�⌂�
 cfg_box_max_v = 1.5 --�🅾️�箱��…��█大�█�度
 boxs_cfg = { --箱��…�✽♪置
-    {176, 72},
-    {176, 64},
-    {176, 56},
-    {224, 32},
+    -- {176, 72},
+    -- {176, 64},
+    -- {176, 56},
+    -- {224, 32},
 }
 ices_cfg = { --�●���❎�✽♪置
-    {48, 88},
+    -- {48, 88},
 
 }
 
@@ -2094,25 +2067,17 @@ d00d16100d0d161dd00000000000d100001d000000d00010010000d00ddd0110d11d0d000dd00110
 010d1600010d16000dd00d000000001d0000d11dd100000dd000000dd11116611661d110d11dd661d11d1661f0ee7ee0fef7ee00f0e7eee90677760006777600
 0010d1100010d100d11dd11d00000000000000000000000000000000166011001106166111661000116610000fe700000fe700000fe700490066600000666000
 000d0001000d0011dd661dd00000000000000000000000000000000001d0d01d0d0001d0d01101d0011d01d000eee00000eee00000eee0000000000000000000
-fffffffffff77777777fffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-fffffffff777777777777ff77fffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffffff6777777777667f6776ffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-f777777f776677777666667766ffffffffff7777777fffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-7777777776666677666667777777ffffff7766677777ffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-777777777777776667777667777777fff776777777777fff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-6777777677777677777666777777777ff777777777776fff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-f6777667777777766777777777777776f67777777766ffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-ff666677777777766677777777776766ff66666667777fff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffff776677666f677777777776666ffff66666777767ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffffff6666666ff6666777766666fffffffff6777776ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-fffffffff66ffffffff66666666ffffffffffff6667666ff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffffffffffffffffffffffffffffffffffffff6666ffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
-ffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000
+c7777777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+dcccccc7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+dcccccc7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+dcccccc7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+dcccccc7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+dcccccc7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+dcccccc7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+dcccccc7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
 0001070200000000000000000000000000010000070707070000000000000000000100000000808000000000000000000000000101008040000000000000000080400000804080400000000000000000804000000300804000000000000000000000000006060000000000000000000000000000030000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
@@ -2194,3 +2159,4 @@ __music__
 00 41424344
 00 41424344
 00 1f202144
+
