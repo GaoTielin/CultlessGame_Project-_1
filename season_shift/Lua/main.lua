@@ -138,6 +138,7 @@ function _init()
   go_sound = init_sound(33, 10)
 
   thief = init_thief()
+  thief_event = true
   sandy = init_sandy()
   player = init_player()
   player.can_jump = player.max_jump
@@ -282,14 +283,15 @@ update_states = {
         if sandy.act == 'show' then
             sandy.update()
         end
-        if chest.pinecone == 10 then
+        if chest.pinecone == 10 and thief_event then
             game_level = 5
             change_level(5)
-            chest.pinecone -= 5
             timer.add_timeout('thief_show', 1, function()
                 thief.act = 'run1'
+                chest.pinecone -= 5
                 music(5)
             end)
+            thief_event = false
         end
         cloud.update()
         tips.update()
