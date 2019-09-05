@@ -2,10 +2,15 @@
 
 cfg_player_acceleration_fast = 0.3 -- �➡️步�⌂��█�度
 cfg_player_acceleration_low = 0.6 -- �➡️步�♥◆�█�度
+cfg_player_max_v = 1.8 -- �█大�█�度
+cfg_ice_acceleration_fast = 0.1--冰面加速度
+cfg_ice_acceleration_low = 0.1--冰面减速度
+cfg_ice_max_v = 3 -- 冰面最大速度
+
 cfg_jump_speed = 3 -- 跳�⬇️�█�度
 cfg_climb_speed = 1.6 -- �☉��▥�█�度
 cfg_gravity = 0.3 -- �♥♪�⌂�(�…➡️�⬅️�░�⌂��█�度)
-cfg_player_max_v = 1.8 -- �█大�█�度
+
 cfg_mogu_jump = 4 -- �♥♥�▤➡️�◆♥跳�⬇️�█�度
 cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移�⌂��█�度
   x = 5,
@@ -15,13 +20,13 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移��
 cfg_box_gravity = 0.1 --箱子的重力
 cfg_box_max_v = 1.5 --推箱子最大速度
 boxs_cfg = { --箱子配置
-    {176, 72},
-    {176, 64},
-    {176, 56},
-    {224, 32},
+    -- {176, 72},
+    -- {176, 64},
+    -- {176, 56},
+    -- {224, 32},
 }
 ices_cfg = { --冰块配置
-    {48, 88},
+    -- {48, 88},
 
 }
 

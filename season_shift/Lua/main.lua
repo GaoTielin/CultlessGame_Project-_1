@@ -25,7 +25,7 @@ controller = {
        player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
       local map_y = player.pos_y + player.height*8 - 1
-      if get_map_flage(map_x, map_y) ~= 1 then
+      if get_map_flage(map_x, map_y) ~= player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -39,7 +39,7 @@ controller = {
         player.pos_y += cfg_climb_speed
       local map_y = player.pos_y + player.height + 10
       local map_x = player.pos_x  + (player.flip_x and -1 or (player.width*8))
-      if get_map_flage(player.pos_x, map_y) == 1 or get_map_flage(map_x, map_y) ~= 1 then
+      if get_map_flage(player.pos_x, map_y) == 1 or get_map_flage(map_x, map_y) ~= player.climb_flag or get_map_flage(player.pos_x, map_y) == player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
         player.is_physic = true
@@ -63,7 +63,7 @@ controller = {
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
-     if get_map_flage(map_x, map_y) ~= 1 then
+     if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
        player.is_physic = true
@@ -88,7 +88,7 @@ controller = {
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
-     if get_map_flage(map_x, map_y) ~= 1 then
+     if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
        player.is_physic = true

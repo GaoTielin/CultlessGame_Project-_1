@@ -149,6 +149,7 @@ function init_player()
   player.can_jump = 1
   player.hand_songzi = 0
   player.on_ground = false
+  player.climb_flag = 1
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
@@ -208,9 +209,9 @@ function init_player()
     player.on_ground = true
   end
 
-  player.climb_function = function()
+  player.climb_function = function(map_flag)
       local map_y = player.pos_y + player.height*8+7
-      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= 1 then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
+      if player.state == "jump" and get_map_flage(player.pos_x, map_y) ~= map_flag then-- (mget(player.pos_x, map_y - 6, 1) or get_map_flage(player.pos_x + (player.flip_x and -3 or (player.width*8 + 2)), player.pos_y - 8) == 1) and
         -- local map_x = player.pos_x + (player.flip_x and 0 or (player.width*8))
 
         player.state = "climb"
@@ -219,43 +220,24 @@ function init_player()
         change_animation(tail, "climb")
         player.is_physic = false
         player.vecter.y = 0
+        player.climb_flag = map_flag
       end
   end
 
   player.hit = function()
-    hit(player, 1, "all", function()
-      -- player.vecter.x = 0
-      -- player.vecter.y = 0
-    end)
     hit(player, 1, "height", function()
-      -- player.can_jump = player.max_jump
-      -- if player.state ~= "nomal" and player.vecter.y > 0 then
-      --   if player.vecter.x == 0 then
-      --     player.state = "nomal"
-      --     change_animation(player, "nomal")
-      --     change_animation(tail, "nomal")
-      --   else
-      --     player.state = "run"
-      --     change_animation(player, "run")
-      --     change_animation(tail, "run")
-      --   end
-      -- end
-      -- player.new_ground = 2
-      --
-      -- player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
-      --
-      -- player.vecter.y = 0
-      -- player.on_ground = true
+        player_acceleration_fast = cfg_player_acceleration_fast
+        player_acceleration_low = cfg_player_acceleration_low
+        player_max_v = cfg_player_max_v
       player.on_ground_function()
     end)
     hit(player, 1, "width", function()
-      -- player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       if player.vecter.x ~= 0 then
         player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
       end
       player.vecter.x = 0
 
-      player.climb_function()
+      player.climb_function(1)
     end)
     hit(player, player.new_ground, "height", function()
       player.can_jump = player.max_jump
@@ -263,6 +245,21 @@ function init_player()
     end)
     hit(player, player.new_ground, "width", function()
       player.vecter.x = 0
+    end)
+
+    hit(player, 14, "height", function()
+        player_acceleration_fast = cfg_ice_acceleration_fast
+        player_acceleration_low = cfg_ice_acceleration_low
+        player_max_v = cfg_ice_max_v
+        player.on_ground_function()
+    end)
+    hit(player, 14, "width", function()
+        if player.vecter.x ~= 0 then
+          player.pos_x = (player.vecter.x>0) and flr((player.pos_x + player.vecter.x)/8)*8 or flr((player.pos_x + player.vecter.x)/8)*8 + 8
+        end
+        player.vecter.x = 0
+
+        player.climb_function(14)
     end)
   end
 
@@ -449,7 +446,7 @@ function init_sandy ()
             fade_out("winter")
             sandy.act = 'init'
             -- season_shift("winter")
-            
+
         end
     end
     return sandy
