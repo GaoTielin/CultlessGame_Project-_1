@@ -204,6 +204,7 @@ update_states = {
 
   play_update = function()
         player.check_position()
+        player.update()
         map_ani_1.update()
         map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)

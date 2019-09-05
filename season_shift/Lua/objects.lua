@@ -150,6 +150,8 @@ function init_player()
   player.hand_songzi = 0
   player.on_ground = false
   player.climb_flag = 1
+  player.on_floor = 0
+  player.on_ice = 0
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
@@ -224,12 +226,21 @@ function init_player()
       end
   end
 
+  player.update = function()
+      if player.on_floor > 2 and player.on_ice > 2 then
+          player.can_jump = 0
+      end
+  end
+
   player.hit = function()
     hit(player, 1, "height", function()
         player_acceleration_fast = cfg_player_acceleration_fast
         player_acceleration_low = cfg_player_acceleration_low
         player_max_v = cfg_player_max_v
       player.on_ground_function()
+      player.on_floor = 0
+      end,function()
+          player.on_floor = player.on_floor + 1
     end)
     hit(player, 1, "width", function()
       if player.vecter.x ~= 0 then
@@ -252,6 +263,9 @@ function init_player()
         player_acceleration_low = cfg_ice_acceleration_low
         player_max_v = cfg_ice_max_v
         player.on_ground_function()
+        player.on_ice = 0
+    end,function()
+        player.on_ice = player.on_ice + 1
     end)
     hit(player, 14, "width", function()
         if player.vecter.x ~= 0 then
