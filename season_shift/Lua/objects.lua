@@ -18,6 +18,7 @@ function init_songzis(songzi_config)
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()
+      sfx(8)
       b.destroy()
       player_pinecone = player_pinecone + 1
       player.hand_songzi = player.hand_songzi + 1
@@ -42,6 +43,7 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
         ontrigger_enter(e, player, function()
           game_over()
         end)
+        e.sound = init_sound(30, 50)
     elseif type == 'catepiller_x' then
         e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
@@ -76,6 +78,9 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
                 e.flip_y = false
             end
             e.pos_y = e.pos_y + (e.flip_y and speed or -speed)
+        end
+        if e.sound then
+          e.sound.play()
         end
     end
     e.draw = function ()
@@ -302,6 +307,7 @@ function init_player()
       player.state = "jump"
       player.can_jump = 0
       mset(mogu_x/8, mogu_y/8, 85)
+      sfx(10)
       timer.add_timeout("mogu_hit", 0.1, function()
           mset(mogu_x/8, mogu_y/8, 84)
       end)

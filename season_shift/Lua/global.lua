@@ -411,6 +411,7 @@ function init_change_camera()
 end
 
 function game_over()
+  sfx(13)
   if player.hand_songzi >0 then
     player_pinecone = player_pinecone - player.hand_songzi
   end

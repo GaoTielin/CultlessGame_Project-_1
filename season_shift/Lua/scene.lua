@@ -227,12 +227,16 @@ end
 function season_shift(season)
   if season == "winter" then
     cfg_levels = winter_config
+    music(-1)
   elseif season == "spring" then
     cfg_levels = spring_config
+    music(-1)
   elseif season == "summer" then
     cfg_levels = summer_config
+    music(-1)
   end
 
+  player_pinecone = 0
   load_level(season..".p8")
   game_level = 1
   change_level(1)

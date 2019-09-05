@@ -8,7 +8,8 @@ controller = {
   jump = function ()
     if player.state == "climb" then
       player.climb_jump()
-    else
+      sfx(10)
+    elseif player.can_jump <= player.max_jump and player.can_jump > 0 then
       player.vecter.y = cfg_jump_speed * -1
       direction_flag.y = "up"
       player.can_jump =  player.can_jump - 1
@@ -17,6 +18,7 @@ controller = {
         change_animation(player, "jump")
         change_animation(tail, "jump")
       end
+      sfx(11)
     end
   end,
 
@@ -25,6 +27,7 @@ controller = {
        player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
       local map_y = player.pos_y + player.height*8 - 1
+      go_sound.play()
       if get_map_flage(map_x, map_y) ~= player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
@@ -59,10 +62,14 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
+      if player.state == "run" then
+        go_sound.play()
+      end
     elseif player.state == "climb" and player.flip_x then
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
+     go_sound.play()
      if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
@@ -84,6 +91,9 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
+      if player.state == "run" then
+        go_sound.play()
+      end
     elseif player.state == "climb" and not player.flip_x then
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
@@ -94,12 +104,14 @@ controller = {
        player.is_physic = true
        player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
      end
+     go_sound.play()
     end
   end,
 }
 
 function _init()
   game_season = "autum"
+  spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
   -- spring_config = init_config(cfg_levels_spring)
@@ -123,6 +135,8 @@ function _init()
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
+  go_sound = init_sound(33, 10)
+
   thief = init_thief()
   sandy = init_sandy()
   player = init_player()
@@ -145,6 +159,7 @@ function _init()
         player.pos_x = 48
         player.pos_y = 80
       end
+      sfx(29)
     end
   end, "all")
 
@@ -153,7 +168,7 @@ function _init()
   change_camera = init_change_camera()
   tips = init_tips()
 
-  -- snow = init_snow()
+  snow = init_snow()
   -- leaves = init_leaves()
   shake = init_screen_shake()
   chest = init_chest()
@@ -180,16 +195,18 @@ function _init()
       if player_pinecone ~= 0 then
         player_pinecone -= 1
         chest.pinecone += 1
+        sfx(29)
       end
     end
   end, 'chest_store')
   change_level(game_level)
-  bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
+  -- bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
   -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
   -- box_1 = init_box(176, 72, bin_kuai_2)
   -- box_2 = init_box(224, 32, bin_kuai)
   ices = init_ices(ices_cfg)
   boxs_table = init_boxs(boxs_cfg)
+  music(0)
 end
 
 ------------游戏状态机-----------------
@@ -208,7 +225,7 @@ update_states = {
         map_ani_1.update()
         map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-        if (btnp (4) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
+        if (btnp (4) ) controller.jump()
         if (btn (2)) controller.up()
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
@@ -250,7 +267,9 @@ update_states = {
             player_state_x_flag = "fast_back"
         end
         player.anction_range()
-        -- snow.update()
+        if game_season == "winter" then
+          snow.update()
+        end
         -- leaves.update()
         timer.update()
         tail.update()
@@ -269,11 +288,13 @@ update_states = {
             chest.pinecone -= 5
             timer.add_timeout('thief_show', 1, function()
                 thief.act = 'run1'
+                music(5)
             end)
         end
         cloud.update()
         tips.update()
         shake.update()
+        sound_update()
     end,
 
     game_over_update = function()
@@ -318,7 +339,9 @@ function nomal_draw()
           end
       end
     end
-    -- snow.draw()
+    if game_season == "winter" then
+      snow.draw()
+    end
     chest.draw()
     sandy.draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
