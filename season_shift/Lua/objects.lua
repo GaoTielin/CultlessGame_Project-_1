@@ -208,7 +208,9 @@ function init_player()
     end
     player.new_ground = 2
 
-    player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+    if player.vecter.y ~= 0 then
+        player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+    end
 
     player.vecter.y = 0
     player.on_ground = true
@@ -550,6 +552,11 @@ function init_ices(ice_config)
     ices.update = function()
         for v in all(ices.table) do
             v.update()
+            hit(v, 1, "height", function()
+                if v.can_hit then
+                    v.destroy()
+                end
+            end)
         end
     end
 
@@ -566,7 +573,7 @@ function init_boxs(box_config)
 
     init_comoon_box(box)
 
-    for bin_kuai in all(ices) do
+    for bin_kuai in all(ices_table.table) do
         OnCllision(box, bin_kuai, {
             width = function()
               -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)

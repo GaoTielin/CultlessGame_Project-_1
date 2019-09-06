@@ -46,6 +46,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         flip_x = false,
         flip_y = false,
     }
+    spr_obj.destroy_cllision = {}
     spr_obj.destroy = function()
       if spr_obj.destroy_trigger_enter then
         spr_obj.destroy_trigger_enter()
@@ -57,7 +58,9 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         spr_obj.destroy_trigger_stay()
       end
       if spr_obj.destroy_cllision then
-        spr_obj.destroy_cllision()
+          for v in all(spr_obj.destroy_cllision) do
+              v()
+          end
       end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
@@ -228,15 +231,16 @@ function OnCllision(sprit_1, sprit_2, cllision_func)
             end
         end,
     }
-    local idx = #Cllision_Table + 1
-    sprit_1.destroy_cllision = function()
-      Cllision_Table[idx] = nil
-    end
-
-    sprit_2.destroy_cllision = function()
-      Cllision_Table[idx] = nil
-    end
+    -- local idx = #Cllision_Table + 1
     add(Cllision_Table, tbl)
+
+    local destroy_func = function()
+        del(Cllision_Table, tbl)
+    end
+    add(sprit_1.destroy_cllision, destroy_func)
+
+    add(sprit_2.destroy_cllision, destroy_func)
+
 end
 ---------------------------------------
 
@@ -375,6 +379,11 @@ function init_change_camera()
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
+    if abs(fix_driction_x) > 130 or fix_driction_y ~= 0 then
+        local player_start_pos = string_to_array(cfg_levels["level" .. level].player_start_pos)
+        player.pos_x = player_start_pos[1]*8 + camera_pos[1]*8
+        player.pos_y = player_start_pos[2]*8 + camera_pos[2]*8
+    end
     shake.camera_x = now_camera_pos_x
   end
   local function update()
@@ -439,7 +448,6 @@ function change_level(level)
      ices_table.destroy()
  end
   for i = 1 ,#this_songzi_cfg do
-    -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
 
@@ -448,15 +456,14 @@ function change_level(level)
     change_map(level_cfg.change_map)
   end
   enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
-  if level_cfg.box and #level_cfg.box ~= 0 then
-      boxs_table = init_boxs(level_cfg.box)
-  end
   if level_cfg.ice and #level_cfg.ice ~= 0 then
       ices_table = init_ices(level_cfg.ice)
   end
+  if level_cfg.box and #level_cfg.box ~= 0 then
+      boxs_table = init_boxs(level_cfg.box)
+  end
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
-      -- printh("level-i = " .. i, "dir")
       this_songzi_cfg[i] = level_cfg.songzi[i]
     end
     if #this_songzi_cfg ~= 0 then
