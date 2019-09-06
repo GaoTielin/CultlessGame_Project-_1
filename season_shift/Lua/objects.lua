@@ -155,8 +155,6 @@ function init_player()
   player.hand_songzi = 0
   player.on_ground = false
   player.climb_flag = 1
-  player.on_floor = 0
-  player.on_ice = 0
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
@@ -232,9 +230,6 @@ function init_player()
   end
 
   player.update = function()
-      if player.on_floor > 2 and player.on_ice > 2 then
-          player.can_jump = 0
-      end
   end
 
   player.hit = function()
@@ -244,8 +239,6 @@ function init_player()
         player_max_v = cfg_player_max_v
       player.on_ground_function()
       player.on_floor = 0
-      end,function()
-          player.on_floor = player.on_floor + 1
     end)
     hit(player, 1, "width", function()
       if player.vecter.x ~= 0 then
@@ -269,8 +262,6 @@ function init_player()
         player_max_v = cfg_ice_max_v
         player.on_ground_function()
         player.on_ice = 0
-    end,function()
-        player.on_ice = player.on_ice + 1
     end)
     hit(player, 14, "width", function()
         if player.vecter.x ~= 0 then
@@ -477,7 +468,7 @@ function init_comoon_box(box)
     box.can_hit = false
     box.can_move = true
     map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-      mset(zhui_x/8, zhui_y/8, 16)
+      mset(zhui_x/8, zhui_y/8, 0)
     end, "up")
     OnCllision(box, player, {
       height = function()
@@ -515,7 +506,7 @@ function init_ices(ice_config)
       table = {},
     }
     local function init_ice(pos_x, pos_y, is_songzi)
-        local sp = is_songzi and 143 or 159
+        local sp = is_songzi and 196 or 212
         local ice = init_spr("ice", sp, pos_x, pos_y, 1, 1, true, 0, 0)
         init_comoon_box(ice)
         ice.is_songzi = is_songzi
@@ -540,11 +531,20 @@ function init_ices(ice_config)
         return ice
     end
 
-    for i = 1 , #ice_config do
-        local pos_x, pos_y, is_songzi = ice_config[i][1], ice_config[i][2], ice_config[i][3]
-        ice = init_ice(pos_x, pos_y, is_songzi)
-        ice.idx = i
-        add(ices.table, ice)
+    if ice_config then
+        for i = 1 , #ice_config do
+            local cfg_tbl = string_to_array(ice_config[i])
+            local pos_x, pos_y, is_songzi = cfg_tbl[1], cfg_tbl[2], cfg_tbl[3]
+            ice = init_ice(pos_x, pos_y, is_songzi)
+            ice.idx = i
+            add(ices.table, ice)
+        end
+    end
+
+    ices.destroy = function()
+        for v in all(ices.table) do
+            v.destroy()
+        end
     end
 
     ices.update = function()
@@ -562,7 +562,7 @@ function init_boxs(box_config)
   }
 
   local function init_box(pos_x, pos_y)
-    local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
+    local box = init_spr("box", 192, pos_x, pos_y, 1, 1, true, 0, 0)
 
     init_comoon_box(box)
 
@@ -599,11 +599,19 @@ function init_boxs(box_config)
   end
 
   for i = 1 , #box_config do
-    local b_x, b_y = box_config[i][1], box_config[i][2]
+    local cfg_tbl = string_to_array(box_config[i])
+    local b_x, b_y = cfg_tbl[1], cfg_tbl[2]
     local box = init_box(b_x, b_y, bin_kuai)
     box.idx = i
     add(boxs.table, box)
   end
+
+  boxs.destroy = function()
+      for v in all(boxs.table) do
+          v.destroy()
+      end
+  end
+
   boxs.update = function()
       for v in all(boxs.table) do
           v.update()

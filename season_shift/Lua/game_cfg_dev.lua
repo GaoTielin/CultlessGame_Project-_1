@@ -21,6 +21,8 @@ cfg_levels_autumn = {
     songzi = {
       '40,88'
     },
+    box = {},
+    ices = {},
   },
   level2 = {
     player_start_pos = '0,7',
@@ -30,6 +32,8 @@ cfg_levels_autumn = {
     songzi = {
       '208,48'
     },
+    box = {},
+    ices = {},
   },
   level3 = {
     player_start_pos = '0,7',
@@ -40,6 +44,8 @@ cfg_levels_autumn = {
       '288,64',
       '352,48',
     },
+    box = {},
+    ices = {},
   },
   level4 = {
     player_start_pos = '0,7',
@@ -53,6 +59,8 @@ cfg_levels_autumn = {
     songzi = {
       '432,72',
     },
+    box = {},
+    ices = {},
   },
   level5 = {
     change_map = {
@@ -71,6 +79,8 @@ cfg_levels_autumn = {
     enemy_bees = {},
     enemy_catepillers = {},
     songzi = {},
+    box = {},
+    ices = {},
   },
   level6 = {
     player_start_pos = '0,5',
@@ -80,6 +90,8 @@ cfg_levels_autumn = {
         '216,48,8,0.5'
     },
     songzi = {},
+    box = {},
+    ices = {},
   },
   level7 = {
     player_start_pos = '0,5',
@@ -92,6 +104,8 @@ cfg_levels_autumn = {
         '336,64,8,0.5,1,1,1',
     },
     songzi = {},
+    box = {},
+    ices = {},
   },
   level8 = {
     player_start_pos = '0,5',
@@ -104,6 +118,8 @@ cfg_levels_autumn = {
         '432,72,24,0.5,1',
     },
     songzi = {},
+    box = {},
+    ices = {},
   },
   level9 = {
     player_start_pos = '0,5',
@@ -111,5 +127,39 @@ cfg_levels_autumn = {
     enemy_bees = {},
     enemy_catepillers = {},
     songzi = {},
+    box = {},
+    ices = {},
   },
+
+}
+
+cfg_levels_winter = {
+    level1 = {
+      player_start_pos = '0,7',
+      camera_pos = '0,0',
+      enemy_bees = {},
+      enemy_catepillers = {},
+      songzi = {
+        '40,88'
+      },
+      box = {
+        '30, 88'
+      },
+    },
+    level2 = {
+      player_start_pos = '0,7',
+      camera_pos = '16,0',
+      enemy_bees = {},
+      enemy_catepillers = {},
+      songzi = {
+        '208,48'
+      },
+      box = {
+        -- '160, 80',
+      },
+      ice = {
+        '160, 80'
+      },
+    },
+
 }

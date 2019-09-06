@@ -110,12 +110,18 @@ controller = {
 }
 
 function _init()
-  game_season = "autum"
+
   spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
   -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
+
+  game_season = "autum"
+  -- game_season = "winter"
+  cfg_levels = autumn_config -- 秋天开始
+  -- cfg_levels = winter_config -- 冬天开始
+
   game_level = 1
   camera_location = {
     x = 0,
@@ -165,7 +171,7 @@ function _init()
   end, "all")
 
   tail = init_tail()
-  cfg_levels = autumn_config
+
   change_camera = init_change_camera()
   tips = init_tips()
 
@@ -181,6 +187,9 @@ function _init()
   if this_songzi_cfg then
     songzi = init_songzis(this_songzi_cfg)
   end
+  boxs_table = init_boxs(cfg_levels.level1.box)
+  ices_table = init_ices(cfg_levels.level1.ice)
+
   -- pinecones of whole level
   max_pinecone_num = 5
   player_pinecone = 0
@@ -205,8 +214,7 @@ function _init()
   -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
   -- box_1 = init_box(176, 72, bin_kuai_2)
   -- box_2 = init_box(224, 32, bin_kuai)
-  ices = init_ices(ices_cfg)
-  boxs_table = init_boxs(boxs_cfg)
+
   music(0)
 end
 
@@ -251,12 +259,18 @@ update_states = {
             hit(v, 1, "width", function()
               v.vecter.x = 0
             end)
+            hit(v, 14, "height", function()
+              v.vecter.y = 0
+            end)
+            hit(v, 14, "width", function()
+              v.vecter.x = 0
+            end)
             v.pos_x = v.pos_x + v.vecter.x
             v.pos_y = v.pos_y + v.vecter.y
           end
         end
         boxs_table.update()
-        ices.update()
+        ices_table.update()
         Update_Cllision()
         player.pos_x = player.pos_x + player.vecter.x
         player.pos_y = player.pos_y + player.vecter.y

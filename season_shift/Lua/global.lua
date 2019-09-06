@@ -427,19 +427,33 @@ function change_level(level)
     end
   end
   game_state_flag = "change_level"
+
   for v in all(enemies.enemies) do
       v.destroy()
   end
   songzi.destroy()
+  if boxs_table then
+      boxs_table.destroy()
+  end
+  if ices_table then
+     ices_table.destroy()
+ end
   for i = 1 ,#this_songzi_cfg do
     -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
+
   local level_cfg = cfg_levels["level" .. level]
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
   end
   enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
+  if level_cfg.box and #level_cfg.box ~= 0 then
+      boxs_table = init_boxs(level_cfg.box)
+  end
+  if level_cfg.ice and #level_cfg.ice ~= 0 then
+      ices_table = init_ices(level_cfg.ice)
+  end
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
       -- printh("level-i = " .. i, "dir")
@@ -449,6 +463,7 @@ function change_level(level)
       songzi = init_songzis(this_songzi_cfg)
     end
   end
+
   local camera_pos = string_to_array(level_cfg.camera_pos)
   local camera_pos_x = camera_pos[1]*8
   local camera_pos_y = camera_pos[2]*8
