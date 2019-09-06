@@ -168,7 +168,7 @@ cfg_levels_winter = {
     ice = {'264,64','352,80','344,48'},
   },
   level4 = {
-    player_start_pos = '0,7',
+    player_start_pos = '0,8',
     camera_pos = '48,0',
     enemy_bees = {},
     enemy_catepillers = {},

@@ -51,15 +51,15 @@ end
 
 -- replace with whatever your table is called
 level2 = {
-    player_start_pos = '0,7',
-    camera_pos = '32,0',
+    player_start_pos = '0,22',
+    camera_pos = '0,16',
     enemy_bees = {},
-    enemy_catepillers = {},
-    songzi = {
-      '208,48'
+    enemy_catepillers = {
+        '216,48,8,0.5'
     },
+    songzi = {},
     box = {},
-    ice = {},
+    ices = {},
 }
 local table_str = serialize_table(level2)
 
