@@ -424,6 +424,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         flip_x = false,
         flip_y = false,
     }
+    spr_obj.destroy_cllision = {}
     spr_obj.destroy = function()
       if spr_obj.destroy_trigger_enter then
         spr_obj.destroy_trigger_enter()
@@ -435,7 +436,9 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         spr_obj.destroy_trigger_stay()
       end
       if spr_obj.destroy_cllision then
-        spr_obj.destroy_cllision()
+          for v in all(spr_obj.destroy_cllision) do
+              v()
+          end
       end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
@@ -606,15 +609,16 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             end
         end,
     }
-    local idx = #cllision_table + 1
-    sprit_1.destroy_cllision = function()
-      cllision_table[idx] = nil
-    end
-
-    sprit_2.destroy_cllision = function()
-      cllision_table[idx] = nil
-    end
+    -- local idx = #cllision_table + 1
     add(cllision_table, tbl)
+
+    local destroy_func = function()
+        del(cllision_table, tbl)
+    end
+    add(sprit_1.destroy_cllision, destroy_func)
+
+    add(sprit_2.destroy_cllision, destroy_func)
+
 end
 ---------------------------------------
 
@@ -744,7 +748,11 @@ function init_change_camera()
   local now_camera_pos_y = camera_pos[2]*8
   local flip_x = false
   local flip_y = false
-  local fix_driction = 0
+  local fix_driction_x = 0
+  local fix_driction_y = 0
+  local reset_player = false
+  local reset_player_x = 0
+  local reset_player_y = 0
   local function change(level)
     local camera_pos = string_to_array(cfg_levels["level" .. level].camera_pos)
     now_camera_pos_x = camera_pos[1]*8
@@ -753,6 +761,12 @@ function init_change_camera()
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
+    if abs(fix_driction_x) > 130 or fix_driction_y ~= 0 then
+        reset_player = true
+        local player_start_pos = string_to_array(cfg_levels["level" .. level].player_start_pos)
+        reset_player_x = player_start_pos[1]
+        reset_player_y = player_start_pos[2]
+    end
     shake.camera_x = now_camera_pos_x
   end
   local function update()
@@ -773,10 +787,15 @@ function init_change_camera()
     camera_location.x = old_camera_pos_x
     camera_location.y = old_camera_pos_y
     if changed_x and changed_y then
-      old_camera_pos_x = now_camera_pos_x
-      old_camera_pos_y = now_camera_pos_y
-      camera_location.x = old_camera_pos_x
-      camera_location.y = old_camera_pos_y
+        if reset_player then
+            player.pos_x = reset_player_x*8 + camera_location.x
+            player.pos_y = reset_player_y*8 + camera_location.y
+            reset_player = false
+        end
+          old_camera_pos_x = now_camera_pos_x
+          old_camera_pos_y = now_camera_pos_y
+          camera_location.x = old_camera_pos_x
+          camera_location.y = old_camera_pos_y
       return true
     else
       return false
@@ -817,7 +836,6 @@ function change_level(level)
      ices_table.destroy()
  end
   for i = 1 ,#this_songzi_cfg do
-    -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
 
@@ -826,15 +844,14 @@ function change_level(level)
     change_map(level_cfg.change_map)
   end
   enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
-  if level_cfg.box and #level_cfg.box ~= 0 then
-      boxs_table = init_boxs(level_cfg.box)
-  end
   if level_cfg.ice and #level_cfg.ice ~= 0 then
       ices_table = init_ices(level_cfg.ice)
   end
+  if level_cfg.box and #level_cfg.box ~= 0 then
+      boxs_table = init_boxs(level_cfg.box)
+  end
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
-      -- printh("level-i = " .. i, "dir")
       this_songzi_cfg[i] = level_cfg.songzi[i]
     end
     if #this_songzi_cfg ~= 0 then
@@ -1573,7 +1590,9 @@ function init_player()
     end
     player.new_ground = 2
 
-    player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+    if player.vecter.y ~= 0 then
+        player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+    end
 
     player.vecter.y = 0
     player.on_ground = true
@@ -1915,6 +1934,11 @@ function init_ices(ice_config)
     ices.update = function()
         for v in all(ices.table) do
             v.update()
+            hit(v, 1, "height", function()
+                if v.can_hit then
+                    v.destroy()
+                end
+            end)
         end
     end
 
@@ -1931,7 +1955,7 @@ function init_boxs(box_config)
 
     init_comoon_box(box)
 
-    for bin_kuai in all(ices) do
+    for bin_kuai in all(ices_table.table) do
         oncllision(box, bin_kuai, {
             width = function()
               -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
@@ -2022,12 +2046,12 @@ cfg_levels_autumn = {
 }
 
 cfg_levels_winter = {
-  level1 = 'enemy_catepillerssongzi140,88camera_pos0,0player_start_pos0,7box130, 88enemy_bees',
-  level2 = 'enemy_catepillersplayer_start_pos0,7ice1160, 80boxcamera_pos16,0songzi1208,48enemy_bees',
-  level3 = 'player_start_pos0,7icesenemy_beessongzi1288,642352,48camera_pos32,0boxenemy_catepillers',
-  level4 = 'songzi1432,72icescamera_pos48,0player_start_pos0,7enemy_bees1432,64,24,0.5,0enemy_catepillers1432,72,24,0.5,1box',
-  level5 = 'player_start_pos0,7camera_pos0,0songzienemy_catepillersicesboxenemy_beeschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16',
-  level6 = 'songzienemy_catepillers1216,48,8,0.5player_start_pos0,5enemy_beesboxicescamera_pos16,0',
+  level1 = 'camera_pos0,0songzi140,88enemy_catepillersplayer_start_pos0,7boxicesenemy_bees',
+  level2 = 'enemy_beesboxicesplayer_start_pos0,7songzi1224,80camera_pos16,0enemy_catepillers',
+  level3 = 'enemy_catepillerssongzi1336,48player_start_pos0,7ice1264,642352,803344,48boxcamera_pos32,0enemy_bees',
+  level4 = 'camera_pos48,0box1416,40ice1416,64songzi1496,80player_start_pos0,8enemy_catepillersenemy_bees',
+  level5 = 'iceboxenemy_catepillersplayer_start_pos0,7songzienemy_beescamera_pos0,0',
+  level6 = 'enemy_beescamera_pos0,16songzienemy_catepillersiceplayer_start_pos0,7box',
   level7 = 'boxenemy_bees1280,64,16,0.52336,48,16,0.5songzicamera_pos32,0player_start_pos0,5icesenemy_catepillers1336,64,8,0.5,1,1,1',
   level8 = 'boxcamera_pos48,0icessongziplayer_start_pos0,5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1enemy_bees1464,64,24,0.6',
   level9 = 'boxenemy_beesplayer_start_pos0,5songziicesenemy_catepillerscamera_pos64,0'
@@ -2202,10 +2226,10 @@ __map__
 18191a1b1c1d1e1f4010101071101010401010101010101010101010101010101010101010100000101010101000000010101000100010101010101010101010101018191a1b1c1d1e1f000010001010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 28292a2b2c2d2e2f10101010101010101010101010101010101010101010101010101010101000000000000010d2333333101034340010101010101010101010001028292a2b2c2d2e2f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 38393a3b3c3d3e3f10101010101010107310101010101010101000101010101010101000001000001000343400d2333333100000000010101010101010101010101038393a3b3c3d3e3f101000101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-48494a4b4c4d4e4f10001075101044101010101010107110101010101010101010101010101010001010000000d2333300101010101010101010101010100002101048494a4b4c4d4e4f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-58595a5b5c5d5e5f1010101010343434dadadadadadadadadadadadadadada3434340000000000000034000000d2330000103434340010101010101010100002101058595a5b5c5d5e5f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-46476a6b6c6d6e424371713333331010dada1068dadada101010dadada0034340034340010100000000000000000101010343434000000000000100010640002464768696a6b6c6d6e6f104243101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-56577a7b7c7d645253547110101010103333333333330000dada00003334340000000034d0d0d0d0d0d0d03434343434343434d0d0d0d0d0d0d0d0d0d0343434565778647a7b7c7d357f265253507070101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+48494a4b4c4d4e4f10001075101044101010101010107110101010101010101010101010101010001010000000d2333300101010101010101010101010100000101048494a4b4c4d4e4f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+58595a5b5c5d5e5f101010101034343434dadadadadadadadadadadadadada3333330000000000000034000000d2330000103434340010101010101010100000101058595a5b5c5d5e5f101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+46476a6b6c6d6e42437100333333100033da1068dadada101010dadada003434003434001010000000000000000010101034343400d000000000100010640000464768696a6b6c6d6e6f104243101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
+56577a7b7c7d645253540010101010103333333333330000dada000033343400000034d0d0d0d0d0d0d0d03434343434343434d0d034d0d0d0d0d0d0d0343434565778647a7b7c7d357f265253507070101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 01010101010101010101010405060606010101010134d0d0d0d0d0d034010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101001010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121161616161621212121213433333333333334212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121212121212121212121210101010101010101212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
