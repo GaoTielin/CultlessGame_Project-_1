@@ -113,12 +113,18 @@ controller = {
 }
 
 function _init()
-  game_season = "autum"
+
   spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
   -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
+
+  game_season = "autum"
+  -- game_season = "winter"
+  cfg_levels = autumn_config -- �⬅️天�█�⬅️
+  -- cfg_levels = winter_config -- �●�天�█�⬅️
+
   game_level = 1
   camera_location = {
     x = 0,
@@ -141,6 +147,7 @@ function _init()
   go_sound = init_sound(33, 10)
 
   thief = init_thief()
+  thief_event = true
   sandy = init_sandy()
   player = init_player()
   player.can_jump = player.max_jump
@@ -167,7 +174,7 @@ function _init()
   end, "all")
 
   tail = init_tail()
-  cfg_levels = autumn_config
+
   change_camera = init_change_camera()
   tips = init_tips()
 
@@ -183,6 +190,9 @@ function _init()
   if this_songzi_cfg then
     songzi = init_songzis(this_songzi_cfg)
   end
+  boxs_table = init_boxs(cfg_levels.level1.box)
+  ices_table = init_ices(cfg_levels.level1.ice)
+
   -- pinecones of whole level
   max_pinecone_num = 5
   player_pinecone = 0
@@ -207,8 +217,7 @@ function _init()
   -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
   -- box_1 = init_box(176, 72, bin_kuai_2)
   -- box_2 = init_box(224, 32, bin_kuai)
-  ices = init_ices(ices_cfg)
-  boxs_table = init_boxs(boxs_cfg)
+
   music(0)
 end
 
@@ -253,12 +262,18 @@ update_states = {
             hit(v, 1, "width", function()
               v.vecter.x = 0
             end)
+            hit(v, 14, "height", function()
+              v.vecter.y = 0
+            end)
+            hit(v, 14, "width", function()
+              v.vecter.x = 0
+            end)
             v.pos_x = v.pos_x + v.vecter.x
             v.pos_y = v.pos_y + v.vecter.y
           end
         end
         boxs_table.update()
-        ices.update()
+        ices_table.update()
         update_cllision()
         player.pos_x = player.pos_x + player.vecter.x
         player.pos_y = player.pos_y + player.vecter.y
@@ -285,14 +300,15 @@ update_states = {
         if sandy.act == 'show' then
             sandy.update()
         end
-        if chest.pinecone == 10 then
+        if chest.pinecone == 10 and thief_event then
             game_level = 5
             change_level(5)
-            chest.pinecone -= 5
             timer.add_timeout('thief_show', 1, function()
                 thief.act = 'run1'
+                chest.pinecone -= 5
                 music(5)
             end)
+            thief_event = false
         end
         cloud.update()
         tips.update()
@@ -789,19 +805,33 @@ function change_level(level)
     end
   end
   game_state_flag = "change_level"
+
   for v in all(enemies.enemies) do
       v.destroy()
   end
   songzi.destroy()
+  if boxs_table then
+      boxs_table.destroy()
+  end
+  if ices_table then
+     ices_table.destroy()
+ end
   for i = 1 ,#this_songzi_cfg do
     -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
+
   local level_cfg = cfg_levels["level" .. level]
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
   end
   enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
+  if level_cfg.box and #level_cfg.box ~= 0 then
+      boxs_table = init_boxs(level_cfg.box)
+  end
+  if level_cfg.ice and #level_cfg.ice ~= 0 then
+      ices_table = init_ices(level_cfg.ice)
+  end
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
       -- printh("level-i = " .. i, "dir")
@@ -811,6 +841,7 @@ function change_level(level)
       songzi = init_songzis(this_songzi_cfg)
     end
   end
+
   local camera_pos = string_to_array(level_cfg.camera_pos)
   local camera_pos_x = camera_pos[1]*8
   local camera_pos_y = camera_pos[2]*8
@@ -1489,8 +1520,6 @@ function init_player()
   player.hand_songzi = 0
   player.on_ground = false
   player.climb_flag = 1
-  player.on_floor = 0
-  player.on_ice = 0
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
@@ -1566,9 +1595,6 @@ function init_player()
   end
 
   player.update = function()
-      if player.on_floor > 2 and player.on_ice > 2 then
-          player.can_jump = 0
-      end
   end
 
   player.hit = function()
@@ -1578,8 +1604,6 @@ function init_player()
         player_max_v = cfg_player_max_v
       player.on_ground_function()
       player.on_floor = 0
-      end,function()
-          player.on_floor = player.on_floor + 1
     end)
     hit(player, 1, "width", function()
       if player.vecter.x ~= 0 then
@@ -1603,8 +1627,6 @@ function init_player()
         player_max_v = cfg_ice_max_v
         player.on_ground_function()
         player.on_ice = 0
-    end,function()
-        player.on_ice = player.on_ice + 1
     end)
     hit(player, 14, "width", function()
         if player.vecter.x ~= 0 then
@@ -1811,7 +1833,7 @@ function init_comoon_box(box)
     box.can_hit = false
     box.can_move = true
     map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-      mset(zhui_x/8, zhui_y/8, 16)
+      mset(zhui_x/8, zhui_y/8, 0)
     end, "up")
     oncllision(box, player, {
       height = function()
@@ -1849,7 +1871,7 @@ function init_ices(ice_config)
       table = {},
     }
     local function init_ice(pos_x, pos_y, is_songzi)
-        local sp = is_songzi and 143 or 159
+        local sp = is_songzi and 196 or 212
         local ice = init_spr("ice", sp, pos_x, pos_y, 1, 1, true, 0, 0)
         init_comoon_box(ice)
         ice.is_songzi = is_songzi
@@ -1874,11 +1896,20 @@ function init_ices(ice_config)
         return ice
     end
 
-    for i = 1 , #ice_config do
-        local pos_x, pos_y, is_songzi = ice_config[i][1], ice_config[i][2], ice_config[i][3]
-        ice = init_ice(pos_x, pos_y, is_songzi)
-        ice.idx = i
-        add(ices.table, ice)
+    if ice_config then
+        for i = 1 , #ice_config do
+            local cfg_tbl = string_to_array(ice_config[i])
+            local pos_x, pos_y, is_songzi = cfg_tbl[1], cfg_tbl[2], cfg_tbl[3]
+            ice = init_ice(pos_x, pos_y, is_songzi)
+            ice.idx = i
+            add(ices.table, ice)
+        end
+    end
+
+    ices.destroy = function()
+        for v in all(ices.table) do
+            v.destroy()
+        end
     end
 
     ices.update = function()
@@ -1896,7 +1927,7 @@ function init_boxs(box_config)
   }
 
   local function init_box(pos_x, pos_y)
-    local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
+    local box = init_spr("box", 192, pos_x, pos_y, 1, 1, true, 0, 0)
 
     init_comoon_box(box)
 
@@ -1933,11 +1964,19 @@ function init_boxs(box_config)
   end
 
   for i = 1 , #box_config do
-    local b_x, b_y = box_config[i][1], box_config[i][2]
+    local cfg_tbl = string_to_array(box_config[i])
+    local b_x, b_y = cfg_tbl[1], cfg_tbl[2]
     local box = init_box(b_x, b_y, bin_kuai)
     box.idx = i
     add(boxs.table, box)
   end
+
+  boxs.destroy = function()
+      for v in all(boxs.table) do
+          v.destroy()
+      end
+  end
+
   boxs.update = function()
       for v in all(boxs.table) do
           v.update()
@@ -1953,9 +1992,9 @@ end
 cfg_player_acceleration_fast = 0.3 -- �➡️步�⌂��█�度
 cfg_player_acceleration_low = 0.6 -- �➡️步�♥◆�█�度
 cfg_player_max_v = 1.8 -- �█大�█�度
-cfg_ice_acceleration_fast = 0.1--�●�面�⌂��█�度
-cfg_ice_acceleration_low = 0.1--�●�面�♥◆�█�度
-cfg_ice_max_v = 3 -- �●�面��█大�█�度
+cfg_ice_acceleration_fast = 0.1--�●�面�⌂��█�度
+cfg_ice_acceleration_low = 0.1--�●�面�♥◆�█�度
+cfg_ice_max_v = 3 -- �●�面�█大�█�度
 
 cfg_jump_speed = 3 -- 跳�⬇️�█�度
 cfg_climb_speed = 1.6 -- �☉��▥�█�度
@@ -1967,41 +2006,31 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移��
   y = 5,
 }
 
-cfg_box_gravity = 0.1 --箱��…��░�♥♪�⌂�
-cfg_box_max_v = 1.5 --�🅾️�箱��…��█大�█�度
-boxs_cfg = { --箱��…�✽♪置
-    -- {176, 72},
-    -- {176, 64},
-    -- {176, 56},
-    -- {224, 32},
-}
-ices_cfg = { --�●���❎�✽♪置
-    -- {48, 88},
-
-}
+cfg_box_gravity = 0.1 --箱�…�░�♥♪�⌂�
+cfg_box_max_v = 1.5 --�🅾️�箱�…�█大�█�度
 
 cfg_levels_autumn = {
-  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
-  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
-  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
-  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
-  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
-  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
-  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
-  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
-  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
+  level1 = 'enemy_catepillerscamera_pos0,0icesboxsongzi140,88enemy_beesplayer_start_pos0,7',
+  level2 = 'songzi1208,48icesenemy_catepillersenemy_beescamera_pos16,0player_start_pos0,7box',
+  level3 = 'player_start_pos0,7icesenemy_beessongzi1288,642352,48camera_pos32,0boxenemy_catepillers',
+  level4 = 'songzi1432,72icescamera_pos48,0player_start_pos0,7enemy_bees1432,64,24,0.5,0enemy_catepillers1432,72,24,0.5,1box',
+  level5 = 'player_start_pos0,7camera_pos0,0songzienemy_catepillersicesboxenemy_beeschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16',
+  level6 = 'songzienemy_catepillers1216,48,8,0.5player_start_pos0,5enemy_beesboxicescamera_pos16,0',
+  level7 = 'boxenemy_bees1280,64,16,0.52336,48,16,0.5songzicamera_pos32,0player_start_pos0,5icesenemy_catepillers1336,64,8,0.5,1,1,1',
+  level8 = 'boxcamera_pos48,0icessongziplayer_start_pos0,5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1enemy_bees1464,64,24,0.6',
+  level9 = 'boxenemy_beesplayer_start_pos0,5songziicesenemy_catepillerscamera_pos64,0'
 }
 
 cfg_levels_winter = {
-  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
-  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
-  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
-  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
-  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
-  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
-  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
-  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
-  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
+  level1 = 'enemy_catepillerssongzi140,88camera_pos0,0player_start_pos0,7box130, 88enemy_bees',
+  level2 = 'enemy_catepillersplayer_start_pos0,7ice1160, 80boxcamera_pos16,0songzi1208,48enemy_bees',
+  level3 = 'player_start_pos0,7icesenemy_beessongzi1288,642352,48camera_pos32,0boxenemy_catepillers',
+  level4 = 'songzi1432,72icescamera_pos48,0player_start_pos0,7enemy_bees1432,64,24,0.5,0enemy_catepillers1432,72,24,0.5,1box',
+  level5 = 'player_start_pos0,7camera_pos0,0songzienemy_catepillersicesboxenemy_beeschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16',
+  level6 = 'songzienemy_catepillers1216,48,8,0.5player_start_pos0,5enemy_beesboxicescamera_pos16,0',
+  level7 = 'boxenemy_bees1280,64,16,0.52336,48,16,0.5songzicamera_pos32,0player_start_pos0,5icesenemy_catepillers1336,64,8,0.5,1,1,1',
+  level8 = 'boxcamera_pos48,0icessongziplayer_start_pos0,5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1enemy_bees1464,64,24,0.6',
+  level9 = 'boxenemy_beesplayer_start_pos0,5songziicesenemy_catepillerscamera_pos64,0'
 }
 
 -->8

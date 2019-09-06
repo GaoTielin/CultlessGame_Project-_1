@@ -11,7 +11,8 @@ controller = {
   jump = function ()
     if player.state == "climb" then
       player.climb_jump()
-    else
+      sfx(10)
+    elseif player.can_jump <= player.max_jump and player.can_jump > 0 then
       player.vecter.y = cfg_jump_speed * -1
       direction_flag.y = "up"
       player.can_jump =  player.can_jump - 1
@@ -20,6 +21,7 @@ controller = {
         change_animation(player, "jump")
         change_animation(tail, "jump")
       end
+      sfx(11)
     end
   end,
 
@@ -28,6 +30,7 @@ controller = {
        player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
       local map_y = player.pos_y + player.height*8 - 1
+      go_sound.play()
       if get_map_flage(map_x, map_y) ~= player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
@@ -62,10 +65,14 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
+      if player.state == "run" then
+        go_sound.play()
+      end
     elseif player.state == "climb" and player.flip_x then
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
+     go_sound.play()
      if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
@@ -87,6 +94,9 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
+      if player.state == "run" then
+        go_sound.play()
+      end
     elseif player.state == "climb" and not player.flip_x then
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
@@ -97,16 +107,24 @@ controller = {
        player.is_physic = true
        player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
      end
+     go_sound.play()
     end
   end,
 }
 
 function _init()
-  game_season = "autum"
+
+  spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
   -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
+
+  -- game_season = "autum"
+  game_season = "winter"
+  -- cfg_levels = autumn_config -- Áß‚¨ÖÔ∏èÂ§©Âº‚ñàÂß‚¨ÖÔ∏è
+  cfg_levels = winter_config -- Â‚óè¨Â§©Âº‚ñàÂß‚¨ÖÔ∏è
+
   game_level = 1
   camera_location = {
     x = 0,
@@ -126,7 +144,10 @@ function _init()
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
+  go_sound = init_sound(33, 10)
+
   thief = init_thief()
+  thief_event = true
   sandy = init_sandy()
   player = init_player()
   player.can_jump = player.max_jump
@@ -148,15 +169,16 @@ function _init()
         player.pos_x = 48
         player.pos_y = 80
       end
+      sfx(29)
     end
   end, "all")
 
   tail = init_tail()
-  cfg_levels = autumn_config
+
   change_camera = init_change_camera()
   tips = init_tips()
 
-  -- snow = init_snow()
+  snow = init_snow()
   -- leaves = init_leaves()
   shake = init_screen_shake()
   chest = init_chest()
@@ -168,6 +190,9 @@ function _init()
   if this_songzi_cfg then
     songzi = init_songzis(this_songzi_cfg)
   end
+  boxs_table = init_boxs(cfg_levels.level1.box)
+  ices_table = init_ices(cfg_levels.level1.ice)
+
   -- pinecones of whole level
   max_pinecone_num = 5
   player_pinecone = 0
@@ -183,16 +208,17 @@ function _init()
       if player_pinecone ~= 0 then
         player_pinecone -= 1
         chest.pinecone += 1
+        sfx(29)
       end
     end
   end, 'chest_store')
   change_level(game_level)
-  bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
+  -- bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
   -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
   -- box_1 = init_box(176, 72, bin_kuai_2)
   -- box_2 = init_box(224, 32, bin_kuai)
-  ices = init_ices(ices_cfg)
-  boxs_table = init_boxs(boxs_cfg)
+
+  music(0)
 end
 
 ------------Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊú∫-----------------
@@ -207,10 +233,11 @@ update_states = {
 
   play_update = function()
         player.check_position()
+        player.update()
         map_ani_1.update()
         map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-        if (btnp (4) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
+        if (btnp (4) ) controller.jump()
         if (btn (2)) controller.up()
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
@@ -235,12 +262,18 @@ update_states = {
             hit(v, 1, "width", function()
               v.vecter.x = 0
             end)
+            hit(v, 14, "height", function()
+              v.vecter.y = 0
+            end)
+            hit(v, 14, "width", function()
+              v.vecter.x = 0
+            end)
             v.pos_x = v.pos_x + v.vecter.x
             v.pos_y = v.pos_y + v.vecter.y
           end
         end
         boxs_table.update()
-        ices.update()
+        ices_table.update()
         update_cllision()
         player.pos_x = player.pos_x + player.vecter.x
         player.pos_y = player.pos_y + player.vecter.y
@@ -252,7 +285,9 @@ update_states = {
             player_state_x_flag = "fast_back"
         end
         player.anction_range()
-        -- snow.update()
+        if game_season == "winter" then
+          snow.update()
+        end
         -- leaves.update()
         timer.update()
         tail.update()
@@ -265,17 +300,20 @@ update_states = {
         if sandy.act == 'show' then
             sandy.update()
         end
-        if chest.pinecone == 10 then
+        if chest.pinecone == 10 and thief_event then
             game_level = 5
             change_level(5)
-            chest.pinecone -= 5
             timer.add_timeout('thief_show', 1, function()
                 thief.act = 'run1'
+                chest.pinecone -= 5
+                music(5)
             end)
+            thief_event = false
         end
         cloud.update()
         tips.update()
         shake.update()
+        sound_update()
     end,
 
     game_over_update = function()
@@ -320,7 +358,9 @@ function nomal_draw()
           end
       end
     end
-    -- snow.draw()
+    if game_season == "winter" then
+      snow.draw()
+    end
     chest.draw()
     sandy.draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
@@ -496,32 +536,6 @@ function ontrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
     return trigger_stay
 end
 
-function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
-    local entered = false
-    local is_trigger = false
-    local function trigger_exit()
-        is_trigger = trigger(sprit_1, sprit_2)
-        if not entered and is_trigger then
-            entered = true
-        end
-        if entered and not is_trigger then
-            exit_func()
-            entered = false
-        end
-    end
-
-    local idx = #trigger_table + 1
-    add(trigger_table, trigger_exit)
-    sprit_1.destroy_trigger_exit = function()
-      trigger_table[idx] = nil
-    end
-
-    sprit_2.destroy_trigger_exit = function()
-      trigger_table[idx] = nil
-    end
-
-    return trigger_exit
-end
 
 -------------Áõ‚òÖ‰Ω‚ßóÁ¢∞Ê‚òÖûÔº‚òâÁ¢∞Ê‚òÖûÂû‚¨ÖÔ∏èÔºÏõÉ--------------
 cllision_table = {}
@@ -775,6 +789,7 @@ function init_change_camera()
 end
 
 function game_over()
+  sfx(13)
   if player.hand_songzi >0 then
     player_pinecone = player_pinecone - player.hand_songzi
   end
@@ -790,19 +805,33 @@ function change_level(level)
     end
   end
   game_state_flag = "change_level"
+
   for v in all(enemies.enemies) do
       v.destroy()
   end
   songzi.destroy()
+  if boxs_table then
+      boxs_table.destroy()
+  end
+  if ices_table then
+     ices_table.destroy()
+ end
   for i = 1 ,#this_songzi_cfg do
     -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
+
   local level_cfg = cfg_levels["level" .. level]
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
   end
   enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
+  if level_cfg.box and #level_cfg.box ~= 0 then
+      boxs_table = init_boxs(level_cfg.box)
+  end
+  if level_cfg.ice and #level_cfg.ice ~= 0 then
+      ices_table = init_ices(level_cfg.ice)
+  end
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
       -- printh("level-i = " .. i, "dir")
@@ -812,6 +841,7 @@ function change_level(level)
       songzi = init_songzis(this_songzi_cfg)
     end
   end
+
   local camera_pos = string_to_array(level_cfg.camera_pos)
   local camera_pos_x = camera_pos[1]*8
   local camera_pos_y = camera_pos[2]*8
@@ -1172,12 +1202,16 @@ end
 function season_shift(season)
   if season == "winter" then
     cfg_levels = winter_config
+    music(-1)
   elseif season == "spring" then
     cfg_levels = spring_config
+    music(-1)
   elseif season == "summer" then
     cfg_levels = summer_config
+    music(-1)
   end
 
+  player_pinecone = 0
   load_level(season..".p8")
   game_level = 1
   change_level(1)
@@ -1284,24 +1318,6 @@ function map_trigger_stay(obj, map_flag, stay_func, direction)
     return trigger_stay
 end
 
-function map_trigger_exit(obj, map_flag, exit_func, direction)
-    local entered = false
-    local is_trigger = false
-    local function trigger_exit()
-        is_trigger = map_trigger(obj, map_flag, direction)
-        if not entered and is_trigger then
-            entered = true
-        end
-        if entered and not is_trigger then
-            exit_func()
-            entered = false
-        end
-    end
-
-    add(map_trigger_tbl, trigger_exit)
-    return trigger_exit
-end
-
 function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
     local time = 0
     max_sp = max_sp*(is_flip and -1 or 1)
@@ -1367,6 +1383,7 @@ function init_songzis(songzi_config)
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()
+      sfx(8)
       b.destroy()
       player_pinecone = player_pinecone + 1
       player.hand_songzi = player.hand_songzi + 1
@@ -1391,6 +1408,7 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
         ontrigger_enter(e, player, function()
           game_over()
         end)
+        e.sound = init_sound(30, 50)
     elseif type == 'catepiller_x' then
         e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
@@ -1425,6 +1443,9 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
                 e.flip_y = false
             end
             e.pos_y = e.pos_y + (e.flip_y and speed or -speed)
+        end
+        if e.sound then
+          e.sound.play()
         end
     end
     e.draw = function ()
@@ -1573,12 +1594,16 @@ function init_player()
       end
   end
 
+  player.update = function()
+  end
+
   player.hit = function()
     hit(player, 1, "height", function()
         player_acceleration_fast = cfg_player_acceleration_fast
         player_acceleration_low = cfg_player_acceleration_low
         player_max_v = cfg_player_max_v
       player.on_ground_function()
+      player.on_floor = 0
     end)
     hit(player, 1, "width", function()
       if player.vecter.x ~= 0 then
@@ -1601,6 +1626,7 @@ function init_player()
         player_acceleration_low = cfg_ice_acceleration_low
         player_max_v = cfg_ice_max_v
         player.on_ground_function()
+        player.on_ice = 0
     end)
     hit(player, 14, "width", function()
         if player.vecter.x ~= 0 then
@@ -1637,6 +1663,7 @@ function init_player()
       player.state = "jump"
       player.can_jump = 0
       mset(mogu_x/8, mogu_y/8, 85)
+      sfx(10)
       timer.add_timeout("mogu_hit", 0.1, function()
           mset(mogu_x/8, mogu_y/8, 84)
       end)
@@ -1806,7 +1833,7 @@ function init_comoon_box(box)
     box.can_hit = false
     box.can_move = true
     map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-      mset(zhui_x/8, zhui_y/8, 16)
+      mset(zhui_x/8, zhui_y/8, 0)
     end, "up")
     oncllision(box, player, {
       height = function()
@@ -1844,7 +1871,7 @@ function init_ices(ice_config)
       table = {},
     }
     local function init_ice(pos_x, pos_y, is_songzi)
-        local sp = is_songzi and 143 or 159
+        local sp = is_songzi and 196 or 212
         local ice = init_spr("ice", sp, pos_x, pos_y, 1, 1, true, 0, 0)
         init_comoon_box(ice)
         ice.is_songzi = is_songzi
@@ -1869,11 +1896,20 @@ function init_ices(ice_config)
         return ice
     end
 
-    for i = 1 , #ice_config do
-        local pos_x, pos_y, is_songzi = ice_config[i][1], ice_config[i][2], ice_config[i][3]
-        ice = init_ice(pos_x, pos_y, is_songzi)
-        ice.idx = i
-        add(ices.table, ice)
+    if ice_config then
+        for i = 1 , #ice_config do
+            local cfg_tbl = string_to_array(ice_config[i])
+            local pos_x, pos_y, is_songzi = cfg_tbl[1], cfg_tbl[2], cfg_tbl[3]
+            ice = init_ice(pos_x, pos_y, is_songzi)
+            ice.idx = i
+            add(ices.table, ice)
+        end
+    end
+
+    ices.destroy = function()
+        for v in all(ices.table) do
+            v.destroy()
+        end
     end
 
     ices.update = function()
@@ -1891,7 +1927,7 @@ function init_boxs(box_config)
   }
 
   local function init_box(pos_x, pos_y)
-    local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
+    local box = init_spr("box", 192, pos_x, pos_y, 1, 1, true, 0, 0)
 
     init_comoon_box(box)
 
@@ -1928,11 +1964,19 @@ function init_boxs(box_config)
   end
 
   for i = 1 , #box_config do
-    local b_x, b_y = box_config[i][1], box_config[i][2]
+    local cfg_tbl = string_to_array(box_config[i])
+    local b_x, b_y = cfg_tbl[1], cfg_tbl[2]
     local box = init_box(b_x, b_y, bin_kuai)
     box.idx = i
     add(boxs.table, box)
   end
+
+  boxs.destroy = function()
+      for v in all(boxs.table) do
+          v.destroy()
+      end
+  end
+
   boxs.update = function()
       for v in all(boxs.table) do
           v.update()
@@ -1948,11 +1992,11 @@ end
 cfg_player_acceleration_fast = 0.3 -- ÔøΩ‚û°Ô∏èÊ≠•ÔøΩ‚åÇÔøΩÔøΩ‚ñàÔøΩÂ∫¶
 cfg_player_acceleration_low = 0.6 -- ÔøΩ‚û°Ô∏èÊ≠•ÔøΩ‚ô•‚óÜÔøΩ‚ñàÔøΩÂ∫¶
 cfg_player_max_v = 1.8 -- ÔøΩ‚ñàÂ§ßÔøΩ‚ñàÔøΩÂ∫¶
-cfg_ice_acceleration_fast = 0.15--Â‚óè∞Èù¢Â‚åÇ†È‚ñàüÂ∫¶
-cfg_ice_acceleration_low = 0.15--Â‚óè∞Èù¢Â‚ô•‚óÜÈ‚ñàüÂ∫¶
-cfg_ice_max_v = 2.4 -- Â‚óè∞Èù¢Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
+cfg_ice_acceleration_fast = 0.1--Â‚óè∞Èù¢Â‚åÇ†È‚ñàüÂ∫¶
+cfg_ice_acceleration_low = 0.1--Â‚óè∞Èù¢Â‚ô•‚óÜÈ‚ñàüÂ∫¶
+cfg_ice_max_v = 3 -- Â‚óè∞Èù¢Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
 
-cfg_jump_speed = 	3 -- Ë∑≥ÔøΩ‚¨áÔ∏èÔøΩ‚ñàÔøΩÂ∫¶
+cfg_jump_speed = 3 -- Ë∑≥ÔøΩ‚¨áÔ∏èÔøΩ‚ñàÔøΩÂ∫¶
 cfg_climb_speed = 1.6 -- ÔøΩ‚òâÔøΩÔøΩ‚ñ•ÔøΩ‚ñàÔøΩÂ∫¶
 cfg_gravity = 0.3 -- ÔøΩ‚ô•‚ô™ÔøΩ‚åÇÔøΩ(ÔøΩ‚Ä¶‚û°Ô∏èÔøΩ‚¨ÖÔ∏èÔøΩ‚ñëÔøΩ‚åÇÔøΩÔøΩ‚ñàÔøΩÂ∫¶)
 
@@ -1964,44 +2008,59 @@ cfg_camera_move_speed = { -- ÔøΩ‚òâ‚ô•ÔøΩ‚ô™ÔøΩÂú∞ÂõæÔøΩ‚ùéÔøΩÔøΩÀáÔøΩÂ§¥ÁßªÔøΩ‚
 
 cfg_box_gravity = 0.1 --ÁÆ±Â≠‚Ä¶Áö‚ñëÈ‚ô•‚ô™Â‚åÇõ
 cfg_box_max_v = 1.5 --ÊüÖæÔ∏è®ÁÆ±Â≠‚Ä¶Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
-boxs_cfg = { --ÁÆ±Â≠‚Ä¶È‚úΩ‚ô™ÁΩÆ
-    -- {176, 72},
-    {264,64},
-    {424,88},
-    {416,40},
-   
-}
-ices_cfg = { --Â‚óè∞Âù‚ùéÈ‚úΩ‚ô™ÁΩÆ
-    -- {48, 88},
-    {360,80},
-    {468,40},
-    {416,64},
-
-}
 
 cfg_levels_autumn = {
-  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
-  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
-  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
-  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
-  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
-  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
-  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
-  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
-  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
+  level1 = 'enemy_catepillerscamera_pos0,0icesboxsongzi140,88enemy_beesplayer_start_pos0,7',
+  level2 = 'songzi1208,48icesenemy_catepillersenemy_beescamera_pos16,0player_start_pos0,7box',
+  level3 = 'player_start_pos0,7icesenemy_beessongzi1288,642352,48camera_pos32,0boxenemy_catepillers',
+  level4 = 'songzi1432,72icescamera_pos48,0player_start_pos0,7enemy_bees1432,64,24,0.5,0enemy_catepillers1432,72,24,0.5,1box',
+  level5 = 'player_start_pos0,7camera_pos0,0songzienemy_catepillersicesboxenemy_beeschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16',
+  level6 = 'songzienemy_catepillers1216,48,8,0.5player_start_pos0,5enemy_beesboxicescamera_pos16,0',
+  level7 = 'boxenemy_bees1280,64,16,0.52336,48,16,0.5songzicamera_pos32,0player_start_pos0,5icesenemy_catepillers1336,64,8,0.5,1,1,1',
+  level8 = 'boxcamera_pos48,0icessongziplayer_start_pos0,5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1enemy_bees1464,64,24,0.6',
+  level9 = 'boxenemy_beesplayer_start_pos0,5songziicesenemy_catepillerscamera_pos64,0'
 }
 
 cfg_levels_winter = {
-  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
-  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
-  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
-  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
-  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
-  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
-  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
-  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
-  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
+  level1 = 'enemy_catepillerssongzi140,88camera_pos0,0player_start_pos0,7box130, 88enemy_bees',
+  level2 = 'enemy_catepillersplayer_start_pos0,7ice1160, 80boxcamera_pos16,0songzi1208,48enemy_bees',
+  level3 = 'player_start_pos0,7icesenemy_beessongzi1288,642352,48camera_pos32,0boxenemy_catepillers',
+  level4 = 'songzi1432,72icescamera_pos48,0player_start_pos0,7enemy_bees1432,64,24,0.5,0enemy_catepillers1432,72,24,0.5,1box',
+  level5 = 'player_start_pos0,7camera_pos0,0songzienemy_catepillersicesboxenemy_beeschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16',
+  level6 = 'songzienemy_catepillers1216,48,8,0.5player_start_pos0,5enemy_beesboxicescamera_pos16,0',
+  level7 = 'boxenemy_bees1280,64,16,0.52336,48,16,0.5songzicamera_pos32,0player_start_pos0,5icesenemy_catepillers1336,64,8,0.5,1,1,1',
+  level8 = 'boxcamera_pos48,0icessongziplayer_start_pos0,5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1enemy_bees1464,64,24,0.6',
+  level9 = 'boxenemy_beesplayer_start_pos0,5songziicesenemy_catepillerscamera_pos64,0'
 }
+
+-->8
+-->sound
+sound_table = {}
+
+function init_sound(num, timer)
+  local sound_player = {}
+  sound_player.timer = -1
+  sound_player.play = function()
+    if sound_player.timer < 0 then
+      sfx(num)
+      sound_player.timer = timer
+    end
+  end
+  sound_player.update = function()
+    if sound_player.timer >= 0 then
+      sound_player.timer -= 1
+    end
+  end
+
+  add(sound_table, sound_player)
+  return sound_player
+end
+
+function sound_update()
+  for v in all(sound_table) do
+    v.update()
+  end
+end
 
 __gfx__
 00000000777777770800210066666666777777777777777777777777777777770000000000000000000000000000000000000000000000000000000000000000
