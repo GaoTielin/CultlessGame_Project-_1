@@ -370,7 +370,11 @@ function init_change_camera()
   local now_camera_pos_y = camera_pos[2]*8
   local flip_x = false
   local flip_y = false
-  local fix_driction = 0
+  local fix_driction_x = 0
+  local fix_driction_y = 0
+  local reset_player = false
+  local reset_player_x = 0
+  local reset_player_y = 0
   local function change(level)
     local camera_pos = string_to_array(cfg_levels["level" .. level].camera_pos)
     now_camera_pos_x = camera_pos[1]*8
@@ -380,9 +384,10 @@ function init_change_camera()
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
     if abs(fix_driction_x) > 130 or fix_driction_y ~= 0 then
+        reset_player = true
         local player_start_pos = string_to_array(cfg_levels["level" .. level].player_start_pos)
-        player.pos_x = player_start_pos[1]*8 + camera_pos[1]*8
-        player.pos_y = player_start_pos[2]*8 + camera_pos[2]*8
+        reset_player_x = player_start_pos[1]
+        reset_player_y = player_start_pos[2]
     end
     shake.camera_x = now_camera_pos_x
   end
@@ -404,10 +409,15 @@ function init_change_camera()
     camera_location.x = old_camera_pos_x
     camera_location.y = old_camera_pos_y
     if changed_x and changed_y then
-      old_camera_pos_x = now_camera_pos_x
-      old_camera_pos_y = now_camera_pos_y
-      camera_location.x = old_camera_pos_x
-      camera_location.y = old_camera_pos_y
+        if reset_player then
+            player.pos_x = reset_player_x*8 + camera_location.x
+            player.pos_y = reset_player_y*8 + camera_location.y
+            reset_player = false
+        end
+          old_camera_pos_x = now_camera_pos_x
+          old_camera_pos_y = now_camera_pos_y
+          camera_location.x = old_camera_pos_x
+          camera_location.y = old_camera_pos_y
       return true
     else
       return false
