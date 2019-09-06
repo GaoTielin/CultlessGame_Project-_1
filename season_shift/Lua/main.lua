@@ -117,10 +117,10 @@ function _init()
   -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
 
-  game_season = "autum"
-  -- game_season = "winter"
-  cfg_levels = autumn_config -- 秋天开始
-  -- cfg_levels = winter_config -- 冬天开始
+  -- game_season = "autum"
+  game_season = "winter"
+  -- cfg_levels = autumn_config -- 秋天开始
+  cfg_levels = winter_config -- 冬天开始
 
   game_level = 1
   camera_location = {

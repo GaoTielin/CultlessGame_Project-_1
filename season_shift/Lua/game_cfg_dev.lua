@@ -22,7 +22,7 @@ cfg_levels_autumn = {
       '40,88'
     },
     box = {},
-    ices = {},
+    ice = {},
   },
   level2 = {
     player_start_pos = '0,7',
@@ -33,7 +33,7 @@ cfg_levels_autumn = {
       '208,48'
     },
     box = {},
-    ices = {},
+    ice = {},
   },
   level3 = {
     player_start_pos = '0,7',
@@ -45,7 +45,7 @@ cfg_levels_autumn = {
       '352,48',
     },
     box = {},
-    ices = {},
+    ice = {},
   },
   level4 = {
     player_start_pos = '0,7',
@@ -60,7 +60,7 @@ cfg_levels_autumn = {
       '432,72',
     },
     box = {},
-    ices = {},
+    ice = {},
   },
   level5 = {
     change_map = {
@@ -80,7 +80,7 @@ cfg_levels_autumn = {
     enemy_catepillers = {},
     songzi = {},
     box = {},
-    ices = {},
+    ice = {},
   },
   level6 = {
     player_start_pos = '0,5',
@@ -91,7 +91,7 @@ cfg_levels_autumn = {
     },
     songzi = {},
     box = {},
-    ices = {},
+    ice = {},
   },
   level7 = {
     player_start_pos = '0,5',
@@ -105,7 +105,7 @@ cfg_levels_autumn = {
     },
     songzi = {},
     box = {},
-    ices = {},
+    ice = {},
   },
   level8 = {
     player_start_pos = '0,5',
@@ -119,7 +119,7 @@ cfg_levels_autumn = {
     },
     songzi = {},
     box = {},
-    ices = {},
+    ice = {},
   },
   level9 = {
     player_start_pos = '0,5',
@@ -128,39 +128,54 @@ cfg_levels_autumn = {
     enemy_catepillers = {},
     songzi = {},
     box = {},
-    ices = {},
+    ice = {},
   },
 
 }
 
 cfg_levels_winter = {
-    level1 = {
-      player_start_pos = '0,7',
-      camera_pos = '0,0',
-      enemy_bees = {},
-      enemy_catepillers = {},
-      songzi = {
-        '40,88'
-      },
-      box = {
-        '30, 88'
-      },
+    level1 = { -- 第几关
+    player_start_pos = '0,7', --角色重生位置（在本关第几格）
+    camera_pos = '0,0', --相机位置（相对于整个地图）
+    enemy_bees = {}, --蜜蜂配置
+    enemy_catepillers = {}, -- 爬虫配置
+    songzi = { --松子配置
+      '40,88'
     },
-    level2 = {
-      player_start_pos = '0,7',
-      camera_pos = '16,0',
-      enemy_bees = {},
-      enemy_catepillers = {},
-      songzi = {
-        '208,48'
-      },
-      box = { -- 箱子配置
-        -- '160, 80',
-      },
-      ice = { -- 冰块配置
-        '160, 80'
-        '168, 80, true' -- 加一个true参数代表有松子
-      },
+    box = {}, -- 石头配置
+    ice = {}, -- 冰块配置
+  },
+  level2 = {
+    player_start_pos = '0,7',
+    camera_pos = '16,0',
+    enemy_bees = {},
+    enemy_catepillers = {},
+    songzi = {
+      '224,80'
     },
-
+    box = {},
+    ice = {},
+  },
+  level3 = {
+    player_start_pos = '0,7',
+    camera_pos = '32,0',
+    enemy_bees = {},
+    enemy_catepillers = {},
+    songzi = {
+      '336,48',
+    },
+    box = {},
+    ice = {'264,64','352,80','344,48'},
+  },
+  level4 = {
+    player_start_pos = '0,7',
+    camera_pos = '48,0',
+    enemy_bees = {},
+    enemy_catepillers = {},
+    songzi = {
+      '496,80',
+    },
+    box = {'416,40',},
+    ice = {'416,64',},
+  },
 }
