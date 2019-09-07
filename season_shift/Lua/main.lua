@@ -4,6 +4,10 @@ map_location ={
     x = 0,
     y = 0,
 }
+camera_location = {
+  x = 0,
+  y = 0,
+}
 changed_map = {}
 controller = {
   jump = function ()
@@ -110,23 +114,20 @@ controller = {
   end,
 }
 
-function _init()
+function init_game()
   spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
   -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
 
-  -- game_season = "autum"
-  game_season = "winter"
-  -- cfg_levels = autumn_config -- 秋天开始
-  cfg_levels = winter_config -- 冬天开始
+  game_season = "autum"
+  -- game_season = "winter"
+  cfg_levels = autumn_config -- 秋天开始
+  -- cfg_levels = winter_config -- 冬天开始
 
   game_level = 1
-  camera_location = {
-    x = 0,
-    y = 0,
-  }
+
   direction_flag = {
     x,
     y,
@@ -218,10 +219,19 @@ function _init()
   music(0)
 end
 
+function _init()
+  game_state_flag = "start"
+  start_timer = 0
+  load_level("start.p8")
+end
+
 ------------游戏状态机-----------------
 game_states = {
 ----------update状态机--------------
 update_states = {
+  start_update = function()
+  end,
+
   change_level_update = function()
     if change_camera.update() then
       game_state_flag = "play"
@@ -325,6 +335,17 @@ update_states = {
   -----------draw状态机-------------
 
   draw_states = {
+    start_draw = function()
+      if start_timer >= 120 then
+        load_level("season_shift.p8")
+        init_game()
+        game_state_flag = "play"
+      end
+      start_timer += 1
+      local x = flr(start_timer/15)*16
+      map(x, 0)
+    end,
+
     change_level_draw = function()
       nomal_draw()
     end,
