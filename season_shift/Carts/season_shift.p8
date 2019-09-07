@@ -7,6 +7,11 @@ map_location ={
     x = 0,
     y = 0,
 }
+camera_location = {
+  x = 0,
+  y = 0,
+}
+changed_map = {}
 controller = {
   jump = function ()
     if player.state == "climb" then
@@ -112,8 +117,7 @@ controller = {
   end,
 }
 
-function _init()
-
+function init_game()
   spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
@@ -126,10 +130,7 @@ function _init()
   -- cfg_levels = winter_config -- åâ—¬å¤©å¼â–ˆå§â¬…ï¸
 
   game_level = 1
-  camera_location = {
-    x = 0,
-    y = 0,
-  }
+
   direction_flag = {
     x,
     y,
@@ -221,10 +222,19 @@ function _init()
   music(0)
 end
 
+function _init()
+  game_state_flag = "start"
+  start_timer = 0
+  load_level("start.p8")
+end
+
 ------------æ¸¸æâ˜‰â—†çâŒ‚¶æâ–ˆâ–’æœº-----------------
 game_states = {
 ----------updateçâŒ‚¶æâ–ˆâ–’æœº--------------
 update_states = {
+  start_update = function()
+  end,
+
   change_level_update = function()
     if change_camera.update() then
       game_state_flag = "play"
@@ -253,6 +263,9 @@ update_states = {
           if v.name ~= "player" then
               if v.name == "box" or v.name == "ice" then
                   v.vecter.y = v.vecter.y + (v.is_physic and cfg_box_gravity or 0)
+                  if v.vecter.y >= cfg_box_max_y then
+                    v.vecter.y = cfg_box_max_y
+                  end
               else
                   v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
               end
@@ -325,6 +338,17 @@ update_states = {
   -----------drawçâŒ‚¶æâ–ˆâ–’æœº-------------
 
   draw_states = {
+    start_draw = function()
+      if start_timer >= 120 then
+        load_level("season_shift.p8")
+        init_game()
+        game_state_flag = "play"
+      end
+      start_timer += 1
+      local x = flr(start_timer/15)*16
+      map(x, 0)
+    end,
+
     change_level_draw = function()
       nomal_draw()
     end,
@@ -424,6 +448,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         flip_x = false,
         flip_y = false,
     }
+    spr_obj.destroy_cllision = {}
     spr_obj.destroy = function()
       if spr_obj.destroy_trigger_enter then
         spr_obj.destroy_trigger_enter()
@@ -435,7 +460,12 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         spr_obj.destroy_trigger_stay()
       end
       if spr_obj.destroy_cllision then
-        spr_obj.destroy_cllision()
+          for v in all(spr_obj.destroy_cllision) do
+              v()
+          end
+      end
+      if spr_obj.destroy_map_enter then
+        spr_obj.destroy_map_enter()
       end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
@@ -606,15 +636,16 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             end
         end,
     }
-    local idx = #cllision_table + 1
-    sprit_1.destroy_cllision = function()
-      cllision_table[idx] = nil
-    end
-
-    sprit_2.destroy_cllision = function()
-      cllision_table[idx] = nil
-    end
+    -- local idx = #cllision_table + 1
     add(cllision_table, tbl)
+
+    local destroy_func = function()
+        del(cllision_table, tbl)
+    end
+    add(sprit_1.destroy_cllision, destroy_func)
+
+    add(sprit_2.destroy_cllision, destroy_func)
+
 end
 ---------------------------------------
 
@@ -744,7 +775,11 @@ function init_change_camera()
   local now_camera_pos_y = camera_pos[2]*8
   local flip_x = false
   local flip_y = false
-  local fix_driction = 0
+  local fix_driction_x = 0
+  local fix_driction_y = 0
+  local reset_player = false
+  local reset_player_x = 0
+  local reset_player_y = 0
   local function change(level)
     local camera_pos = string_to_array(cfg_levels["level" .. level].camera_pos)
     now_camera_pos_x = camera_pos[1]*8
@@ -753,6 +788,12 @@ function init_change_camera()
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
+    if abs(fix_driction_x) > 130 or fix_driction_y ~= 0 then
+        reset_player = true
+        local player_start_pos = string_to_array(cfg_levels["level" .. level].player_start_pos)
+        reset_player_x = player_start_pos[1]
+        reset_player_y = player_start_pos[2]
+    end
     shake.camera_x = now_camera_pos_x
   end
   local function update()
@@ -773,10 +814,15 @@ function init_change_camera()
     camera_location.x = old_camera_pos_x
     camera_location.y = old_camera_pos_y
     if changed_x and changed_y then
-      old_camera_pos_x = now_camera_pos_x
-      old_camera_pos_y = now_camera_pos_y
-      camera_location.x = old_camera_pos_x
-      camera_location.y = old_camera_pos_y
+        if reset_player then
+            player.pos_x = reset_player_x*8 + camera_location.x
+            player.pos_y = reset_player_y*8 + camera_location.y
+            reset_player = false
+        end
+          old_camera_pos_x = now_camera_pos_x
+          old_camera_pos_y = now_camera_pos_y
+          camera_location.x = old_camera_pos_x
+          camera_location.y = old_camera_pos_y
       return true
     else
       return false
@@ -806,6 +852,8 @@ function change_level(level)
   end
   game_state_flag = "change_level"
 
+
+
   for v in all(enemies.enemies) do
       v.destroy()
   end
@@ -817,7 +865,6 @@ function change_level(level)
      ices_table.destroy()
  end
   for i = 1 ,#this_songzi_cfg do
-    -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
 
@@ -826,15 +873,14 @@ function change_level(level)
     change_map(level_cfg.change_map)
   end
   enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
-  if level_cfg.box and #level_cfg.box ~= 0 then
-      boxs_table = init_boxs(level_cfg.box)
-  end
   if level_cfg.ice and #level_cfg.ice ~= 0 then
       ices_table = init_ices(level_cfg.ice)
   end
+  if level_cfg.box and #level_cfg.box ~= 0 then
+      boxs_table = init_boxs(level_cfg.box)
+  end
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
-      -- printh("level-i = " .. i, "dir")
       this_songzi_cfg[i] = level_cfg.songzi[i]
     end
     if #this_songzi_cfg ~= 0 then
@@ -842,6 +888,11 @@ function change_level(level)
     end
   end
 
+  for v in all(changed_map) do
+    mset(v[1], v[2], v[3])
+    del(changed_map, v)
+  end
+  
   local camera_pos = string_to_array(level_cfg.camera_pos)
   local camera_pos_x = camera_pos[1]*8
   local camera_pos_y = camera_pos[2]*8
@@ -1007,7 +1058,7 @@ function init_snow(speed, num, hit_spr_flag)
                 timer.add_timeout('snow_melt'..s.n, 1, function()
                     s.landed = false
                     s.y = 0
-                    s.x = rnd(128)
+                    s.x = rnd(128) + camera_location.x
                 end)
             end
         end
@@ -1302,6 +1353,9 @@ function map_trigger_enter(obj, map_flag, enter_func, direction)
             entered = false
         end
     end
+    obj.destroy_map_enter = function()
+      del(map_trigger_tbl, trigger_enter)
+    end
 
     add(map_trigger_tbl, trigger_enter)
     return trigger_enter
@@ -1523,7 +1577,7 @@ function init_player()
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
-    if game_level == 9 then
+    if game_level == 9 and game_season == "autum" then
         if (player.pos_x < 515) player.pos_x = 516
         if (player.pos_x > 624) player.pos_x = 624
     end
@@ -1573,7 +1627,9 @@ function init_player()
     end
     player.new_ground = 2
 
-    player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+    if player.vecter.y ~= 0 then
+        player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
+    end
 
     player.vecter.y = 0
     player.on_ground = true
@@ -1831,18 +1887,23 @@ end
 function init_comoon_box(box)
     box.down_dis = 0
     box.can_hit = false
-    box.can_move = true
+    -- box.can_move = true
     map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-      mset(zhui_x/8, zhui_y/8, 0)
-    end, "up")
+      -- printh("box_enter==============", "dir")
+      local x, y = zhui_x/8, zhui_y/8
+      local one = {x, y, mget(x, y)}
+      add(changed_map, one)
+      mset(x, y, 0)
+    end, "all")
     oncllision(box, player, {
       height = function()
         player.on_ground_function()
+
       end,
       width = function()
-          if not box.can_move then
-              player.vecter.x = 0
-          end
+          -- if not box.can_move then
+          --     player.vecter.x = 0
+          -- end
           local player_v_x = player.vecter.x
           if abs(player_v_x) >= cfg_box_max_v then
               player.vecter.x = player_v_x > 0 and cfg_box_max_v or -1*cfg_box_max_v
@@ -1859,9 +1920,9 @@ function init_comoon_box(box)
         box.down_dis = box.down_dis + box.vecter.y
       end)
 
-      hit(box, 1, "width", function()
-          box.can_move = false
-      end)
+      -- hit(box, 1, "width", function()
+      --     box.can_move = false
+      -- end)
       box.vecter.x = 0
     end
 end
@@ -1879,7 +1940,7 @@ function init_ices(ice_config)
         for v in all(ices.table) do
             oncllision(ice, v, {
                 width = function()
-                  ice.can_move = false
+                  -- ice.can_move = false
                   ice.vecter.x = 0
                 end,
                 height = function()
@@ -1915,6 +1976,11 @@ function init_ices(ice_config)
     ices.update = function()
         for v in all(ices.table) do
             v.update()
+            hit(v, 1, "height", function()
+                if v.can_hit then
+                    v.destroy()
+                end
+            end)
         end
     end
 
@@ -1931,17 +1997,21 @@ function init_boxs(box_config)
 
     init_comoon_box(box)
 
-    for bin_kuai in all(ices) do
+    for bin_kuai in all(ices_table.table) do
         oncllision(box, bin_kuai, {
             width = function()
               -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
-              box.can_move = false
+              -- box.can_move = false
               box.vecter.x = 0
             end,
           height = function()
-            box.pos_y = bin_kuai.pos_y - 8
+            bin_kuai.pos_y = bin_kuai.pos_y - bin_kuai.vecter.y
+            local b_y, k_y = box.pos_y, bin_kuai.pos_y
+            box.pos_y = k_y + ((b_y > k_y) and 8 or -8)
+            -- box.pos_y = k_y - 8
             box.vecter.y = 0
             box.down_dis = 0
+            bin_kuai.vecter.y = 0
             if box.can_hit then bin_kuai.destroy() end
           end,
         })
@@ -1951,7 +2021,7 @@ function init_boxs(box_config)
         oncllision(box, v, {
           width = function()
               box.vecter.x = v.vecter.x
-              box.can_move = false
+              -- box.can_move = false
           end,
           height = function()
             box.pos_y = v.pos_y - 8
@@ -2008,6 +2078,7 @@ cfg_camera_move_speed = { -- ï¿½â˜‰â™¥ï¿½â™ªï¿½åœ°å›¾ï¿½âŽï¿½ï¿½Ë‡ï¿½å¤´ç§»ï¿½â
 
 cfg_box_gravity = 0.1 --ç®±å­â€¦çšâ–‘éâ™¥â™ªåâŒ‚›
 cfg_box_max_v = 1.5 --æðŸ…¾ï¸¨ç®±å­â€¦æœâ–ˆå¤§éâ–ˆŸåº¦
+cfg_box_max_y = 3 --ç®±å­â€¦åâ˜…ðŸ˜åâ—°åâŽyè½´çšâ–‘æœâ–ˆå¤§éâ–ˆŸåº¦
 
 cfg_levels_autumn = {
   level1 = 'enemy_catepillerscamera_pos0,0icesboxsongzi140,88enemy_beesplayer_start_pos0,7',
@@ -2022,15 +2093,17 @@ cfg_levels_autumn = {
 }
 
 cfg_levels_winter = {
-  level1 = 'enemy_catepillerssongzi140,88camera_pos0,0player_start_pos0,7box130, 88enemy_bees',
-  level2 = 'enemy_catepillersplayer_start_pos0,7ice1160, 80boxcamera_pos16,0songzi1208,48enemy_bees',
-  level3 = 'player_start_pos0,7icesenemy_beessongzi1288,642352,48camera_pos32,0boxenemy_catepillers',
-  level4 = 'songzi1432,72icescamera_pos48,0player_start_pos0,7enemy_bees1432,64,24,0.5,0enemy_catepillers1432,72,24,0.5,1box',
-  level5 = 'player_start_pos0,7camera_pos0,0songzienemy_catepillersicesboxenemy_beeschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16',
-  level6 = 'songzienemy_catepillers1216,48,8,0.5player_start_pos0,5enemy_beesboxicescamera_pos16,0',
-  level7 = 'boxenemy_bees1280,64,16,0.52336,48,16,0.5songzicamera_pos32,0player_start_pos0,5icesenemy_catepillers1336,64,8,0.5,1,1,1',
-  level8 = 'boxcamera_pos48,0icessongziplayer_start_pos0,5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1enemy_bees1464,64,24,0.6',
-  level9 = 'boxenemy_beesplayer_start_pos0,5songziicesenemy_catepillerscamera_pos64,0'
+  level1 = 'camera_pos0,0songzi140,88enemy_catepillersplayer_start_pos0,7boxicesenemy_bees',
+  level2 = 'enemy_beesboxicesplayer_start_pos0,7songzi1224,80camera_pos16,0enemy_catepillers',
+  level3 = 'enemy_catepillerssongzi1336,48player_start_pos0,7ice1264,642352,803344,48boxcamera_pos32,0enemy_bees',
+  level4 = 'camera_pos48,0box1416,40ice1416,64songzi1496,80player_start_pos0,8enemy_catepillersenemy_bees',
+  level5 = 'iceboxenemy_catepillersplayer_start_pos0,7songzienemy_beescamera_pos0,0',
+  level6 = 'enemy_catepillersbox1104,176ice140,184232,216,truesongzienemy_beescamera_pos0,16player_start_pos0,7',
+  level7 = 'camera_pos16,16enemy_beesice1184,2162184,2083192,1924192,1685176,200,trueenemy_catepillersbox1176,168player_start_pos0,7songzi',
+  level8 = 'songzi1288,192iceenemy_beesplayer_start_pos0,5enemy_catepillersbox1296,168camera_pos32,16',
+  level9 = 'camera_pos48,16enemy_catepillersplayer_start_pos0,5box1416,168ice1424,216,trueenemy_beessongzi',
+  level10='boxsongzienemy_beesice1552,168player_start_pos0,5enemy_catepillerscamera_pos64,16',
+  level11='icebox1672,1522712,152enemy_catepillerssongziplayer_start_pos0,5enemy_beescamera_pos80,16',
 }
 
 -->8
