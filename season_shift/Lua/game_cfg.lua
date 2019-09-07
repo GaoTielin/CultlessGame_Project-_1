@@ -19,6 +19,7 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移��
 
 cfg_box_gravity = 0.1 --箱子的重力
 cfg_box_max_v = 1.5 --推箱子最大速度
+cfg_box_max_y = 3 --箱子和冰块y轴的最大速度
 
 cfg_levels_autumn = {
   level1 = 'enemy_catepillerscamera_pos0,0icesboxsongzi140,88enemy_beesplayer_start_pos0,7',

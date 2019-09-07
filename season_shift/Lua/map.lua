@@ -78,6 +78,9 @@ function map_trigger_enter(obj, map_flag, enter_func, direction)
             entered = false
         end
     end
+    obj.destroy_map_enter = function()
+      del(map_trigger_tbl, trigger_enter)
+    end
 
     add(map_trigger_tbl, trigger_enter)
     return trigger_enter

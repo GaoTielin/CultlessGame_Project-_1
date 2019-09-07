@@ -62,6 +62,9 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
               v()
           end
       end
+      if spr_obj.destroy_map_enter then
+        spr_obj.destroy_map_enter()
+      end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
     end
@@ -447,6 +450,8 @@ function change_level(level)
   end
   game_state_flag = "change_level"
 
+
+
   for v in all(enemies.enemies) do
       v.destroy()
   end
@@ -481,6 +486,11 @@ function change_level(level)
     end
   end
 
+  for v in all(changed_map) do
+    mset(v[1], v[2], v[3])
+    del(changed_map, v)
+  end
+  
   local camera_pos = string_to_array(level_cfg.camera_pos)
   local camera_pos_x = camera_pos[1]*8
   local camera_pos_y = camera_pos[2]*8

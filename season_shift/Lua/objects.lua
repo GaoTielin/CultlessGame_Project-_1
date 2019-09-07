@@ -158,7 +158,7 @@ function init_player()
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
-    if game_level == 9 then
+    if game_level == 9 and game_season == "autum" then
         if (player.pos_x < 515) player.pos_x = 516
         if (player.pos_x > 624) player.pos_x = 624
     end
@@ -470,8 +470,12 @@ function init_comoon_box(box)
     box.can_hit = false
     box.can_move = true
     map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-      mset(zhui_x/8, zhui_y/8, 0)
-    end, "up")
+      -- printh("box_enter==============", "dir")
+      local x, y = zhui_x/8, zhui_y/8
+      local one = {x, y, mget(x, y)}
+      add(changed_map, one)
+      mset(x, y, 0)
+    end, "all")
     OnCllision(box, player, {
       height = function()
         player.on_ground_function()

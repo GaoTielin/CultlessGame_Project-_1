@@ -4,6 +4,7 @@ map_location ={
     x = 0,
     y = 0,
 }
+changed_map = {}
 controller = {
   jump = function ()
     if player.state == "climb" then
@@ -110,7 +111,6 @@ controller = {
 }
 
 function _init()
-
   spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
@@ -250,6 +250,9 @@ update_states = {
           if v.name ~= "player" then
               if v.name == "box" or v.name == "ice" then
                   v.vecter.y = v.vecter.y + (v.is_physic and cfg_box_gravity or 0)
+                  if v.vecter.y >= cfg_box_max_y then
+                    v.vecter.y = cfg_box_max_y
+                  end
               else
                   v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
               end
