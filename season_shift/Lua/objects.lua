@@ -479,7 +479,7 @@ function init_comoon_box(box)
     OnCllision(box, player, {
       height = function()
         player.on_ground_function()
-
+        player.vecter.y = box.vecter.y
       end,
       width = function()
           -- if not box.can_move then

@@ -121,10 +121,10 @@ function init_game()
   -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
 
-  game_season = "autum"
-  -- game_season = "winter"
-  cfg_levels = autumn_config -- 秋天开始
-  -- cfg_levels = winter_config -- 冬天开始
+  -- game_season = "autum"
+  game_season = "winter"
+  -- cfg_levels = autumn_config -- 秋天开始
+  cfg_levels = winter_config -- 冬天开始
 
   game_level = 1
 
@@ -133,6 +133,7 @@ function init_game()
     y,
   } --方向标签
   cloud = init_cloud()
+  moon_map = init_moon()
   game_state_flag = "play"--游戏状态标签
   gravity = cfg_gravity-- 重力
   update_state_flag = "play"
@@ -336,13 +337,13 @@ update_states = {
 
   draw_states = {
     start_draw = function()
-      if start_timer >= 120 then
-        load_level("season_shift.p8")
+      if start_timer >= 80 then
+        load_level("winter.p8")
         init_game()
         game_state_flag = "play"
       end
       start_timer += 1
-      local x = flr(start_timer/15)*16
+      local x = flr(start_timer/10)*16
       map(x, 0)
     end,
 
@@ -362,6 +363,9 @@ update_states = {
 }
 -----------------------------------
 function nomal_draw()
+    if game_season == "winter" then
+      moon_map.draw()
+    end
     shake.draw()
     map(map_location.x, map_location.y)
     cloud.draw()
@@ -394,4 +398,5 @@ function nomal_draw()
     Update_Trigger()
     -- map_col.update_trg()
     -- camera(player.pos_x-64, 0)
+
 end

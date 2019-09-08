@@ -32,7 +32,7 @@ function init_snow(speed, num, hit_spr_flag)
                 timer.add_timeout('snow_melt'..s.n, 1, function()
                     s.landed = false
                     s.y = 0
-                    s.x = rnd(128) + camera_location.x
+                    s.x = rnd(128)  + camera_location.x
                 end)
             end
         end
@@ -49,6 +49,7 @@ function init_snow(speed, num, hit_spr_flag)
         draw = draw,
     }
 end
+
 
 function init_cloud()
   local function update_location(need_x, speed)
@@ -107,6 +108,20 @@ function init_cloud()
     update = update,
     draw = draw,
   }
+end
+
+function init_moon()
+  local moon = {}
+    moon.x = 336
+  moon.draw = function()
+    moon.x -= 0.2
+    if moon.x <= -128 then
+      moon.x = 720
+    end
+    map(112, 16, moon.x, camera_location.y + 8)
+  end
+
+  return moon
 end
 
 function init_leaves(speed, num, hit_spr_flag)
