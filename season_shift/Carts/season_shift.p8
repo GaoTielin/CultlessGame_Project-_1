@@ -124,10 +124,10 @@ function init_game()
   -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
 
-  game_season = "autum"
-  -- game_season = "winter"
-  cfg_levels = autumn_config -- ç§â¬…ï¸å¤©å¼â–ˆå§â¬…ï¸
-  -- cfg_levels = winter_config -- åâ—¬å¤©å¼â–ˆå§â¬…ï¸
+  -- game_season = "autum"
+  game_season = "winter"
+  -- cfg_levels = autumn_config -- ç§â¬…ï¸å¤©å¼â–ˆå§â¬…ï¸
+  cfg_levels = winter_config -- åâ—¬å¤©å¼â–ˆå§â¬…ï¸
 
   game_level = 1
 
@@ -340,7 +340,7 @@ update_states = {
   draw_states = {
     start_draw = function()
       if start_timer >= 120 then
-        load_level("season_shift.p8")
+        load_level("winter.p8")
         init_game()
         game_state_flag = "play"
       end
@@ -852,8 +852,6 @@ function change_level(level)
   end
   game_state_flag = "change_level"
 
-
-
   for v in all(enemies.enemies) do
       v.destroy()
   end
@@ -892,7 +890,7 @@ function change_level(level)
     mset(v[1], v[2], v[3])
     del(changed_map, v)
   end
-  
+
   local camera_pos = string_to_array(level_cfg.camera_pos)
   local camera_pos_x = camera_pos[1]*8
   local camera_pos_y = camera_pos[2]*8
@@ -903,7 +901,12 @@ function change_level(level)
   end
   player.hand_songzi = 0
   change_camera.change(level)
-  -- shake.state = 'start'
+  if game_season == "winter" and level == 5 then
+    shake.state = 'start'
+    timer.add_timeout('shake', 2, function()
+        shake.state = 'init'
+    end)
+  end
 end
 
 local fadetable = {
