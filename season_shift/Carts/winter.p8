@@ -1939,7 +1939,7 @@ function init_comoon_box(box)
         box.down_dis = 0
         box.can_hit = false
       end, function()
-        if box.down_dis >= 16 then box.can_hit = true end
+        if box.down_dis >= 13 then box.can_hit = true end
         box.down_dis = box.down_dis + box.vecter.y
       end)
 
@@ -1970,7 +1970,7 @@ function init_ices(ice_config)
                     ice.pos_y = v.pos_y - 8
                     ice.vecter.y = 0
                     ice.down_dis = 0
-                    if ice.can_hit then
+                    if ice.can_hit or v.can_hit then
                         v.destroy()
                         ice.destroy()
                     end
@@ -1998,12 +1998,12 @@ function init_ices(ice_config)
 
     ices.update = function()
         for v in all(ices.table) do
-            v.update()
             hit(v, 1, "height", function()
                 if v.can_hit then
                     v.destroy()
                 end
             end)
+            v.update()
         end
     end
 
@@ -2030,12 +2030,15 @@ function init_boxs(box_config)
           height = function()
             bin_kuai.pos_y = bin_kuai.pos_y - bin_kuai.vecter.y
             local b_y, k_y = box.pos_y, bin_kuai.pos_y
-            box.pos_y = k_y + ((b_y > k_y) and 8 or -8)
+            box.pos_y = k_y + ((b_y > k_y) and 8 or -8) + cfg_box_gravity
             -- box.pos_y = k_y - 8
             box.vecter.y = 0
             box.down_dis = 0
             bin_kuai.vecter.y = 0
+            bin_kuai.down_dis = 0
             if box.can_hit then bin_kuai.destroy() end
+            box.can_hit = false
+            bin_kuai.can_hit = false
           end,
         })
     end
