@@ -9,6 +9,13 @@ camera_location = {
   y = 0,
 }
 changed_map = {}
+cg = {
+  first_map = 0,
+  last_map = 0,
+  timer = 0,
+  over_func = function()
+  end,
+}
 controller = {
   jump = function ()
     if player.state == "climb" then
@@ -327,9 +334,6 @@ update_states = {
         sound_update()
     end,
 
-    game_over_update = function()
-
-    end,
   },
   ---------------------------------
 
@@ -354,10 +358,7 @@ update_states = {
     play_draw = function()
         nomal_draw()
     end,
-    game_over_draw = function()
-      -- map(16, 0)
 
-    end,
   },
   -------------------------------
 }

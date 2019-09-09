@@ -441,6 +441,9 @@ function game_over()
 end
 
 function change_level(level)
+  if level == 12 and game_season == "winter" then
+    season_shift("spring")
+  end
   if game_level ~= level then
     local current_level_songzi = cfg_levels["level" .. game_level].songzi
     for i=1,#current_level_songzi do
@@ -499,12 +502,18 @@ function change_level(level)
   end
   player.hand_songzi = 0
   change_camera.change(level)
-  if game_season == "winter" and level == 5 then
-    shake.state = 'start'
-    timer.add_timeout('shake', 2, function()
-        shake.state = 'init'
-    end)
+  if game_season == "winter" then
+    if level == 5 then
+      shake.state = 'start'
+      timer.add_timeout('shake', 2, function()
+          shake.state = 'init'
+          load_level("ruin.p8")
+      end)
+    elseif level == 6 then
+      load_level("winter.p8")
+    end
   end
+
 end
 
 local fadetable = {

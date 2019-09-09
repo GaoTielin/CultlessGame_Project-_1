@@ -308,12 +308,10 @@ function init_player()
 
   player.check_position = function()
     if player.pos_x + 3 > camera_location.x + 128 then
-
       change_level(game_level+1)
       game_level = game_level + 1
     end
     if  player.pos_x + 8 < camera_location.x then
-
       -- printh("game_level- = " .. game_level, "dri")
       change_level(game_level-1)
       game_level = game_level - 1

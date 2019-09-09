@@ -31,7 +31,7 @@ function init_snow(speed, num, hit_spr_flag)
                 s.landed = true
                 timer.add_timeout('snow_melt'..s.n, 1, function()
                     s.landed = false
-                    s.y = 0
+                    s.y = camera_location.y
                     s.x = rnd(128)  + camera_location.x
                 end)
             end
