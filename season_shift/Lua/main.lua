@@ -125,13 +125,15 @@ function init_game()
   spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
-  -- spring_config = init_config(cfg_levels_spring)
+  spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
 
   -- game_season = "autum"
-  game_season = "winter"
+  -- game_season = "winter"
+  game_season = "spring"
   -- cfg_levels = autumn_config -- 秋天开始
-  cfg_levels = winter_config -- 冬天开始
+  -- cfg_levels = winter_config -- 冬天开始
+  cfg_levels = spring_config --春天开始
 
   game_level = 1
 
@@ -342,7 +344,7 @@ update_states = {
   draw_states = {
     start_draw = function()
       if start_timer >= 80 then
-        load_level("winter.p8")
+        load_level("spring.p8")
         init_game()
         game_state_flag = "play"
       end
