@@ -125,15 +125,15 @@ function init_game()
   spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
-  spring_config = init_config(cfg_levels_spring)
+  -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
 
   -- game_season = "autum"
-  -- game_season = "winter"
-  game_season = "spring"
+  game_season = "winter"
+  -- game_season = "spring"
   -- cfg_levels = autumn_config -- 秋天开始
-  -- cfg_levels = winter_config -- 冬天开始
-  cfg_levels = spring_config --春天开始
+  cfg_levels = winter_config -- 冬天开始
+  -- cfg_levels = spring_config --春天开始
 
   game_level = 1
 
@@ -374,17 +374,17 @@ function nomal_draw()
     cloud.draw()
 
     for v in all(object_table) do
-      if v.flip_x then
+      -- if v.flip_x then
         spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
-      else
+      -- else
           if v.name == 'thief' or v.name == "thief_songzi" then
               if thief.act ~= 'init' then
                   spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
               end
-          else
-            spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+          -- else
+          --   spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
           end
-      end
+      -- end
     end
     if game_season == "winter" then
       snow.draw()
