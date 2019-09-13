@@ -403,7 +403,7 @@ function init_change_camera()
     else
       changed_x = true
     end
-    if fix_driction_y * (flip_x and -1 or 1) > 0 then
+    if fix_driction_y * (flip_y and -1 or 1) > 0 then
       old_camera_pos_y = old_camera_pos_y + cfg_camera_move_speed.y * (flip_y and -1 or 1)
       fix_driction_y = fix_driction_y + cfg_camera_move_speed.y * (flip_y and 1 or -1)
     else
