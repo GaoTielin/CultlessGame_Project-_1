@@ -448,7 +448,7 @@ function init_sandy ()
     sandy.act = 'init'
     sandy.draw = function ()
         spr(187, sandy.x, sandy.y, 1, 1, true)
-        sspr(16, 32, 16, 16, 600, 80)
+        sspr(8, 96, 16, 16, 600, 80)
     end
     sandy.update = function ()
         sandy.x -= 0.1
