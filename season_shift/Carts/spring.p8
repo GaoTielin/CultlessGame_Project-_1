@@ -1,30 +1,17 @@
 pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
--->main-0
+	-->main-0
 --------------ÊüÖæÔ∏èßÂ‚òâ∂Â‚ñ•®----------------
 map_location ={
     x = 0,
     y = 0,
 }
-camera_location = {
-  x = 0,
-  y = 0,
-}
-changed_map = {}
-cg = {
-  first_map = 0,
-  last_map = 0,
-  timer = 0,
-  over_func = function()
-  end,
-}
 controller = {
   jump = function ()
     if player.state == "climb" then
       player.climb_jump()
-      sfx(10)
-    elseif player.can_jump <= player.max_jump and player.can_jump > 0 then
+    else
       player.vecter.y = cfg_jump_speed * -1
       direction_flag.y = "up"
       player.can_jump =  player.can_jump - 1
@@ -33,7 +20,6 @@ controller = {
         change_animation(player, "jump")
         change_animation(tail, "jump")
       end
-      sfx(11)
     end
   end,
 
@@ -42,7 +28,6 @@ controller = {
        player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
       local map_y = player.pos_y + player.height*8 - 1
-      go_sound.play()
       if get_map_flage(map_x, map_y) ~= player.climb_flag then
         player.state = "nomal"
         change_animation(player, "nomal")
@@ -77,14 +62,10 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
-      if player.state == "run" then
-        go_sound.play()
-      end
     elseif player.state == "climb" and player.flip_x then
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
      local map_y = player.pos_y + player.height*8 - 1
-     go_sound.play()
      if get_map_flage(map_x, map_y) ~= player.climb_flag then
        player.state = "nomal"
        change_animation(player, "nomal")
@@ -106,9 +87,6 @@ controller = {
         change_animation(player, "run")
         change_animation(tail, "run")
       end
-      if player.state == "run" then
-        go_sound.play()
-      end
     elseif player.state == "climb" and not player.flip_x then
      player.pos_y -= cfg_climb_speed
      local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
@@ -119,33 +97,26 @@ controller = {
        player.is_physic = true
        player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
      end
-     go_sound.play()
     end
   end,
 }
 
-function init_game()
-  spx_timer = 0
+function _init()
+  game_season = "autum"
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
-  spring_config = init_config(cfg_levels_spring)
+  -- spring_config = init_config(cfg_levels_spring)
   -- summer_config = init_config(cfg_levels_summer)
-
-  -- game_season = "autum"
-  -- game_season = "winter"
-  game_season = "spring"
-  -- cfg_levels = autumn_config -- Áß‚¨ÖÔ∏èÂ§©Âº‚ñàÂß‚¨ÖÔ∏è
-  -- cfg_levels = winter_config -- Â‚óè¨Â§©Âº‚ñàÂß‚¨ÖÔ∏è
-  cfg_levels = spring_config --Ê‚ñ§•Â§©Âº‚ñàÂß‚¨ÖÔ∏è
-
   game_level = 1
-
+  camera_location = {
+    x = 0,
+    y = 0,
+  }
   direction_flag = {
     x,
     y,
   } --Ê‚àßπÂ‚Ä¶‚û°Ô∏èÊ†‚ô•Á≠æ
   cloud = init_cloud()
-  moon_map = init_moon()
   game_state_flag = "play"--Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊ†‚ô•Á≠æ
   gravity = cfg_gravity-- È‚ô•‚ô™Â‚åÇõ
   update_state_flag = "play"
@@ -155,10 +126,7 @@ function init_game()
   player_acceleration_low = cfg_player_acceleration_low
   player_max_v = cfg_player_max_v
 
-  go_sound = init_sound(33, 10)
-
   thief = init_thief()
-  thief_event = true
   sandy = init_sandy()
   player = init_player()
   player.can_jump = player.max_jump
@@ -180,16 +148,15 @@ function init_game()
         player.pos_x = 48
         player.pos_y = 80
       end
-      sfx(29)
     end
   end, "all")
 
   tail = init_tail()
-
+  cfg_levels = autumn_config
   change_camera = init_change_camera()
   tips = init_tips()
 
-  snow = init_snow()
+  -- snow = init_snow()
   -- leaves = init_leaves()
   shake = init_screen_shake()
   chest = init_chest()
@@ -201,9 +168,6 @@ function init_game()
   if this_songzi_cfg then
     songzi = init_songzis(this_songzi_cfg)
   end
-  boxs_table = init_boxs(cfg_levels.level1.box)
-  ices_table = init_ices(cfg_levels.level1.ice)
-
   -- pinecones of whole level
   max_pinecone_num = 5
   player_pinecone = 0
@@ -219,32 +183,22 @@ function init_game()
       if player_pinecone ~= 0 then
         player_pinecone -= 1
         chest.pinecone += 1
-        sfx(29)
       end
     end
   end, 'chest_store')
   change_level(game_level)
-  -- bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
+  bin_kuai = init_spr("bin_kuai", 159, 240, 88, 1, 1, true)
   -- bin_kuai_2 = init_spr("bin_kuai", 159, 23*8, 88, 1, 1, true)
   -- box_1 = init_box(176, 72, bin_kuai_2)
   -- box_2 = init_box(224, 32, bin_kuai)
-
-  music(0)
-end
-
-function _init()
-  game_state_flag = "start"
-  start_timer = 0
-  load_level("start.p8")
+  ices = init_ices(ices_cfg)
+  boxs_table = init_boxs(boxs_cfg)
 end
 
 ------------Ê∏∏Ê‚òâ‚óÜÁ‚åÇ∂Ê‚ñà‚ñíÊú∫-----------------
 game_states = {
 ----------updateÁ‚åÇ∂Ê‚ñà‚ñíÊú∫--------------
 update_states = {
-  start_update = function()
-  end,
-
   change_level_update = function()
     if change_camera.update() then
       game_state_flag = "play"
@@ -253,11 +207,10 @@ update_states = {
 
   play_update = function()
         player.check_position()
-        player.update()
         map_ani_1.update()
         map_ani_2.update()
         player.vecter.y = player.vecter.y + (player.is_physic and gravity or 0)
-        if (btnp (4) ) controller.jump()
+        if (btnp (4) and player.can_jump <= player.max_jump and player.can_jump > 0) controller.jump()
         if (btn (2)) controller.up()
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
@@ -273,9 +226,6 @@ update_states = {
           if v.name ~= "player" then
               if v.name == "box" or v.name == "ice" then
                   v.vecter.y = v.vecter.y + (v.is_physic and cfg_box_gravity or 0)
-                  if v.vecter.y >= cfg_box_max_y then
-                    v.vecter.y = cfg_box_max_y
-                  end
               else
                   v.vecter.y = v.vecter.y + (v.is_physic and gravity or 0)
               end
@@ -285,18 +235,12 @@ update_states = {
             hit(v, 1, "width", function()
               v.vecter.x = 0
             end)
-            hit(v, 14, "height", function()
-              v.vecter.y = 0
-            end)
-            hit(v, 14, "width", function()
-              v.vecter.x = 0
-            end)
             v.pos_x = v.pos_x + v.vecter.x
             v.pos_y = v.pos_y + v.vecter.y
           end
         end
         boxs_table.update()
-        ices_table.update()
+        ices.update()
         update_cllision()
         player.pos_x = player.pos_x + player.vecter.x
         player.pos_y = player.pos_y + player.vecter.y
@@ -308,9 +252,7 @@ update_states = {
             player_state_x_flag = "fast_back"
         end
         player.anction_range()
-        if game_season == "winter" then
-          snow.update()
-        end
+        -- snow.update()
         -- leaves.update()
         timer.update()
         tail.update()
@@ -323,39 +265,28 @@ update_states = {
         if sandy.act == 'show' then
             sandy.update()
         end
-        if chest.pinecone == 10 and thief_event then
+        if chest.pinecone == 10 then
             game_level = 5
             change_level(5)
+            chest.pinecone -= 5
             timer.add_timeout('thief_show', 1, function()
                 thief.act = 'run1'
-                chest.pinecone -= 5
-                music(5)
             end)
-            thief_event = false
         end
         cloud.update()
         tips.update()
         shake.update()
-        sound_update()
     end,
 
+    game_over_update = function()
+
+    end,
   },
   ---------------------------------
 
   -----------drawÁ‚åÇ∂Ê‚ñà‚ñíÊú∫-------------
 
   draw_states = {
-    start_draw = function()
-      if start_timer >= 80 then
-        load_level("spring.p8")
-        init_game()
-        game_state_flag = "play"
-      end
-      start_timer += 1
-      local x = flr(start_timer/10)*16
-      map(x, 0)
-    end,
-
     change_level_draw = function()
       nomal_draw()
     end,
@@ -363,15 +294,15 @@ update_states = {
     play_draw = function()
         nomal_draw()
     end,
+    game_over_draw = function()
+      -- map(16, 0)
 
+    end,
   },
   -------------------------------
 }
 -----------------------------------
 function nomal_draw()
-    if game_season == "winter" then
-      moon_map.draw()
-    end
     shake.draw()
     map(map_location.x, map_location.y)
     cloud.draw()
@@ -389,9 +320,7 @@ function nomal_draw()
           end
       end
     end
-    if game_season == "winter" then
-      snow.draw()
-    end
+    -- snow.draw()
     chest.draw()
     sandy.draw()
     if thief.act == 'run1' or thief.act == 'run2' then thief.draw_run1() end
@@ -404,7 +333,6 @@ function nomal_draw()
     update_trigger()
     -- map_col.update_trg()
     -- camera(player.pos_x-64, 0)
-
 end
 
 -->8
@@ -456,7 +384,6 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         flip_x = false,
         flip_y = false,
     }
-    spr_obj.destroy_cllision = {}
     spr_obj.destroy = function()
       if spr_obj.destroy_trigger_enter then
         spr_obj.destroy_trigger_enter()
@@ -468,12 +395,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         spr_obj.destroy_trigger_stay()
       end
       if spr_obj.destroy_cllision then
-          for v in all(spr_obj.destroy_cllision) do
-              v()
-          end
-      end
-      if spr_obj.destroy_map_enter then
-        spr_obj.destroy_map_enter()
+        spr_obj.destroy_cllision()
       end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
@@ -574,6 +496,32 @@ function ontrigger_stay(sprit_1, sprit_2, stay_func, trigger_name)
     return trigger_stay
 end
 
+function ontrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
+    local entered = false
+    local is_trigger = false
+    local function trigger_exit()
+        is_trigger = trigger(sprit_1, sprit_2)
+        if not entered and is_trigger then
+            entered = true
+        end
+        if entered and not is_trigger then
+            exit_func()
+            entered = false
+        end
+    end
+
+    local idx = #trigger_table + 1
+    add(trigger_table, trigger_exit)
+    sprit_1.destroy_trigger_exit = function()
+      trigger_table[idx] = nil
+    end
+
+    sprit_2.destroy_trigger_exit = function()
+      trigger_table[idx] = nil
+    end
+
+    return trigger_exit
+end
 
 -------------Áõ‚òÖ‰Ω‚ßóÁ¢∞Ê‚òÖûÔº‚òâÁ¢∞Ê‚òÖûÂû‚¨ÖÔ∏èÔºÏõÉ--------------
 cllision_table = {}
@@ -644,16 +592,15 @@ function oncllision(sprit_1, sprit_2, cllision_func)
             end
         end,
     }
-    -- local idx = #cllision_table + 1
-    add(cllision_table, tbl)
-
-    local destroy_func = function()
-        del(cllision_table, tbl)
+    local idx = #cllision_table + 1
+    sprit_1.destroy_cllision = function()
+      cllision_table[idx] = nil
     end
-    add(sprit_1.destroy_cllision, destroy_func)
 
-    add(sprit_2.destroy_cllision, destroy_func)
-
+    sprit_2.destroy_cllision = function()
+      cllision_table[idx] = nil
+    end
+    add(cllision_table, tbl)
 end
 ---------------------------------------
 
@@ -783,11 +730,7 @@ function init_change_camera()
   local now_camera_pos_y = camera_pos[2]*8
   local flip_x = false
   local flip_y = false
-  local fix_driction_x = 0
-  local fix_driction_y = 0
-  local reset_player = false
-  local reset_player_x = 0
-  local reset_player_y = 0
+  local fix_driction = 0
   local function change(level)
     local camera_pos = string_to_array(cfg_levels["level" .. level].camera_pos)
     now_camera_pos_x = camera_pos[1]*8
@@ -796,12 +739,6 @@ function init_change_camera()
     flip_y = old_camera_pos_y > now_camera_pos_y
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
-    if abs(fix_driction_x) > 130 or fix_driction_y ~= 0 then
-        reset_player = true
-        local player_start_pos = string_to_array(cfg_levels["level" .. level].player_start_pos)
-        reset_player_x = player_start_pos[1]
-        reset_player_y = player_start_pos[2]
-    end
     shake.camera_x = now_camera_pos_x
   end
   local function update()
@@ -822,15 +759,10 @@ function init_change_camera()
     camera_location.x = old_camera_pos_x
     camera_location.y = old_camera_pos_y
     if changed_x and changed_y then
-        if reset_player then
-            player.pos_x = reset_player_x*8 + camera_location.x
-            player.pos_y = reset_player_y*8 + camera_location.y
-            reset_player = false
-        end
-          old_camera_pos_x = now_camera_pos_x
-          old_camera_pos_y = now_camera_pos_y
-          camera_location.x = old_camera_pos_x
-          camera_location.y = old_camera_pos_y
+      old_camera_pos_x = now_camera_pos_x
+      old_camera_pos_y = now_camera_pos_y
+      camera_location.x = old_camera_pos_x
+      camera_location.y = old_camera_pos_y
       return true
     else
       return false
@@ -843,7 +775,6 @@ function init_change_camera()
 end
 
 function game_over()
-  sfx(13)
   if player.hand_songzi >0 then
     player_pinecone = player_pinecone - player.hand_songzi
   end
@@ -851,9 +782,6 @@ function game_over()
 end
 
 function change_level(level)
-  if level == 12 and game_season == "winter" then
-    season_shift("spring")
-  end
   if game_level ~= level then
     local current_level_songzi = cfg_levels["level" .. game_level].songzi
     for i=1,#current_level_songzi do
@@ -862,46 +790,28 @@ function change_level(level)
     end
   end
   game_state_flag = "change_level"
-
   for v in all(enemies.enemies) do
       v.destroy()
   end
   songzi.destroy()
-  if boxs_table then
-      boxs_table.destroy()
-  end
-  if ices_table then
-     ices_table.destroy()
- end
   for i = 1 ,#this_songzi_cfg do
+    -- printh("this-i = " .. i, "dir")
     this_songzi_cfg[i] = nil
   end
-
   local level_cfg = cfg_levels["level" .. level]
   if level_cfg.change_map then
     change_map(level_cfg.change_map)
   end
   enemies = init_enemies(level_cfg.enemy_bees, level_cfg.enemy_catepillers)
-  if level_cfg.ice and #level_cfg.ice ~= 0 then
-      ices_table = init_ices(level_cfg.ice)
-  end
-  if level_cfg.box and #level_cfg.box ~= 0 then
-      boxs_table = init_boxs(level_cfg.box)
-  end
   if #level_cfg.songzi ~= 0 then
     for i = 1 ,#level_cfg.songzi do
+      -- printh("level-i = " .. i, "dir")
       this_songzi_cfg[i] = level_cfg.songzi[i]
     end
     if #this_songzi_cfg ~= 0 then
       songzi = init_songzis(this_songzi_cfg)
     end
   end
-
-  for v in all(changed_map) do
-    mset(v[1], v[2], v[3])
-    del(changed_map, v)
-  end
-
   local camera_pos = string_to_array(level_cfg.camera_pos)
   local camera_pos_x = camera_pos[1]*8
   local camera_pos_y = camera_pos[2]*8
@@ -912,18 +822,7 @@ function change_level(level)
   end
   player.hand_songzi = 0
   change_camera.change(level)
-  if game_season == "winter" then
-    if level == 5 then
-      shake.state = 'start'
-      timer.add_timeout('shake', 2, function()
-          shake.state = 'init'
-          load_level("ruin.p8")
-      end)
-    elseif level == 6 then
-      load_level("winter.p8")
-    end
-  end
-
+  -- shake.state = 'start'
 end
 
 local fadetable = {
@@ -1077,8 +976,8 @@ function init_snow(speed, num, hit_spr_flag)
                 s.landed = true
                 timer.add_timeout('snow_melt'..s.n, 1, function()
                     s.landed = false
-                    s.y = camera_location.y
-                    s.x = rnd(128)  + camera_location.x
+                    s.y = 0
+                    s.x = rnd(128)
                 end)
             end
         end
@@ -1095,7 +994,6 @@ function init_snow(speed, num, hit_spr_flag)
         draw = draw,
     }
 end
-
 
 function init_cloud()
   local function update_location(need_x, speed)
@@ -1154,20 +1052,6 @@ function init_cloud()
     update = update,
     draw = draw,
   }
-end
-
-function init_moon()
-  local moon = {}
-    moon.x = 336
-  moon.draw = function()
-    moon.x -= 0.2
-    if moon.x <= -128 then
-      moon.x = 720
-    end
-    map(112, 16, moon.x, camera_location.y + 8)
-  end
-
-  return moon
 end
 
 function init_leaves(speed, num, hit_spr_flag)
@@ -1288,16 +1172,12 @@ end
 function season_shift(season)
   if season == "winter" then
     cfg_levels = winter_config
-    music(-1)
   elseif season == "spring" then
     cfg_levels = spring_config
-    music(-1)
   elseif season == "summer" then
     cfg_levels = summer_config
-    music(-1)
   end
 
-  player_pinecone = 0
   load_level(season..".p8")
   game_level = 1
   change_level(1)
@@ -1388,9 +1268,6 @@ function map_trigger_enter(obj, map_flag, enter_func, direction)
             entered = false
         end
     end
-    obj.destroy_map_enter = function()
-      del(map_trigger_tbl, trigger_enter)
-    end
 
     add(map_trigger_tbl, trigger_enter)
     return trigger_enter
@@ -1405,6 +1282,24 @@ function map_trigger_stay(obj, map_flag, stay_func, direction)
 
     add(map_trigger_tbl, trigger_stay)
     return trigger_stay
+end
+
+function map_trigger_exit(obj, map_flag, exit_func, direction)
+    local entered = false
+    local is_trigger = false
+    local function trigger_exit()
+        is_trigger = map_trigger(obj, map_flag, direction)
+        if not entered and is_trigger then
+            entered = true
+        end
+        if entered and not is_trigger then
+            exit_func()
+            entered = false
+        end
+    end
+
+    add(map_trigger_tbl, trigger_exit)
+    return trigger_exit
 end
 
 function init_map_animation(map_ani_flag, update_time, max_sp, is_flip)
@@ -1472,7 +1367,6 @@ function init_songzis(songzi_config)
     local b = init_spr("songzi", 141, pos_x, pos_y, 1, 1, false, 0, 0)
     init_animation(b, 141, 142, 5, "move", true)
     ontrigger_enter(b, player, function()
-      sfx(8)
       b.destroy()
       player_pinecone = player_pinecone + 1
       player.hand_songzi = player.hand_songzi + 1
@@ -1497,7 +1391,6 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
         ontrigger_enter(e, player, function()
           game_over()
         end)
-        e.sound = init_sound(30, 50)
     elseif type == 'catepiller_x' then
         e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
@@ -1532,9 +1425,6 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
                 e.flip_y = false
             end
             e.pos_y = e.pos_y + (e.flip_y and speed or -speed)
-        end
-        if e.sound then
-          e.sound.play()
         end
     end
     e.draw = function ()
@@ -1612,7 +1502,7 @@ function init_player()
 
   player.anction_range = function()
     if (player.pos_x < 0) player.pos_x = 1
-    if game_level == 9 and game_season == "autum" then
+    if game_level == 9 then
         if (player.pos_x < 515) player.pos_x = 516
         if (player.pos_x > 624) player.pos_x = 624
     end
@@ -1662,9 +1552,7 @@ function init_player()
     end
     player.new_ground = 2
 
-    if player.vecter.y ~= 0 then
-        player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
-    end
+    player.pos_y = (player.vecter.y>0) and flr((player.pos_y + player.vecter.y)/8)*8 or flr((player.pos_y + player.vecter.y)/8)*8 + 8
 
     player.vecter.y = 0
     player.on_ground = true
@@ -1685,16 +1573,12 @@ function init_player()
       end
   end
 
-  player.update = function()
-  end
-
   player.hit = function()
     hit(player, 1, "height", function()
         player_acceleration_fast = cfg_player_acceleration_fast
         player_acceleration_low = cfg_player_acceleration_low
         player_max_v = cfg_player_max_v
       player.on_ground_function()
-      player.on_floor = 0
     end)
     hit(player, 1, "width", function()
       if player.vecter.x ~= 0 then
@@ -1717,7 +1601,6 @@ function init_player()
         player_acceleration_low = cfg_ice_acceleration_low
         player_max_v = cfg_ice_max_v
         player.on_ground_function()
-        player.on_ice = 0
     end)
     hit(player, 14, "width", function()
         if player.vecter.x ~= 0 then
@@ -1754,7 +1637,6 @@ function init_player()
       player.state = "jump"
       player.can_jump = 0
       mset(mogu_x/8, mogu_y/8, 85)
-      sfx(10)
       timer.add_timeout("mogu_hit", 0.1, function()
           mset(mogu_x/8, mogu_y/8, 84)
       end)
@@ -1762,10 +1644,12 @@ function init_player()
 
   player.check_position = function()
     if player.pos_x + 3 > camera_location.x + 128 then
+
       change_level(game_level+1)
       game_level = game_level + 1
     end
     if  player.pos_x + 8 < camera_location.x then
+
       -- printh("game_level- = " .. game_level, "dri")
       change_level(game_level-1)
       game_level = game_level - 1
@@ -1920,23 +1804,18 @@ end
 function init_comoon_box(box)
     box.down_dis = 0
     box.can_hit = false
-    -- box.can_move = true
+    box.can_move = true
     map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-      -- printh("box_enter==============", "dir")
-      local x, y = zhui_x/8, zhui_y/8
-      local one = {x, y, mget(x, y)}
-      add(changed_map, one)
-      mset(x, y, 0)
-    end, "all")
+      mset(zhui_x/8, zhui_y/8, 16)
+    end, "up")
     oncllision(box, player, {
       height = function()
         player.on_ground_function()
-        player.vecter.y = box.vecter.y
       end,
       width = function()
-          -- if not box.can_move then
-          --     player.vecter.x = 0
-          -- end
+          if not box.can_move then
+              player.vecter.x = 0
+          end
           local player_v_x = player.vecter.x
           if abs(player_v_x) >= cfg_box_max_v then
               player.vecter.x = player_v_x > 0 and cfg_box_max_v or -1*cfg_box_max_v
@@ -1949,13 +1828,13 @@ function init_comoon_box(box)
         box.down_dis = 0
         box.can_hit = false
       end, function()
-        if box.down_dis >= 13 then box.can_hit = true end
+        if box.down_dis >= 16 then box.can_hit = true end
         box.down_dis = box.down_dis + box.vecter.y
       end)
 
-      -- hit(box, 1, "width", function()
-      --     box.can_move = false
-      -- end)
+      hit(box, 1, "width", function()
+          box.can_move = false
+      end)
       box.vecter.x = 0
     end
 end
@@ -1965,7 +1844,7 @@ function init_ices(ice_config)
       table = {},
     }
     local function init_ice(pos_x, pos_y, is_songzi)
-        local sp = is_songzi and 196 or 212
+        local sp = is_songzi and 143 or 159
         local ice = init_spr("ice", sp, pos_x, pos_y, 1, 1, true, 0, 0)
         init_comoon_box(ice)
         ice.is_songzi = is_songzi
@@ -1973,14 +1852,14 @@ function init_ices(ice_config)
         for v in all(ices.table) do
             oncllision(ice, v, {
                 width = function()
-                  -- ice.can_move = false
+                  ice.can_move = false
                   ice.vecter.x = 0
                 end,
                 height = function()
                     ice.pos_y = v.pos_y - 8
                     ice.vecter.y = 0
                     ice.down_dis = 0
-                    if ice.can_hit or v.can_hit then
+                    if ice.can_hit then
                         v.destroy()
                         ice.destroy()
                     end
@@ -1990,29 +1869,15 @@ function init_ices(ice_config)
         return ice
     end
 
-    if ice_config then
-        for i = 1 , #ice_config do
-            local cfg_tbl = string_to_array(ice_config[i])
-            local pos_x, pos_y, is_songzi = cfg_tbl[1], cfg_tbl[2], cfg_tbl[3]
-            ice = init_ice(pos_x, pos_y, is_songzi)
-            ice.idx = i
-            add(ices.table, ice)
-        end
-    end
-
-    ices.destroy = function()
-        for v in all(ices.table) do
-            v.destroy()
-        end
+    for i = 1 , #ice_config do
+        local pos_x, pos_y, is_songzi = ice_config[i][1], ice_config[i][2], ice_config[i][3]
+        ice = init_ice(pos_x, pos_y, is_songzi)
+        ice.idx = i
+        add(ices.table, ice)
     end
 
     ices.update = function()
         for v in all(ices.table) do
-            hit(v, 1, "height", function()
-                if v.can_hit then
-                    v.destroy()
-                end
-            end)
             v.update()
         end
     end
@@ -2026,29 +1891,22 @@ function init_boxs(box_config)
   }
 
   local function init_box(pos_x, pos_y)
-    local box = init_spr("box", 192, pos_x, pos_y, 1, 1, true, 0, 0)
+    local box = init_spr("box", 3, pos_x, pos_y, 1, 1, true, 0, 0)
 
     init_comoon_box(box)
 
-    for bin_kuai in all(ices_table.table) do
+    for bin_kuai in all(ices) do
         oncllision(box, bin_kuai, {
             width = function()
               -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
-              -- box.can_move = false
+              box.can_move = false
               box.vecter.x = 0
             end,
           height = function()
-            bin_kuai.pos_y = bin_kuai.pos_y - bin_kuai.vecter.y
-            local b_y, k_y = box.pos_y, bin_kuai.pos_y
-            box.pos_y = k_y + ((b_y > k_y) and 8 or -8) + cfg_box_gravity
-            -- box.pos_y = k_y - 8
+            box.pos_y = bin_kuai.pos_y - 8
             box.vecter.y = 0
             box.down_dis = 0
-            bin_kuai.vecter.y = 0
-            bin_kuai.down_dis = 0
             if box.can_hit then bin_kuai.destroy() end
-            box.can_hit = false
-            bin_kuai.can_hit = false
           end,
         })
     end
@@ -2057,7 +1915,7 @@ function init_boxs(box_config)
         oncllision(box, v, {
           width = function()
               box.vecter.x = v.vecter.x
-              -- box.can_move = false
+              box.can_move = false
           end,
           height = function()
             box.pos_y = v.pos_y - 8
@@ -2070,19 +1928,11 @@ function init_boxs(box_config)
   end
 
   for i = 1 , #box_config do
-    local cfg_tbl = string_to_array(box_config[i])
-    local b_x, b_y = cfg_tbl[1], cfg_tbl[2]
+    local b_x, b_y = box_config[i][1], box_config[i][2]
     local box = init_box(b_x, b_y, bin_kuai)
     box.idx = i
     add(boxs.table, box)
   end
-
-  boxs.destroy = function()
-      for v in all(boxs.table) do
-          v.destroy()
-      end
-  end
-
   boxs.update = function()
       for v in all(boxs.table) do
           v.update()
@@ -2098,11 +1948,11 @@ end
 cfg_player_acceleration_fast = 0.3 -- ÔøΩ‚û°Ô∏èÊ≠•ÔøΩ‚åÇÔøΩÔøΩ‚ñàÔøΩÂ∫¶
 cfg_player_acceleration_low = 0.6 -- ÔøΩ‚û°Ô∏èÊ≠•ÔøΩ‚ô•‚óÜÔøΩ‚ñàÔøΩÂ∫¶
 cfg_player_max_v = 1.8 -- ÔøΩ‚ñàÂ§ßÔøΩ‚ñàÔøΩÂ∫¶
-cfg_ice_acceleration_fast = 0.1--Â‚óè∞Èù¢Â‚åÇ†È‚ñàüÂ∫¶
-cfg_ice_acceleration_low = 0.1--Â‚óè∞Èù¢Â‚ô•‚óÜÈ‚ñàüÂ∫¶
-cfg_ice_max_v = 3 -- Â‚óè∞Èù¢Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
+cfg_ice_acceleration_fast = 0.15--Â‚óè∞Èù¢Â‚åÇ†È‚ñàüÂ∫¶
+cfg_ice_acceleration_low = 0.15--Â‚óè∞Èù¢Â‚ô•‚óÜÈ‚ñàüÂ∫¶
+cfg_ice_max_v = 2.4 -- Â‚óè∞Èù¢Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
 
-cfg_jump_speed = 3 -- Ë∑≥ÔøΩ‚¨áÔ∏èÔøΩ‚ñàÔøΩÂ∫¶
+cfg_jump_speed = 	3 -- Ë∑≥ÔøΩ‚¨áÔ∏èÔøΩ‚ñàÔøΩÂ∫¶
 cfg_climb_speed = 1.6 -- ÔøΩ‚òâÔøΩÔøΩ‚ñ•ÔøΩ‚ñàÔøΩÂ∫¶
 cfg_gravity = 0.3 -- ÔøΩ‚ô•‚ô™ÔøΩ‚åÇÔøΩ(ÔøΩ‚Ä¶‚û°Ô∏èÔøΩ‚¨ÖÔ∏èÔøΩ‚ñëÔøΩ‚åÇÔøΩÔøΩ‚ñàÔøΩÂ∫¶)
 
@@ -2114,66 +1964,44 @@ cfg_camera_move_speed = { -- ÔøΩ‚òâ‚ô•ÔøΩ‚ô™ÔøΩÂú∞ÂõæÔøΩ‚ùéÔøΩÔøΩÀáÔøΩÂ§¥ÁßªÔøΩ‚
 
 cfg_box_gravity = 0.1 --ÁÆ±Â≠‚Ä¶Áö‚ñëÈ‚ô•‚ô™Â‚åÇõ
 cfg_box_max_v = 1.5 --ÊüÖæÔ∏è®ÁÆ±Â≠‚Ä¶Êú‚ñàÂ§ßÈ‚ñàüÂ∫¶
-cfg_box_max_y = 3 --ÁÆ±Â≠‚Ä¶Â‚òÖüòêÂ‚óè∞Âù‚ùéyËΩ¥Áö‚ñëÊú‚ñàÂ§ßÈ‚ñàüÂ∫¶
+boxs_cfg = { --ÁÆ±Â≠‚Ä¶È‚úΩ‚ô™ÁΩÆ
+    -- {176, 72},
+    {264,64},
+    {424,88},
+    {416,40},
+   
+}
+ices_cfg = { --Â‚óè∞Âù‚ùéÈ‚úΩ‚ô™ÁΩÆ
+    -- {48, 88},
+    {360,80},
+    {468,40},
+    {416,64},
+
+}
 
 cfg_levels_autumn = {
-  level1 = 'enemy_catepillerscamera_pos0,0icesboxsongzi140,88enemy_beesplayer_start_pos0,7',
-  level2 = 'songzi1208,48icesenemy_catepillersenemy_beescamera_pos16,0player_start_pos0,7box',
-  level3 = 'player_start_pos0,7icesenemy_beessongzi1288,642352,48camera_pos32,0boxenemy_catepillers',
-  level4 = 'songzi1432,72icescamera_pos48,0player_start_pos0,7enemy_bees1432,64,24,0.5,0enemy_catepillers1432,72,24,0.5,1box',
-  level5 = 'player_start_pos0,7camera_pos0,0songzienemy_catepillersicesboxenemy_beeschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16',
-  level6 = 'songzienemy_catepillers1216,48,8,0.5player_start_pos0,5enemy_beesboxicescamera_pos16,0',
-  level7 = 'boxenemy_bees1280,64,16,0.52336,48,16,0.5songzicamera_pos32,0player_start_pos0,5icesenemy_catepillers1336,64,8,0.5,1,1,1',
-  level8 = 'boxcamera_pos48,0icessongziplayer_start_pos0,5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1enemy_bees1464,64,24,0.6',
-  level9 = 'boxenemy_beesplayer_start_pos0,5songziicesenemy_catepillerscamera_pos64,0'
+  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
+  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
+  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
+  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
+  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
+  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
+  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
+  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
+  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
 }
 
 cfg_levels_winter = {
-  level1 = 'camera_pos0,0songzi140,88enemy_catepillersplayer_start_pos0,7boxicesenemy_bees',
-  level2 = 'enemy_beesboxicesplayer_start_pos0,7songzi1224,80camera_pos16,0enemy_catepillers',
-  level3 = 'enemy_catepillerssongzi1336,48player_start_pos0,7ice1264,642352,803344,48boxcamera_pos32,0enemy_bees',
-  level4 = 'camera_pos48,0box1416,40ice1416,64songzi1496,80player_start_pos0,8enemy_catepillersenemy_bees',
-  level5 = 'iceboxenemy_catepillersplayer_start_pos0,7songzienemy_beescamera_pos0,0',
-  level6 = 'enemy_catepillersbox1104,176ice140,184232,216,truesongzienemy_beescamera_pos0,16player_start_pos0,7',
-  level7 = 'camera_pos16,16enemy_beesice1184,2162184,2083192,1924192,1685176,200,trueenemy_catepillersbox1176,168player_start_pos0,7songzi',
-  level8 = 'songzi1288,192iceenemy_beesplayer_start_pos0,5enemy_catepillersbox1296,168camera_pos32,16',
-  level9 = 'camera_pos48,16enemy_catepillersplayer_start_pos0,5box1416,168ice1424,216,trueenemy_beessongzi',
-  level10='boxsongzienemy_beesice1552,168player_start_pos0,5enemy_catepillerscamera_pos64,16',
-  level11='icebox1672,1522712,152enemy_catepillerssongziplayer_start_pos0,5enemy_beescamera_pos80,16',
+  level1 = 'camera_pos0,0songzi1104,64player_start_pos0,7enemy_catepillersenemy_bees',
+  level2 = 'camera_pos16,0player_start_pos0,7enemy_beesenemy_catepillerssongzi1208,48',
+  level3 = 'player_start_pos0,7enemy_beescamera_pos32,0enemy_catepillerssongzi1288,642352,48',
+  level4 = 'camera_pos48,0enemy_catepillers1432,72,24,0.5,1songzi1432,72player_start_pos0,7enemy_bees1432,64,24,0.5,0',
+  level5 = 'enemy_beessongzienemy_catepillerschange_map123,11,2224,11,2342,7,16442,8,16542,9,16642,10,16763,9,16863,10,16963,11,16camera_pos0,0player_start_pos1,11',
+  level6 = 'camera_pos16,0songziplayer_start_pos0,5enemy_catepillers1216,48,8,0.5enemy_bees',
+  level7 = 'enemy_bees1280,64,16,0.5camera_pos32,0player_start_pos0,5enemy_catepillers1336,64,8,0.5,1,0,12320,56,8,0.5,0,1,1songzi',
+  level8 = 'player_start_pos0,5camera_pos48,0songzienemy_bees1464,64,24,0.5enemy_catepillers1432,72,24,0.5,02432,72,24,0.5,1',
+  level9 = 'enemy_catepillersplayer_start_pos0,5songzienemy_beescamera_pos64,0'
 }
-
-cfg_levels_spring = {
-    level1 = 'camera_pos0,0songzi140,88enemy_catepillersplayer_start_pos0,7boxicesenemy_bees',
-}
-
--->8
--->sound
-sound_table = {}
-
-function init_sound(num, timer)
-  local sound_player = {}
-  sound_player.timer = -1
-  sound_player.play = function()
-    if sound_player.timer < 0 then
-      sfx(num)
-      sound_player.timer = timer
-    end
-  end
-  sound_player.update = function()
-    if sound_player.timer >= 0 then
-      sound_player.timer -= 1
-    end
-  end
-
-  add(sound_table, sound_player)
-  return sound_player
-end
-
-function sound_update()
-  for v in all(sound_table) do
-    v.update()
-  end
-end
 
 __gfx__
 00000000bbbbbbbb080021006666666677777777777777777777777777777777cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -2192,14 +2020,14 @@ ccccccccfffff3ffccc8cccc77777777cccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccffffffffcc878ccc77777777ccccc7ccccccccccccc7cccccccccccccccccccccccccccccccc77eeeeeeeeeeee777eee777cccbbbbcccccccccccccc
 ccccccccfbffffffc88888cc77777777cccccccccccccccccccccccccccccccccccccccccccccccccccc77eeeeeeeeeeeee7eeeee7777777bbcccccccccccccc
 ccccccccffffffbfcc777ccc77777777ccccccccccccccccccccccccccccccccccccccccccccccccc7777eeeeeeeeeeeeeeeeeeeeeee777777cccccccccccccc
-77777777ffffffff00000000000000008800000088000000ccccccccccccccccccccccceccccccc777eeeeeeee7eeeeeeeeeeeeeeeeeee7777cccccccccccccc
-77777777ffffffff0000000000000000dd000000dd000000cccccccccccccccccccccceeeccccce777eeeee777eeeeeeeeeeeeeeee7eeeee77cccccccccccccc
-77777777fffffbff00000000000000008800000008800000ccccccccccccccccccccccccccccceeeeeeeeeee77eeeeeeeeeeeeeeee7eeeeee77ccccccceccccc
-77777777ffffffff0000000000000000dd00000000dd0000ccccccccccccccccccccccccccccceeeeeeeeeeee7eeeeeeeeeeeeee7777eeeeee7cccccceeccccc
-77777777ffffffff000000000000d0008800000008800000ccbccccccccbccccccccccccccc7eeeeeeeeeeeeeeeeeeeeeeeeeeeee7777eeeeee77ccccccccccc
-77777777fbffffff000000000008d8008800000088000000cccbbbcccccbcccccccccccccc7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee7ccccccccccc
-77777777ffffffff08882828088808d88800000088000000cccbcbcccccbbcccccccccccc7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee7eeeeeeeeeeeccccccccc
-66666666ffffffff08882828088000d80000000000000000cccbcccccccbcbcccccccccc7eeeeeeee7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee7eecccccccc
+77777777ffffffffcccccccccccccccc88cccccc88ccccccccccccccccccccccccccccceccccccc777eeeeeeee7eeeeeeeeeeeeeeeeeee7777cccccccccccccc
+77777777ffffffffccccccccccccccccddccccccddcccccccccccccccccccccccccccceeeccccce777eeeee777eeeeeeeeeeeeeeee7eeeee77cccccccccccccc
+77777777fffffbffcccccccccccccccc88ccccccc88cccccccccccccccccccccccccccccccccceeeeeeeeeee77eeeeeeeeeeeeeeee7eeeeee77ccccccceccccc
+77777777ffffffffccccccccccccccccddccccccccddccccccccccccccccccccccccccccccccceeeeeeeeeeee7eeeeeeeeeeeeee7777eeeeee7cccccceeccccc
+77777777ffffffffccccccccccccdccc88ccccccc88cccccccbccccccccbccccccccccccccc7eeeeeeeeeeeeeeeeeeeeeeeeeeeee7777eeeeee77ccccccccccc
+77777777fbffffffccccccccccc8d8cc88cccccc88cccccccccbbbcccccbcccccccccccccc7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee7ccccccccccc
+77777777ffffffffc8882828c888c8d888cccccc88cccccccccbcbcccccbbcccccccccccc7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee7eeeeeeeeeeeccccccccc
+66666666ffffffffc8882828c88cccd8cccccccccccccccccccbcccccccbcbcccccccccc7eeeeeeee7eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee7eecccccccc
 cccccccccccccccccccccccc97777777bbbbbbbbcccccccc0000000000080000cccccccc7eeeeeeeee77eeeeeeeeeeee7eeee7eeeeeeeeeeeeee77eecccccccc
 76ccc67c666ccc6676ccc67cd9999997b2bbb2bbcccccccc0800000000000008cccccccc7eeeeeeeeee77eeeeeeeeeeee7e77eeeeeeeeeeeeeeeeeeeeccccccc
 776c677c7776c677776c677cd99999972d2b2d26cccccccc00a0800000008000cccccccc7eeeeeeeeee77eeeeeeeeeeeee777eeeeeeeeeeeeee7eeeee7cccccc
@@ -2208,22 +2036,22 @@ cc79c4ccccc55ccccc79c4ccd99999972dddddd67ccccccc0808988000888880ccccccccceeeeeee
 cc55ccccccc99ccccc55ccccd99999972dddddd6bc7bbbcc0889a98008899988ccccccccceeeeeeeeeeeeeeeee4eeeeeeeeeeeee4eeeeeeeeeee7eeecccccccc
 cc99cccccccc5cccccc99cccd99999972dddddd67bbbbb3c889aaa98889aa998cccccccccceeeeeeeeeeeeeee444eeeeeeeeeeee4eeeeeeeeeeeeeeecccccccc
 ccc57cccccccc7ccccccc57cd99999972dddddd6b3bb337789aaaaa8899aaa98ccccccc7eeeeeeeeeeeeeeeeeee44eeeeeeeeeef44eee7eeeeeeeeeccccccccc
-00000000000a0000cc77ccccccccccccccc33cccccee33ccccccccccccccccccccccccc7eeeeeeeeeeeeeee7eeee444eeeeeee74eeeee77eeeeeeccccccccccc
-000a000000aaa000ccc7cc888cccccccc888c3ccccee8c3ccccccccccccccccccccccc7eeeeeeeeeeeeee777eeeeeee44eeee4feeeee777eeeeeeecccccccccc
-00a7a0000aa7aa00ccc7c88888cccccccee8c3cccc888cc3cccccccccccccccccccccc7eeeeeeee4eeeeeee77eeeeee444fee44eeeeeeeeeeeeeeeeccccccccc
-0a777a00aa777aa0ccc78887888ccccccee8c3cccccccc3cccccccccccccccccccccc7eeeeeeeeee4eeeeeeeee4eeeee44e44feeeeeeeeeeee4eeeeccccccccc
-00a7a0000aa7aa00ccc888777888ccccccccc3cccccccc3cccccccccccccccccccccc7eeeeeeeeee44eeeeeeeee4eeeee4444feeeeeeeeeee4eee7eeeccccccc
-000a000000aaa000cc88877777888cccccccc3ccccccc3ccccccccccccccccccccccc7eeeeeeeeeee4eeeeeeeeee44eee444ffeeeeeeeeee4eeee77eeecccccc
-00000000000a0000c8887777777888cccccc333ccccc333cccccccccccccccccccccc77eeeeeeeeee44eeeeeeeeeee4fe444ffee44444444ee777777eeeccccc
-000000000000000088877777777788ccccc33333ccc33333cccccccccccccccccccccc7eeeee7e7eeee444eeeeeeee44f444fee4fff4eeeeee777777eeeccccc
-cccccccccccccccc887777777777788ccccccccccccccccccccccccccccccccccccceeeeeeeee77eeeeee444eeeeeee44444444ffeeeeeeee77777777eeccccc
-cccccccccccccccccc77e87777777cccccc88cccccccccccccccccccccccccccccc77eeeeeeeeeeeeeeeee4444eeeee4444444feeeeeeeeeee7777eeeeeccccc
-cccccccccccccccccc77887777777ccccc8878ccccc88cccccccccccccccccccccc77eeeee7eeeeeeeeee44ee44feeee44444ffeeeeeeee7eee77eeeeecccccc
-ccaceccccccecacccc77777755577cccc878888ccc8878cccccccccccccccccccccc777eeeeeeeeeeeeee4eeee44feee44444feeeeeeeeee7777eeeeeecccccc
-ccc7cccccccc7ccccc77777755577ccc88888788c878888ccccccccccccccccccccc777777eeeeeee7fe4e7eee444ffe444444eeeeeeeeeee777eeeeeccccccc
-cce3acccccca3ecccc77777755577cccccc77ccc88888788ccccccccccccccccccccc7777777e7eeff444777eee444ff4444444ffffeeeeeee7eeeeeeccccccc
-ccc3cccccccc3cccc777777755d777ccccc77ccccc7776cccccccccccccccccccccccc777777ee7744777777eeee444444444444444ff77feeeeeeeecccccccc
-ccc3ccccccc3cccc777777775557777cccc77cccccc76ccccccccccccccccccccccccccee77777777777777eeeeee444444447777777eeeeeeeeeee7cccccccc
+00000000000a0000007700ddd0000000ccc33cccccee33ccccccccccccccccccccccccc7eeeeeeeeeeeeeee7eeee444eeeeeee74eeeee77eeeeeeccccccccccc
+000a000000aaa00000770ddddd000000c888c3ccccee8c3ccccccccccccccccccccccc7eeeeeeeeeeeeee777eeeeeee44eeee4feeeee777eeeeeeecccccccccc
+00a7a0000aa7aa000007ddddddd00000cee8c3cccc888cc3cccccccccccccccccccccc7eeeeeeee4eeeeeee77eeeeee444fee44eeeeeeeeeeeeeeeeccccccccc
+0a777a00aa777aa0000dddd7ddd00000cee8c3cccccccc3cccccccccccccccccccccc7eeeeeeeeee4eeeeeeeee4eeeee44e44feeeeeeeeeeee4eeeeccccccccc
+00a7a0000aa7aa00000ddd777ddd0000ccccc3cccccccc3cccccccccccccccccccccc7eeeeeeeeee44eeeeeeeee4eeeee4444feeeeeeeeeee4eee7eeeccccccc
+000a000000aaa00000ddd77777ddd000ccccc3ccccccc3ccccccccccccccccccccccc7eeeeeeeeeee4eeeeeeeeee44eee444ffeeeeeeeeee4eeee77eeecccccc
+00000000000a00000ddd7777777ddd00cccc333ccccc333cccccccccccccccccccccc77eeeeeeeeee44eeeeeeeeeee4fe444ffee44444444ee777777eeeccccc
+0000000000000000ddd777777777ddd0ccc33333ccc33333cccccccccccccccccccccc7eeeee7e7eeee444eeeeeeee44f444fee4fff4eeeeee777777eeeccccc
+ccccccccccccccccdd77777777777dd0cccccccccccccccccccccccccccccccccccceeeeeeeee77eeeeee444eeeeeee44444444ffeeeeeeee77777777eeccccc
+cccccccccccccccc0077e87777777000ccc88cccccccccccccccccccccccccccccc77eeeeeeeeeeeeeeeee4444eeeee4444444feeeeeeeeeee7777eeeeeccccc
+cccccccccccccccc0077887777777000cc8878ccccc88cccccccccccccccccccccc77eeeee7eeeeeeeeee44ee44feeee44444ffeeeeeeee7eee77eeeeecccccc
+ccaceccccccecacc0077777755577000c878888ccc8878cccccccccccccccccccccc777eeeeeeeeeeeeee4eeee44feee44444feeeeeeeeee7777eeeeeecccccc
+ccc7cccccccc7ccc007777775557700088888788c878888ccccccccccccccccccccc777777eeeeeee7fe4e7eee444ffe444444eeeeeeeeeee777eeeeeccccccc
+cce3acccccca3ecc0077777755577000ccc77ccc88888788ccccccccccccccccccccc7777777e7eeff444777eee444ff4444444ffffeeeeeee7eeeeeeccccccc
+ccc3cccccccc3ccc0777777755d77700ccc77ccccc7776cccccccccccccccccccccccc777777ee7744777777eeee444444444444444ff77feeeeeeeecccccccc
+ccc3ccccccc3cccc0777777755577700ccc77cccccc76ccccccccccccccccccccccccccee77777777777777eeeeee444444447777777eeeeeeeeeee7cccccccc
 ccccbcccccccbcccccccbcccccccbcccc44444ccc44444ccccccccccccccccccccccccccc777777777777eeeeeeeec4444444777777eeeceeeeeee77cccccccc
 ccccbcccccccbccccccbbccccccbbccc4455544c4455544ccccccaaaaaccccccccccccccccccccccccccceeeecccccc444444ccccceeecccceeeee7ccccccccc
 cccbbbbcccbbbbccccccbccccccccbcc4449444c4449444cccccaaaaaaaaccccccccccccccccccccccccccccccccccc444444ccccccccccccccce7cccccccccc
@@ -2240,70 +2068,69 @@ cccbbceccccbbcecccccccccccccccccbbb4bbbbccc4ccccaaaaaaaaaaaaaaaacccccccccccccccc
 0000000000000000000000000000000004dddd4044dddd40ccaaaaaaaaaaaacccccccccccccbbcccccccbbbbbb3bbbbb44bbbbff33bbbbbbbccccccccccccccc
 000000000000000000000000000000000055550004555540cccaaaaaaaaaaccccccbbbbbebbbbbbbbbbbbeeb33bbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccc
 0000000000000000000000000000000000d0d000000d0d00cccccaaaaaacccccccbbbbbbbbbbbbbbbbbbbbbbbbbbbb3bbbbbbbbbbb3bbbbbbbbbeeeeeccccccc
-000f0000000eef00000ef0000000000000000000000000000000000000000f0000000f0000000000000000000000000000000000000000000000000000000000
-0ef00f000fef000000efeef00000000000ffff000ffff000000000000000fee00000fee00fff0f00000000000000000000000000000000000006600000066000
-ef000ee0fef00f000ef0000f00fff0000feeeef0f00eeef0f0000000000fe77e00fee77efeeefee00ff000000000000000000000000000000069760000600600
-fe00fe7eef00fee0f0000f000feeef00f000000f000000ee0efff0000feee0000fee7e00e770e77efeef0f0000000000000000000009700006999a6006000060
-e0ffe700f0ffe77e0ff0fee0f0000ef0000000000000000000eeeef00fe70ee00fe700e00eee0e00e77efee0000000000000000000999a000644496006000060
-f0ee7ee00fee0e00feefe77e0000000f00000000000000000000000ffe770000fee00000000000e0e707e77e0000000000660000004449000644496006000060
-0fe700000e7700e0e7700e00000000000000000000000000000000000ee0000000eee000000000000ee00e000000066006796000004449000064460000600600
-00eee00000eee0000eee00ee0000000000000000000000000000000000ee00000000000000000000000000ee000067966a999600000440000006600000066000
-000f0f00f0000f000000000000000000000000000000000000000000000000000000000000000000000000000006a99969442600000000000007800007f07f00
-0fe00ee00e000ee000fff0000f000000f0000000000000000000000000000000000000000000000000000000000644426944260000078000000e8000feefee20
-fe00f77e0fe0f77e0feeeef000f000000e0000000000000000fff00000000000000000000000000000000000006644a967927960000e800000e88e008eeeee20
-fe00fe000fe0fe000e00000f00eff0000ef00000000fff000feeef0000000f000ff0000000000f0000000f0006799799949a999600e88e007888888208eee200
-fe0fe7ee0fefe7e0f0000000000eef0000eff00000feeef00e000ef00fffeee0feef0f000fff0ee00ff0fee06a449a4424494426788888820e888820008e2000
-0e0fe7000fefe70e0ff00f0000000eef000eeeeffee0000ff00000effeeee77ee77efee0feeef77efeefe77e64449944244944260e88882000e8820000020000
-00e0fee000e0fe00feeffeef00000000000000000000000000000000e770fe00ee07e77eee77e000ee77e000062246226296426000e88200000e200000000000
-000f000e000f00eeff77efff00000000000000000000000000000000eef0f0ee0f000ef0f0ee0ee00eef0ef00066606606606600000e20000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000009a00000000000000000000000000000000000000000000
-00600000006600000066600000000000000000000066000000060000000060000000060009aa000000990000000000000000000000000000007d7000007d7000
-0600060006f0000006ff06000000000000666600000f666000006600000aff000066aff00996a6000060a00000000000000000000000000007d7d70007d7d700
-6f000ff06f0000606f000000000666000000ff6000000ff600000f609aaf000006fa70006f7f7ff006f60a6000000000000000000000000007ddd70007dd7700
-6f00f7006f00afff60000a600060ff60000000f600000000000000f699f7f000f9a0f0000ff0f000f770f7ff00000000000000000000000007d7d70007d7d700
-6f067af0060af700066fafff000000f6000000000000000000000000ff700f000990000000000f000ff00f0000000000000000000000000006777600067d7600
-069aa00000f9aff00f9af700000000000000000000000000000000000f00000000f0000000000000000000f00000000000000000000000000066600000666000
-0099f00000f9900000990ff00000000000000000000000000000000000f000000000000000000000000000000000000000000000000000000000000000000000
-000000600000006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f0000000000000000000000
-000600ff000600ff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e00f0000077700000777000
-00600f7000600f700066600000600000000000000000000000066000000000000009a00000000000000000000000000000000000ef00ee0007d7d70007d7d700
-06f0a6ff06f0a6f006ff0600000660000060000000066600006ff600009a00000009900000000000009a00000000000000000000f00fe7e0077d7700077d7700
-06f06a7006f06a7f6f00009a0000f60000066600006fff6000000f600099a0600000a000009a0060009900600000000000000000e0fe709707d7d700077d7700
-00f09a7000f09a706000069900000ff60000fff600f00006000000f6066f0aff0f660a600699a0ff0660a6ff0000000000000000f0e7eee90677760006777600
-000699f0000699ff066faff600000000000000000000000000000000f770f700f770f7ffff77fa006f7ffa0000000000000000000fe700490066600000666000
-0000000f00000000ff7af766000000000000000000000000000000000ff060f00f060f6060ff0ff00ff60f60000000000000000000eee0000000000000000000
-00776d00001212000021210000d677000076670000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccc
-07d6d6d00d51d120021d15d00d6d6d700767b6700703b000000000000006600000066000000000000000000000000000cccccccccccccccccccccccccccccccc
-6d6d6d51d6dd1d1221d1dd6d15d6d6d676337b6776337b07000000000063b60000600600000000000000000000000000cccccccccccccccccccccccccccccccc
-d6dddd126d6dd152251dd6d621dddd6d6d1177d66d7163760003b00006333b6006000060000000000000000000000000ccccccccccccccccccccccc7cccccccc
-6d6dd15176ddd512215ddd67151dd6d66d1713766dc1137d00333b000611136006000060000000000000000000000000ccccccccccccccccccccccc7777ccccc
-55d515127d6d6d5115d6d6d721515d5576711c677671176c001113000611136006000060000000000000000000000000cccccccccccccccccccccc777777cccc
-0151512007d6d510015d6d7002151510076dd670076d06d7001113000061160000600600000000000000000000000000ccccccccccccccccccccc77777777ccc
-00121200006d65000056d600002121000076670000767070000110000006600000066000000000000000000000000000cccccccccccccccccccccccccccccccc
-000007007cd6d6d700000007700000000076670000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccc
-000006700cdc67d007776dccdd6700000767d67007000000000000000703b00000000000000000000000000000000000cccccccccccccccccccccccccccccccc
-00700c700d6c0c607dccc6dd67cc670076dc7d67760070070000000076337b0700000000000000000000000000000000cccccccccccccccccccccccccccccccc
-00600c7006c60c7000006cc6d60000006dcc77d66d706076000000006d71637600000000000000000000000000000000cccccccccccccccccccccccccccccccc
-07c06c6007c006000000006d6cc600006dc7cc766dc0c07d000000076dc1137d00000000000000000000000000000000cccccccccccccccccccccccccccccccc
-06c0c6d007c007000076cc76dd6cccd7767ccd677670076c70c000007671176c00000000000000000000000000000000ccccccccccccccc777cccccccccccccc
-0d76cdc007600000000076ddccd67770076dd670076d06d77d6d00d7076d06d700000000000000000000000000000000cccccccccccccc77777ccccccccccccc
-7d6d6dc70070000000000007700000000076670000767070077606700076707000000000000000000000000000000000cccccccc77ccc777777ccccccccccccc
-000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccc777777c7777777cccc777ccccc
-006000000066000000666000000000000000000000660000000600000000600000000600000000000000000000000000cccc77777777777777777c777777cccc
-0600060006f0000006ff06000000000000666600000f6660000066000000ff0000660ff0066606000060000000000000cccc777777777777777777777777cccc
-6f000ff06f0000606f000000000666000000ff6000000ff600000f60006f000006ff70006f7f7ff006f6006000000000ccc7777777777777777777777777cccc
-6f00f7006f000fff600000600060ff60000000f600000000000000f606f7f000ff70f0000ff0f000f770f7ff00000000cc777777777777777777777777777ccc
-6f067ff00606f700066f0fff000000f6000000000000000000000000ff700f000f00000000000f000ff00f00000000007777777777777777777777777777777c
-06f7000000f70ff00f77f700000000000000000000000000000000000f00000000f0000000000000000000f000000000cccccccccccccccccccccccccccccccc
-000ff00000ff000000f00ff00000000000000000000000000000000000f0000000000000000000000000000000000000cccccccccccccccccccccccccccccccc
-000000600000006000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccc
-000600ff000600ff00000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccc
-00600f7000600f7000666000006000000000000000000000000660000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccc
-06f006ff06f006f006ff0600000660000060000000066600006ff6000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccc
-06f06f7006f06f7f6f0000000000f60000066600006fff6000000f600000006000000000000000600000006000000000cccccccccccccccccccccccccccccccc
-00f06f7000f06f706000060000000ff60000fff600f00006000000f6066f00ff0f660060066f00ff066006ff00000000cccccccccccccccccccccccccccccccc
-000600f0000600ff066f0ff600000000000000000000000000000000f770f700f770f7ffff77f7006f7ff70000000000cccccccccccccccccccccccccccccccc
-0000000f00000000ff77f766000000000000000000000000000000000ff060f00f060f6060ff0ff00ff60f6000000000cccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccc77cccccccccccc00000000000004000000040000000000000000000000000000000000000000000000000000000000
+ccccccccccccccccccccccccccccccccccc7cc888ccccccc00000000000049900000499004440400000000000000000000000000000000000006600000066000
+ccccccccccccccccccccccccccccccccccc7c88888cccccc40000000000497790049977949994990044000000000000000000000000000000063b60000600600
+ccccccccccccccccccccccc7ccccccccccc78887888ccccc094440000499900004997900977097794994040000000000000000000003b00006333b6006000060
+ccccccccccccccccccccccc7777cccccccc888777888cccc0099994004970990049700900999090097794990000000000000000000333b000611136006000060
+cccccccccccccccccccccc777777cccccc88877777888ccc00000004497700004990000000000090970797790000000000660000001113000611136006000060
+ccccccccccccccccccccc77777777cccc8887777777888cc00000000099000000099900000000000099009000000066006796000001113000061160000600600
+cccccccccccccccccccccccccccccccc88877777777788cc0000000000990000000000000000000000000099000067966a999600000110000006600000066000
+cccccccccccccccccccccccccccccccc887777777777788c00000000000000000000000000000000000000000006a99969442600000000000007800007f07f00
+cccccccccccccccccccccccccccccccccc77e87777777ccc0000000000000000000000000000000000000000000644426944260000078000000e8000feefee20
+cccccccccccccccccccccccccccccccccc77887777777ccc0044400000000000000000000000000000000000006644a967927960000e800000e88e008eeeee20
+cccccccccccccccccccccccccccccccccc77777755577ccc049994000000040004400000000004000000040006799799949a999600e88e007888888208eee200
+cccccccccccccccccccccccccccccccccc77777755577ccc09000940044499904994040004440990044049906a449a4424494426788888820e888820008e2000
+ccccccccccccccc777cccccccccccccccc77777755577ccc400000944999977997794990499947794994977964449944244944260e88882000e8820000020000
+cccccccccccccc77777cccccccccccccc777777755d777cc0000000097704900990797799977900099779000062246226296426000e88200000e200000000000
+cccccccc77ccc777777ccccccccccccc777777775557777c00000000994040990400094040990990099409400066606606606600000e20000000000000000000
+cccccc777777c7777777cccc777ccccc00000000000000000000000000000d0000000d0000000000000000000000000000000000000000000000000000000000
+cccc77777777777777777c777777cccc00d1d1000d1d1000000000000000d1100000d1100dd00d0000000000000000000000000006000000007d7000007d7000
+cccc777777777777777777777777cccc010000d0d0000d10d0000000000d166100d11661d111d1100dd0000000000600000000006f00000007d7d70007d7d700
+ccc7777777777777777777777777ccccd000000d0000000d01d1d000001110000011610016601661d11d0d0000000ff0060000606f00000007ddd70007dd7700
+cc777777777777777777777777777ccc0000000000000000000001d00d1601100d160010011101001661d1100600f7006f0006ff6000006007d7d70007d7d700
+7777777777777777777777777777777c00000000000000000000000dd16600d0d11000d00000001d160616616f067f006f06670060660fff06777600067d7600
+cccccccccccccccccccccccccccccccc000000000000000000000000011000000011100000000000011001006f06700006f70f000677f7000066600000666000
+cccccccccccccccccccccccccccccccc0000000000000000000000000011000000000000000000000000001d06f0ff0000f000f00ff000f00000000000000000
+cccccccccccccccccccccccccccccccc00000000000000000000000000000000000000000000000000000000000f00000eff00000f0000000000000000000000
+ccccccccccccccccccccccccccccccccd00000000000000000000000000000000000000000000000000000000ef00f00ef000f000e00f0000077700000777000
+cccccccccccccccccccccccccccccccc0d000000000000000011d00000000000000000000000000000000000ef000ee0f000fee0ef00ee0007d7d70007d7d700
+cccccccccccccccccccccccccccccccc0100000000011d000d00010000000d000dd0000000000d0000000d00fe00fe7ee00fe77ef00fe7e0077d7700077d7700
+cccccccccccccccccccccccccccccccc001d000000d00010010000d00ddd0110d11d0d000dd001100dd0d110e0ffe700e0fe70e0e0fe709707d7d700077d7700
+cccccccccccccccccccccccccccccccc0000d11dd100000dd000000dd11116611661d110d11dd661d11d1661f0ee7ee0fef7ee00f0e7eee90677760006777600
+cccccccccccccccccccccccccccccccc000000000000000000000000166011001106166111661000116610000fe700000fe700000fe700490066600000666000
+cccccccccccccccccccccccccccccccc00000000000000000000000001d0d01d0d0001d0d01101d0011d01d000eee00000eee00000eee0000000000000000000
+00776d00001212000021210000d67700007667000000000000000000000000000000000000004000000400000004000000040000000400000000700000000e00
+07d6d6d00d51d120021d15d00d6d6d700767b6700703b0000000000000066000000660000044440000404040044040400440044009400400070767007eeee880
+6d6d6d51d6dd1d1221d1dd6d15d6d6d676337b6776337b07000000000063b6000060060000994900044999004900999049000990940009907776777088888888
+d6dddd126d6dd152251dd6d621dddd6d6d1177d66d7163760003b00006333b600600006000994900049447904904479949004799490049796777676027722772
+6d6dd15176ddd512215ddd67151dd6d66d1713766dc1137d00333b00061113600600006000949900049449004944790049447900904497000767777070007007
+55d515127d6d6d5115d6d6d721515d5576711c677671176c00111300061113600600006000949900049494900499949404997990409979900777676070007007
+0151512007d6d510015d6d7002151510076dd670076d06d700111300006116000060060000947900094790009479000009490000049700006767777070777007
+00121200006d65000056d60000212100007667000076707000011000000660000006600000900900099094009449440009494400009990000606666007070770
+000007007cd6d6d70000000770000000007667000000000000000000000000000000000000000000000000000007700000000000077766700007000000007000
+000006700cdc67d007776dccdd6700000767d67007000000000000000703b000000000000000000000000000007cc700000000007c7c7cd70008e00000008e00
+00700c700d6c0c607dccc6dd67cc670076dc7d67760070070000000076337b0700000000000000000000000007c7bc600003b00676c6d77d00e88e00000e88e0
+00600c7006c60c7000006cc6d60000006dcc77d66d706076000000006d7163760000000000000000000000000c3367c000333b0c6c6dd7c77e8888e007e8888e
+07c06c6007c006000000006d6cc600006dc7cc766dc0c07d000000076dc1137d0000000000000000000000000c1713c0001113006cdd76c78888882008888882
+06c0c6d007c007000076cc76dd6cccd7767ccd677670076c70c000007671176c0000000000000000000000000c1163d070111300c67767c60028820000028820
+0d76cdc007600000000076ddccd67770076dd670076d06d77d6d00d7076d06d70000000000000000000000000dc11660cc611067d7ccc76d0008200000008200
+7d6d6dc700700000000000077000000000766700007670700776067000767070000000000000000000000000006dd60017c6061c076c6d700002000000002000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000033300000000033300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00003333333333333333300033333000300033333333333333300000000000000000000000000000000000000000000000000000000000000000000000000000
+00030000000000000000007000000303007000000000000000030000000000000000000000000000000000000000000000000000000000000000000000000000
+00300777077707770777076707770030076707770707770777003000000000000000000000000000000000000000000000000000000000000000000000000000
+03007666766676667666769676667000764676667676667666700300000000000000000000000000000000000000000000000000000000000000000000000000
+03076699699966966699699a69966707646669696969996999670300000000000000000000000000000000000000000000000000000000000000000000000000
+03076966699669696966644469696777694669996969666696670300000000000000000000000000000000000000000000000000000000000000000000000000
+03076669696669996669644469696666699469696969966696670300000000000000000000000000000000000000000000000000000000000000000000000000
+03076996699969696996664669696999669469696969666696670300000000000000000000000000000000000000000000000000000000000000000000000000
+03007666766676667666766676667666764676667676667666700300000000000000000000000000000000000000000000000000000000000000000000000000
+00300777077707770777077707770777076707770707770777003000000000000000000000000000000000000000000000000000000000000000000000000000
+00030000000000000000000000000000007000000000000000030000000000000000000000000000000000000000000000000000000000000000000000000000
+00003333333333333333333333333333300033333333333333300000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000033300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
 0001070200000000000000000000000000010000070707070000000000000000000100000000808000000000000000000000000e01008040000000000000000080800000804000400000000000000000804000000300004000000000000000000000000006060000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000070707070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -2312,14 +2139,14 @@ __map__
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1010101060106010101010101060101010101010101010601060101010101010101010101010101010101010101010101010106010601010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
 1010101062106010106667101060101010101010101010601060101010101010101010101010101010101010101010101010101010601010101010101010101010101010101010101010101010101010104010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010
-101010101010631010767710106210101010cccdcecf101010601010101010101010101010101010101010101010101010101010106010101010101010101010101008090a0b0c0d0e0f10101010101008090a0b0c0d0e0f10101010101010101010101010101010101010101010101010101010101010101010101010101010
-18191a1b1c1d1e1f10101010cccdcecf1010dcdddedf101010101010101010101010101010101010101010101010101010101010106210101010101010101010101018191a1b1c1d1e1f10101010101018191a1b1c1d1e1f10101010101010101010101010101010101010101010101010101010101010101010101010101010
-28292a2b2c2d2e2f10101008dcdddedf0d0eecedeeef101010101010101010101010101010101010101010501010333333101034341010101010101010101010101028292a2b2c2d2e2f10101010101028292a2b2c2d2e2f10101010101010101010101010101010101010101010101010101010101010101010101010101010
-38393a3b3c3d3e3f10101018ecedeeef1010fcfdfeff101010101010101010101010101010101010101034341010333333101010101010101010101010101010101038393a3b3c3d3e3f10101010121038393a3b3c3d3e3f10101010101010101010101010101010101010101010101010101010101010101010101010101010
-48494a4b4c4d4e4f10101032fcfdfeff1010101f1010101010101010101010101210101010101010102610101010333310101010101010101010101010101010101048494a4b4c4d4e4f10101034341048494a4b4c4d4e4f10101010101010101010101010101010101010101010101010101010101010101010101010101010
+10101010101063101076771010621010101080818283101010601010101010101010101010101010101010101010101010101010106010101010101010101010101008090a0b0c0d0e0f10101010101008090a0b0c0d0e0f10101010101010101010101010101010101010101010101010101010101010101010101010101010
+18191a1b1c1d1e1f1010101080818283101090919293101010101010101010101010101010101010101010101010101010101010106210101010101010101010101018191a1b1c1d1e1f10101010101018191a1b1c1d1e1f10101010101010101010101010101010101010101010101010101010101010101010101010101010
+28292a2b2c2d2e2f10101008909192930d0ea0a1a2a3101010101010101010101010101010101010101010501010333333101034341010101010101010101010101028292a2b2c2d2e2f10101010101028292a2b2c2d2e2f10101010101010101010101010101010101010101010101010101010101010101010101010101010
+38393a3b3c3d3e3f10101018a0a1a2a31010b0b1b2b3101010101010101010101010101010101010101034341010333333101010101010101010101010101010101038393a3b3c3d3e3f10101010121038393a3b3c3d3e3f10101010101010101010101010101010101010101010101010101010101010101010101010101010
+48494a4b4c4d4e4f10101032b0b1b2b31010101f1010101010101010101010101210101010101010102610101010333310101010101010101010101010101010101048494a4b4c4d4e4f10101034341048494a4b4c4d4e4f10101010101010101010101010101010101010101010101010101010101010101010101010101010
 58595a5b5c5d5e5f1010101010101010101010101010101010101010101010343434101010101010103410101010331010103434341010101010101010101010101058595a5b5c5d5e5f10103333331058595a5b5c5d5e5f10101010101010101010101010101010101010101010101010101010101010101010101010101010
-10106a6b6c6d6e424310101010101010101010101010101010101010101034341034341010101010101010101050101010343434101010101010101010641010464768696a6b6c6d6e6f10331010331068696a6b6c6d6e6f10101010101010101010101010101010101010101010101010101010101010101010101010101010
-51457a7b7c7d64525350541010101010101010103333101010101010333434501010103412104510101010343434343434343410101010101010101010343434565778647a7b7c7d357f33105145335178797a7b7c7d7e7f10101010101010101010101010101010101010101010101010101010101010101010101010101010
+10106a6b6c6d6e848510101010101010101010101010101010101010101034341034341010101010101010101050101010343434101010101010101010641010464768696a6b6c6d6e6f10331010331068696a6b6c6d6e6f10101010101010101010101010101010101010101010101010101010101010101010101010101010
+51457a7b7c7d64949550541010101010101010103333101010101010333434501010103412104510101010343434343434343410101010101010101010343434565778647a7b7c7d357f33105145335178797a7b7c7d7e7f10101010101010101010101010101010101010101010101010101010101010101010101010101010
 1111111111111111111111040506070405060704113410101010101034111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111040507101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121141514161714171616213433333333333334212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121141414101010101010101010101010101010101010101010101010101010101010101010
 2121212121212121212121141414141616171717211111111111111111212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212110101010101010101010101010101010101010101010101010101010101010101010101010

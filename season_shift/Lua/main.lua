@@ -374,17 +374,17 @@ function nomal_draw()
     cloud.draw()
 
     for v in all(object_table) do
-      -- if v.flip_x then
+      if v.flip_x then
         spr(v.sp, v.pos_x, v.pos_y, v.width, v.height, v.flip_x)
-      -- else
+      else
           if v.name == 'thief' or v.name == "thief_songzi" then
               if thief.act ~= 'init' then
                   spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
               end
-          -- else
-          --   spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
+          else
+            spr(v.sp, v.pos_x, v.pos_y, v.width, v.height)
           end
-      -- end
+      end
     end
     if game_season == "winter" then
       snow.draw()
