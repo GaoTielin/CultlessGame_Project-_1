@@ -250,13 +250,13 @@ function init_player()
 
       player.climb_function(1)
     end)
-    hit(player, player.new_ground, "height", function()
-      player.can_jump = player.max_jump
-      player.vecter.y = 0
-    end)
-    hit(player, player.new_ground, "width", function()
-      player.vecter.x = 0
-    end)
+    -- hit(player, player.new_ground, "height", function()
+    --   player.can_jump = player.max_jump
+    --   player.vecter.y = 0
+    -- end)
+    -- hit(player, player.new_ground, "width", function()
+    --   player.vecter.x = 0
+    -- end)
 
     hit(player, 14, "height", function()
         player_acceleration_fast = cfg_ice_acceleration_fast
@@ -466,7 +466,7 @@ end
 function init_comoon_box(box)
     box.down_dis = 0
     box.can_hit = false
-    -- box.can_move = true
+    box.can_move = true
     map_trigger_enter(box, 7, function(zhui_x, zhui_y)
       -- printh("box_enter==============", "dir")
       local x, y = zhui_x/8, zhui_y/8
@@ -480,9 +480,16 @@ function init_comoon_box(box)
         player.vecter.y = box.vecter.y
       end,
       width = function()
-          -- if not box.can_move then
-          --     player.vecter.x = 0
-          -- end
+          hit(box, 1, "width", function()
+              box.can_move = false
+          end)
+          if not box.can_move then
+              player.vecter.x = 0
+              if player.pos_x ~= box.pos_x then
+                player.pos_x = box.pos_x + (box.pos_x > player.pos_x and - 8 or 8)
+              end
+              return
+          end
           local player_v_x = player.vecter.x
           if abs(player_v_x) >= cfg_box_max_v then
               player.vecter.x = player_v_x > 0 and cfg_box_max_v or -1*cfg_box_max_v
@@ -499,9 +506,9 @@ function init_comoon_box(box)
         box.down_dis = box.down_dis + box.vecter.y
       end)
 
-      -- hit(box, 1, "width", function()
-      --     box.can_move = false
-      -- end)
+      hit(box, 1, "width", function()
+          box.can_move = false
+      end)
       box.vecter.x = 0
     end
 end
@@ -519,7 +526,7 @@ function init_ices(ice_config)
         for v in all(ices.table) do
             OnCllision(ice, v, {
                 width = function()
-                  -- ice.can_move = false
+                  ice.can_move = false
                   ice.vecter.x = 0
                 end,
                 height = function()
@@ -579,8 +586,8 @@ function init_boxs(box_config)
     for bin_kuai in all(ices_table.table) do
         OnCllision(box, bin_kuai, {
             width = function()
-              -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
-              -- box.can_move = false
+              box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
+              box.can_move = false
               box.vecter.x = 0
             end,
           height = function()
@@ -603,7 +610,7 @@ function init_boxs(box_config)
         OnCllision(box, v, {
           width = function()
               box.vecter.x = v.vecter.x
-              -- box.can_move = false
+              box.can_move = false
           end,
           height = function()
             box.pos_y = v.pos_y - 8

@@ -118,7 +118,7 @@ function init_moon()
     if moon.x <= -128 then
       moon.x = 720
     end
-    map(112, 16, moon.x, camera_location.y + 8)
+    map(96, 16, moon.x, camera_location.y + 8)
   end
 
   return moon
@@ -171,9 +171,11 @@ function season_shift(season)
   if season == "winter" then
     cfg_levels = winter_config
     music(-1)
+    music(20)
   elseif season == "spring" then
     cfg_levels = spring_config
     music(-1)
+    music(14)
   elseif season == "summer" then
     cfg_levels = summer_config
     music(-1)

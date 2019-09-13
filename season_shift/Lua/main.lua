@@ -131,6 +131,7 @@ function init_game()
   game_season = "autum"
   -- game_season = "winter"
   -- game_season = "spring"
+
   cfg_levels = autumn_config -- 秋天开始
   -- cfg_levels = winter_config -- 冬天开始
   -- cfg_levels = spring_config --春天开始
@@ -366,7 +367,8 @@ update_states = {
 }
 -----------------------------------
 function nomal_draw()
-    if game_season == "winter" then
+    map(112, 0, camera_location.x, camera_location.y, 16, 16)
+    if game_season == "winter" or game_season == "spring"then
       moon_map.draw()
     end
     shake.draw()
