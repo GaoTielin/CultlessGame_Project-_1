@@ -125,8 +125,8 @@ function init_game()
   spx_timer = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
-  -- spring_config = init_config(cfg_levels_spring)
-  -- summer_config = init_config(cfg_levels_summer)
+  spring_config = init_config(cfg_levels_spring)
+  summer_config = init_config(cfg_levels_summer)
 
   game_season = "autum"
   -- game_season = "winter"

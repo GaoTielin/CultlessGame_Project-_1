@@ -443,6 +443,14 @@ end
 function change_level(level)
   if level == 12 and game_season == "winter" then
     season_shift("spring")
+    return
+  end
+  if level == 8 and game_season == "spring" then
+    season_shift("summer")
+    return
+  end
+  if level == 8 and game_season == "summer" then
+    return
   end
   if game_level ~= level then
     local current_level_songzi = cfg_levels["level" .. game_level].songzi
