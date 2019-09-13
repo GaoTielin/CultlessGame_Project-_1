@@ -138,9 +138,9 @@ function draw_pinecone_ui()
     local ui_x = 125
     for i = 1, max_pinecone_num do
         if i <= player_pinecone then
-            spr(142, ui_x - 6 * i + camera_location.x, 2)
+            spr(142, ui_x - 6 * i + camera_location.x, 2 + camera_location.y)
         else
-            spr(143, ui_x - 6 * i + camera_location.x, 2)
+            spr(143, ui_x - 6 * i + camera_location.x, 2 + camera_location.y)
         end
     end
 end
