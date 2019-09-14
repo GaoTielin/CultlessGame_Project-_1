@@ -132,10 +132,12 @@ function init_game()
   game_season = "autum"
   -- game_season = "winter"
   -- game_season = "spring"
+  -- game_season = "summer"
 
   cfg_levels = autumn_config -- 秋天开始
   -- cfg_levels = winter_config -- 冬天开始
   -- cfg_levels = spring_config --春天开始
+  -- cfg_levels = summer_config --春天开始
 
   game_level = 1
 

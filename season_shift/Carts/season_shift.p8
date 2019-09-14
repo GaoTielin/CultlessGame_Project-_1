@@ -135,10 +135,12 @@ function init_game()
   game_season = "autum"
   -- game_season = "winter"
   -- game_season = "spring"
+  -- game_season = "summer"
 
   cfg_levels = autumn_config -- ç§â¬…ï¸å¤©å¼â–ˆå§â¬…ï¸
   -- cfg_levels = winter_config -- åâ—¬å¤©å¼â–ˆå§â¬…ï¸
   -- cfg_levels = spring_config --æâ–¤¥å¤©å¼â–ˆå§â¬…ï¸
+  -- cfg_levels = summer_config --æâ–¤¥å¤©å¼â–ˆå§â¬…ï¸
 
   game_level = 1
 
@@ -890,8 +892,8 @@ function change_level(level)
     -- season_shift("summer")
     return
   end
-  if level == 8 and game_season == "summer" then
-    -- todo:init_cg("ending", first_map, last_map, fps, function() end)
+  if level == 7 and game_season == "summer" then
+    init_cg("ending.p8", 0, 112, 30, function() end)
     return
   end
   if game_level ~= level then

@@ -452,7 +452,7 @@ function change_level(level)
     -- season_shift("summer")
     return
   end
-  if level == 8 and game_season == "summer" then
+  if level == 7 and game_season == "summer" then
     init_cg("ending.p8", 0, 112, 30, function() end)
     return
   end
