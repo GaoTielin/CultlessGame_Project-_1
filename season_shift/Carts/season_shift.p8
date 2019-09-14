@@ -16,6 +16,7 @@ cg = {
   first_map = 0,
   last_map = 0,
   timer = 0,
+  fps = 10,
   over_func = function()
   end,
 }
@@ -166,7 +167,7 @@ function init_game()
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   jinji_hit = map_trigger_enter(player, 7, game_over, "all")
   lupai_hit = map_trigger_stay(player, 6, function()
-    if game_level == 4 or game_level == 9 then
+    if game_level == 4 or game_level == 9 or game_level == 12 then
         -- print("pass â", player.pos_x-5, player.pos_y - 8, 1)
         spr(175, player.pos_x, player.pos_y - 8)
         -- print("â", player.pos_x, player.pos_y - 6, 1)
@@ -180,6 +181,9 @@ function init_game()
         -- local next_level = player_pinecone >= 10 then
         player.pos_x = 48
         player.pos_y = 80
+      end
+      if game_level == 12 then
+        --todo:init_cg(cart, first_map, last_map, fps, function() season_shift("spring") end)
       end
       sfx(29)
     end
@@ -234,17 +238,22 @@ function init_game()
 end
 
 function _init()
-  game_state_flag = "start"
-  start_timer = 0
-  load_level("start.p8")
+  -- game_state_flag = "start"
+  -- start_timer = 0
+  -- load_level("start.p8")
+  init_cg("start.p8", 0, 112, 10, function()
+    load_level("season_shift.p8")
+    init_game()
+    game_state_flag = "play"
+  end)
 end
 
 ------------æ¸¸æâ˜‰â—†çâŒ‚¶æâ–ˆâ–’æœº-----------------
 game_states = {
 ----------updateçâŒ‚¶æâ–ˆâ–’æœº--------------
 update_states = {
-  start_update = function()
-  end,
+  -- start_update = function()
+  -- end,
 
   change_level_update = function()
     if change_camera.update() then
@@ -330,7 +339,7 @@ update_states = {
             timer.add_timeout('thief_show', 1, function()
                 thief.act = 'run1'
                 chest.pinecone -= 5
-                music(5)
+                music(11)
             end)
             thief_event = false
         end
@@ -339,23 +348,24 @@ update_states = {
         shake.update()
         sound_update()
     end,
-
+    play_cg_update = function()
+    end,
   },
   ---------------------------------
 
   -----------drawçâŒ‚¶æâ–ˆâ–’æœº-------------
 
   draw_states = {
-    start_draw = function()
-      if start_timer >= 80 then
-        load_level("season_shift.p8")
-        init_game()
-        game_state_flag = "play"
-      end
-      start_timer += 1
-      local x = flr(start_timer/10)*16
-      map(x, 0)
-    end,
+    -- start_draw = function()
+    --   if start_timer >= 80 then
+    --     load_level("season_shift.p8")
+    --     init_game()
+    --     game_state_flag = "play"
+    --   end
+    --   start_timer += 1
+    --   local x = flr(start_timer/10)*16
+    --   map(x, 0)
+    -- end,
 
     change_level_draw = function()
       nomal_draw()
@@ -363,6 +373,22 @@ update_states = {
 
     play_draw = function()
         nomal_draw()
+    end,
+
+    play_cg_draw = function()
+      cg.timer += 1
+      local x = cg.first_map + flr(cg.timer/cg.fps)*16
+      local y = 0
+      if x>= 128 then
+        x = x - 128
+        y = 16
+      end
+      map(x, y, camera_location.x, camera_location.y)
+
+      if x >= cg.last_map then
+        game_state_flag = "play"
+        cg.over_func()
+      end
     end,
 
   },
@@ -857,11 +883,15 @@ function change_level(level)
     season_shift("spring")
     return
   end
-  if level == 8 and game_season == "spring" then
-    season_shift("summer")
+  if level == 7 and game_season == "spring" then
+    init_cg("meet.p8", 0, 224, 8, function()
+      season_shift("summer")
+    end)
+    -- season_shift("summer")
     return
   end
   if level == 8 and game_season == "summer" then
+    -- todo:init_cg("ending", first_map, last_map, fps, function() end)
     return
   end
   if game_level ~= level then
@@ -930,6 +960,7 @@ function change_level(level)
           load_level("ruin.p8")
       end)
     elseif level == 6 then
+      --todo:init_cg(cart, first_map, last_map, fps, function() load_level("winter.p8") end)
       load_level("winter.p8")
     end
   end
@@ -1032,6 +1063,17 @@ function table_from_string(str)
   end
   return tab
 end
+
+function init_cg(cart, first_map, last_map, fps, over_func)
+  load_level(cart)
+  game_state_flag = "play_cg"
+  cg.first_map = first_map
+  cg.last_map = last_map
+  cg.timer = 0
+  cg.over_func = over_func
+  cg.fps = fps
+end
+
 
 function init_config (config_table)
     local result = {}
@@ -2060,8 +2102,8 @@ cfg_camera_move_speed = { -- ï¿½â˜‰â™¥ï¿½â™ªï¿½åœ°å›¾ï¿½âï¿½ï¿½Ë‡ï¿½å¤´ç§»ï¿½â
 }
 
 cfg_box_gravity = 0.1 --ç®±å­â€¦çšâ–‘éâ™¥â™ªåâŒ‚›
-cfg_box_max_v = 1.5 --æğŸ…¾ï¸¨ç®±å­â€¦æœâ–ˆå¤§éâ–ˆŸåº¦
-cfg_box_max_y = 3 --ç®±å­â€¦åâ˜…ğŸ˜åâ—°åâyè½´çšâ–‘æœâ–ˆå¤§éâ–ˆŸåº¦
+cfg_box_max_v = 0.5 --æğŸ…¾ï¸¨ç®±å­â€¦æœâ–ˆå¤§éâ–ˆŸåº¦
+cfg_box_max_y = 1 --ç®±å­â€¦åâ˜…ğŸ˜åâ—°åâyè½´çšâ–‘æœâ–ˆå¤§éâ–ˆŸåº¦
 
 cfg_levels_autumn = {
   level1 = 'enemy_catepillerscamera_pos0,0icesboxsongzi140,88enemy_beesplayer_start_pos0,7',
@@ -2077,16 +2119,16 @@ cfg_levels_autumn = {
 
 cfg_levels_winter = {
   level1 = 'camera_pos0,0songzi140,88enemy_catepillersplayer_start_pos0,7boxicesenemy_bees',
-  level2 = 'enemy_beesboxicesplayer_start_pos0,7songzi1224,80camera_pos16,0enemy_catepillers',
-  level3 = 'enemy_catepillerssongzi1336,48player_start_pos0,7ice1264,642352,803344,48boxcamera_pos32,0enemy_bees',
-  level4 = 'camera_pos48,0box1416,40ice1416,64songzi1496,80player_start_pos0,8enemy_catepillersenemy_bees',
-  level5 = 'iceboxenemy_catepillersplayer_start_pos0,7songzienemy_beescamera_pos0,0',
-  level6 = 'enemy_catepillersbox1104,176ice140,184232,216,truesongzienemy_beescamera_pos0,16player_start_pos0,7',
-  level7 = 'camera_pos16,16enemy_beesice1184,2162184,2083192,1924192,1685176,200,trueenemy_catepillersbox1176,168player_start_pos0,7songzi',
-  level8 = 'songzi1288,192iceenemy_beesplayer_start_pos0,5enemy_catepillersbox1296,168camera_pos32,16',
-  level9 = 'camera_pos48,16enemy_catepillersplayer_start_pos0,5box1416,168ice1424,216,trueenemy_beessongzi',
-  level10='boxsongzienemy_beesice1552,168player_start_pos0,5enemy_catepillerscamera_pos64,16',
-  level11='icebox1672,1522712,152enemy_catepillerssongziplayer_start_pos0,5enemy_beescamera_pos80,16',
+ level2 = 'enemy_beesboxicesplayer_start_pos0,7songzi1224,80camera_pos16,0enemy_catepillers',
+ level3 = 'enemy_catepillerssongzi1336,48player_start_pos0,7ice1264,642352,803344,48boxcamera_pos32,0enemy_bees',
+ level4 = 'camera_pos48,0box1416,40ice1416,64songzi1496,80player_start_pos0,8enemy_catepillersenemy_bees',
+ level5 = 'iceboxenemy_catepillersplayer_start_pos0,7songzienemy_beescamera_pos0,0',
+ level6 = 'player_start_pos0,10songzi140,216enemy_beesice124,184232,216enemy_catepillersbox1104,176camera_pos0,16',
+ level7 = 'camera_pos16,16ice1192,2162192,2243184,2164184,2245176,2006176,1687200,168box1208,192enemy_beessongzi1176,2242200,224player_start_pos0,10enemy_catepillers',
+ level8 = 'icesongzi1288,192enemy_catepillersplayer_start_pos0,10box1296,168enemy_beescamera_pos32,16',
+ level9 = 'iceplayer_start_pos0,10songzi1424,216enemy_beesenemy_catepillersboxcamera_pos48,16',
+ level10= 'boxice1552,168enemy_catepillersplayer_start_pos0,10enemy_beessongzicamera_pos64,16',
+ level11= 'enemy_beesbox1672,1522712,152camera_pos80,16icesongzienemy_catepillersplayer_start_pos0,8',
 }
 
 cfg_levels_spring = {

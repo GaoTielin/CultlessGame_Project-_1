@@ -445,11 +445,15 @@ function change_level(level)
     season_shift("spring")
     return
   end
-  if level == 8 and game_season == "spring" then
-    season_shift("summer")
+  if level == 7 and game_season == "spring" then
+    init_cg("meet.p8", 0, 224, 8, function()
+      season_shift("summer")
+    end)
+    -- season_shift("summer")
     return
   end
   if level == 8 and game_season == "summer" then
+    init_cg("ending.p8", 0, 112, 30, function() end)
     return
   end
   if game_level ~= level then
@@ -518,6 +522,7 @@ function change_level(level)
           load_level("ruin.p8")
       end)
     elseif level == 6 then
+      --TODO:init_cg(cart, first_map, last_map, fps, function() load_level("winter.p8") end)
       load_level("winter.p8")
     end
   end
@@ -620,6 +625,17 @@ function table_from_string(str)
   end
   return tab
 end
+
+function init_cg(cart, first_map, last_map, fps, over_func)
+  load_level(cart)
+  game_state_flag = "play_cg"
+  cg.first_map = first_map
+  cg.last_map = last_map
+  cg.timer = 0
+  cg.over_func = over_func
+  cg.fps = fps
+end
+
 
 function init_config (config_table)
     local result = {}

@@ -13,6 +13,7 @@ cg = {
   first_map = 0,
   last_map = 0,
   timer = 0,
+  fps = 10,
   over_func = function()
   end,
 }
@@ -163,7 +164,7 @@ function init_game()
   mogu_hit = map_trigger_enter(player, 3, player.mogu_hit, "down")
   jinji_hit = map_trigger_enter(player, 7, game_over, "all")
   lupai_hit = map_trigger_stay(player, 6, function()
-    if game_level == 4 or game_level == 9 then
+    if game_level == 4 or game_level == 9 or game_level == 12 then
         -- print("pass ❎", player.pos_x-5, player.pos_y - 8, 1)
         spr(175, player.pos_x, player.pos_y - 8)
         -- print("❎", player.pos_x, player.pos_y - 6, 1)
@@ -177,6 +178,9 @@ function init_game()
         -- local next_level = player_pinecone >= 10 then
         player.pos_x = 48
         player.pos_y = 80
+      end
+      if game_level == 12 then
+        --TODO:init_cg(cart, first_map, last_map, fps, function() season_shift("spring") end)
       end
       sfx(29)
     end
@@ -231,17 +235,22 @@ function init_game()
 end
 
 function _init()
-  game_state_flag = "start"
-  start_timer = 0
-  load_level("start.p8")
+  -- game_state_flag = "start"
+  -- start_timer = 0
+  -- load_level("start.p8")
+  init_cg("start.p8", 0, 112, 10, function()
+    load_level("season_shift.p8")
+    init_game()
+    game_state_flag = "play"
+  end)
 end
 
 ------------游戏状态机-----------------
 game_states = {
 ----------update状态机--------------
 update_states = {
-  start_update = function()
-  end,
+  -- start_update = function()
+  -- end,
 
   change_level_update = function()
     if change_camera.update() then
@@ -327,7 +336,7 @@ update_states = {
             timer.add_timeout('thief_show', 1, function()
                 thief.act = 'run1'
                 chest.pinecone -= 5
-                music(5)
+                music(11)
             end)
             thief_event = false
         end
@@ -336,23 +345,24 @@ update_states = {
         shake.update()
         sound_update()
     end,
-
+    play_cg_update = function()
+    end,
   },
   ---------------------------------
 
   -----------draw状态机-------------
 
   draw_states = {
-    start_draw = function()
-      if start_timer >= 80 then
-        load_level("season_shift.p8")
-        init_game()
-        game_state_flag = "play"
-      end
-      start_timer += 1
-      local x = flr(start_timer/10)*16
-      map(x, 0)
-    end,
+    -- start_draw = function()
+    --   if start_timer >= 80 then
+    --     load_level("season_shift.p8")
+    --     init_game()
+    --     game_state_flag = "play"
+    --   end
+    --   start_timer += 1
+    --   local x = flr(start_timer/10)*16
+    --   map(x, 0)
+    -- end,
 
     change_level_draw = function()
       nomal_draw()
@@ -360,6 +370,22 @@ update_states = {
 
     play_draw = function()
         nomal_draw()
+    end,
+
+    play_cg_draw = function()
+      cg.timer += 1
+      local x = cg.first_map + flr(cg.timer/cg.fps)*16
+      local y = 0
+      if x>= 128 then
+        x = x - 128
+        y = 16
+      end
+      map(x, y, camera_location.x, camera_location.y)
+
+      if x >= cg.last_map then
+        game_state_flag = "play"
+        cg.over_func()
+      end
     end,
 
   },

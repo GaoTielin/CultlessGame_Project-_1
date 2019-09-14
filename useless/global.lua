@@ -1,4 +1,13 @@
 
+function init_cg(first_map, last_map, over_func)
+  game_state_flag = "play_cg"
+  cg.first_map = first_map
+  cg.last_map = last_map
+  cg.timer = 0
+  cg.over_func = over_func
+end
+
+
 function OnTrigger_exit(sprit_1, sprit_2, exit_func, trigger_name)
     local entered = false
     local is_trigger = false

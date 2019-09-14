@@ -18,8 +18,8 @@ cfg_camera_move_speed = { -- �☉♥�♪�地图�❎��ˇ�头移��
 }
 
 cfg_box_gravity = 0.1 --箱子的重力
-cfg_box_max_v = 1.5 --推箱子最大速度
-cfg_box_max_y = 3 --箱子和冰块y轴的最大速度
+cfg_box_max_v = 0.5 --推箱子最大速度
+cfg_box_max_y = 1 --箱子和冰块y轴的最大速度
 
 cfg_levels_autumn = {
   level1 = 'enemy_catepillerscamera_pos0,0icesboxsongzi140,88enemy_beesplayer_start_pos0,7',
@@ -35,16 +35,16 @@ cfg_levels_autumn = {
 
 cfg_levels_winter = {
   level1 = 'camera_pos0,0songzi140,88enemy_catepillersplayer_start_pos0,7boxicesenemy_bees',
-  level2 = 'enemy_beesboxicesplayer_start_pos0,7songzi1224,80camera_pos16,0enemy_catepillers',
-  level3 = 'enemy_catepillerssongzi1336,48player_start_pos0,7ice1264,642352,803344,48boxcamera_pos32,0enemy_bees',
-  level4 = 'camera_pos48,0box1416,40ice1416,64songzi1496,80player_start_pos0,8enemy_catepillersenemy_bees',
-  level5 = 'iceboxenemy_catepillersplayer_start_pos0,7songzienemy_beescamera_pos0,0',
-  level6 = 'enemy_catepillersbox1104,176ice140,184232,216,truesongzienemy_beescamera_pos0,16player_start_pos0,7',
-  level7 = 'camera_pos16,16enemy_beesice1184,2162184,2083192,1924192,1685176,200,trueenemy_catepillersbox1176,168player_start_pos0,7songzi',
-  level8 = 'songzi1288,192iceenemy_beesplayer_start_pos0,5enemy_catepillersbox1296,168camera_pos32,16',
-  level9 = 'camera_pos48,16enemy_catepillersplayer_start_pos0,5box1416,168ice1424,216,trueenemy_beessongzi',
-  level10='boxsongzienemy_beesice1552,168player_start_pos0,5enemy_catepillerscamera_pos64,16',
-  level11='icebox1672,1522712,152enemy_catepillerssongziplayer_start_pos0,5enemy_beescamera_pos80,16',
+ level2 = 'enemy_beesboxicesplayer_start_pos0,7songzi1224,80camera_pos16,0enemy_catepillers',
+ level3 = 'enemy_catepillerssongzi1336,48player_start_pos0,7ice1264,642352,803344,48boxcamera_pos32,0enemy_bees',
+ level4 = 'camera_pos48,0box1416,40ice1416,64songzi1496,80player_start_pos0,8enemy_catepillersenemy_bees',
+ level5 = 'iceboxenemy_catepillersplayer_start_pos0,7songzienemy_beescamera_pos0,0',
+ level6 = 'player_start_pos0,10songzi140,216enemy_beesice124,184232,216enemy_catepillersbox1104,176camera_pos0,16',
+ level7 = 'camera_pos16,16ice1192,2162192,2243184,2164184,2245176,2006176,1687200,168box1208,192enemy_beessongzi1176,2242200,224player_start_pos0,10enemy_catepillers',
+ level8 = 'icesongzi1288,192enemy_catepillersplayer_start_pos0,10box1296,168enemy_beescamera_pos32,16',
+ level9 = 'iceplayer_start_pos0,10songzi1424,216enemy_beesenemy_catepillersboxcamera_pos48,16',
+ level10= 'boxice1552,168enemy_catepillersplayer_start_pos0,10enemy_beessongzicamera_pos64,16',
+ level11= 'enemy_beesbox1672,1522712,152camera_pos80,16icesongzienemy_catepillersplayer_start_pos0,8',
 }
 
 cfg_levels_spring = {
