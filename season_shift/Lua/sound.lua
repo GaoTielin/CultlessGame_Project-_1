@@ -6,7 +6,7 @@ function init_sound(num, timer)
   sound_player.timer = -1
   sound_player.play = function()
     if sound_player.timer < 0 then
-      sfx(num)
+      sfx(num, 3)
       sound_player.timer = timer
     end
   end

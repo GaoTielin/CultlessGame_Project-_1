@@ -24,7 +24,7 @@ controller = {
   jump = function ()
     if player.state == "climb" then
       player.climb_jump()
-      sfx(10)
+      sfx(10, 3)
     elseif player.can_jump <= player.max_jump and player.can_jump > 0 then
       player.vecter.y = cfg_jump_speed * -1
       direction_flag.y = "up"
@@ -34,7 +34,7 @@ controller = {
         change_animation(player, "jump")
         change_animation(tail, "jump")
       end
-      sfx(11)
+      sfx(11, 3)
     end
   end,
 
@@ -187,7 +187,7 @@ function init_game()
       if game_level == 12 then
         --todo:init_cg(cart, first_map, last_map, fps, function() season_shift("spring") end)
       end
-      sfx(29)
+      sfx(29, 3)
     end
   end, "all")
 
@@ -226,7 +226,7 @@ function init_game()
       if player_pinecone ~= 0 then
         player_pinecone -= 1
         chest.pinecone += 1
-        sfx(29)
+        sfx(29, 3)
       end
     end
   end, 'chest_store')
@@ -1278,7 +1278,6 @@ function season_shift(season)
     music(14)
   elseif season == "summer" then
     cfg_levels = summer_config
-    music(-1)
   end
 
   player_pinecone = 0
@@ -2162,7 +2161,7 @@ function init_sound(num, timer)
   sound_player.timer = -1
   sound_player.play = function()
     if sound_player.timer < 0 then
-      sfx(num)
+      sfx(num, 3)
       sound_player.timer = timer
     end
   end

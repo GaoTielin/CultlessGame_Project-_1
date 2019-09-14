@@ -178,8 +178,6 @@ function season_shift(season)
     music(14)
   elseif season == "summer" then
     cfg_levels = summer_config
-    music(-1)
-    music(14)
   end
 
   player_pinecone = 0
