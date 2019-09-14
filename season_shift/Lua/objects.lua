@@ -308,6 +308,13 @@ function init_player()
 
   player.check_position = function()
     if player.pos_x + 3 > camera_location.x + 128 then
+      if game_season == "winter" and game_level == 5 then
+        init_cg("ruincg.p8", 0, 128, 10, function()
+          change_level(6)
+          game_level = 6
+        end)
+        return
+      end
       change_level(game_level+1)
       game_level = game_level + 1
     end
@@ -586,7 +593,7 @@ function init_boxs(box_config)
     for bin_kuai in all(ices_table.table) do
         OnCllision(box, bin_kuai, {
             width = function()
-              box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
+              -- box.pos_x = bin_kuai.pos_x + (box.pos_x > bin_kuai.pos_x  and 8 or -8)
               box.can_move = false
               box.vecter.x = 0
             end,

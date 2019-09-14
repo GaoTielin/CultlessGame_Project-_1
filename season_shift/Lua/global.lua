@@ -446,6 +446,7 @@ function change_level(level)
     return
   end
   if level == 7 and game_season == "spring" then
+    music(30)
     init_cg("meet.p8", 0, 224, 8, function()
       season_shift("summer")
     end)
@@ -522,7 +523,7 @@ function change_level(level)
           load_level("ruin.p8")
       end)
     elseif level == 6 then
-      --TODO:init_cg(cart, first_map, last_map, fps, function() load_level("winter.p8") end)
+
       load_level("winter.p8")
     end
   end

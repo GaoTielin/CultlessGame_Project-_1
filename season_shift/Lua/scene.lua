@@ -175,9 +175,11 @@ function season_shift(season)
   elseif season == "spring" then
     cfg_levels = spring_config
     music(-1)
-    music(14)
+    music(0)
   elseif season == "summer" then
     cfg_levels = summer_config
+    music(-1)
+    music(24)
   end
 
   player_pinecone = 0

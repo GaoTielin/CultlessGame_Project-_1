@@ -37,7 +37,7 @@ controller = {
 
   up = function()
     if player.state == "climb" then
-       player.pos_y -= cfg_climb_speed
+      player.pos_y -= cfg_climb_speed
       local map_x = player.pos_x + (player.flip_x and -1 or (player.width*8))
       local map_y = player.pos_y + player.height*8 - 1
       go_sound.play()
@@ -46,6 +46,7 @@ controller = {
         change_animation(player, "nomal")
         player.is_physic = true
         player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
+        player.pos_y += cfg_climb_speed
       end
     end
   end,
@@ -88,6 +89,7 @@ controller = {
        change_animation(player, "nomal")
        player.is_physic = true
        player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
+       player.pos_y += cfg_climb_speed
      end
     end
   end,
@@ -116,6 +118,7 @@ controller = {
        change_animation(player, "nomal")
        player.is_physic = true
        player.pos_x = player.pos_x + (player.flip_x and -1 or 1)
+       player.pos_y += cfg_climb_speed
      end
      go_sound.play()
     end
@@ -137,7 +140,7 @@ function init_game()
   cfg_levels = autumn_config -- 秋天开始
   -- cfg_levels = winter_config -- 冬天开始
   -- cfg_levels = spring_config --春天开始
-  -- cfg_levels = summer_config --春天开始
+  -- cfg_levels = summer_config --夏天开始
 
   game_level = 1
 
@@ -233,13 +236,14 @@ function init_game()
   -- box_1 = init_box(176, 72, bin_kuai_2)
   -- box_2 = init_box(224, 32, bin_kuai)
 
-  music(0)
+  music(14)
 end
 
 function _init()
   -- game_state_flag = "start"
   -- start_timer = 0
   -- load_level("start.p8")
+
   init_cg("start.p8", 0, 112, 10, function()
     load_level("season_shift.p8")
     init_game()
