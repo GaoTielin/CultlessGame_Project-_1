@@ -246,7 +246,7 @@ function _init()
   -- game_state_flag = "start"
   -- start_timer = 0
   -- load_level("start.p8")
-  sfx(31)
+  sfx(42)
   init_cg("start.p8", 0, 112, 10, function()
     load_level("season_shift.p8")
     init_game()
