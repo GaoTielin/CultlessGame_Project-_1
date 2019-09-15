@@ -442,7 +442,9 @@ end
 
 function change_level(level)
   if level == 12 and game_season == "winter" then
-    season_shift("spring")
+    init_cg("newhome.p8", 0, 224, 10, function()
+      season_shift("spring")
+    end)
     return
   end
   if level == 7 and game_season == "spring" then
@@ -454,7 +456,10 @@ function change_level(level)
     return
   end
   if level == 7 and game_season == "summer" then
-    init_cg("ending.p8", 0, 112, 30, function() end)
+    init_cg("grow.p8", 0, 224, 10, function()
+      music(33)
+      init_cg("ending.p8", 0, 112, 30, function() end)
+    end)
     return
   end
   if game_level ~= level then
@@ -521,10 +526,11 @@ function change_level(level)
       timer.add_timeout('shake', 2, function()
           shake.state = 'init'
           load_level("ruin.p8")
+          music(-1)
       end)
     elseif level == 6 then
-
       load_level("winter.p8")
+      music(20)
     end
   end
 
