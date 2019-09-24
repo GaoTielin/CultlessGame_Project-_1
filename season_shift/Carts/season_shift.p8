@@ -130,6 +130,7 @@ controller = {
 
 function init_game()
   spx_timer = 0
+  self_time = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
   spring_config = init_config(cfg_levels_spring)
@@ -278,6 +279,15 @@ update_states = {
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
         if (btn (1) ) controller.right()
+
+        if (btn(5)) then
+          self_time += 1
+        else
+          self_time = 0
+        end
+        if self_time == 60 then
+          change_level(game_level)
+        end
         -- if (btnp (5)) season_shift("winter")
         -- if (btnp (5)) change_map(map_cfg)
 
@@ -831,6 +841,7 @@ function init_change_camera()
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
     if abs(fix_driction_x) > 130 or fix_driction_y ~= 0 then
+        printh("change_camera", "dir")
         reset_player = true
         local player_start_pos = string_to_array(cfg_levels["level" .. level].player_start_pos)
         reset_player_x = player_start_pos[1]
@@ -977,6 +988,10 @@ function change_level(level)
       music(20)
     end
   end
+
+  player.vecter.y = 0
+  player.vecter.x = 0
+  player.is_physic = true
 
 end
 
@@ -1493,7 +1508,7 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
         ontrigger_enter(e, player, function()
           game_over()
         end)
-        
+
     elseif type == 'catepiller_x' then
         e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
@@ -1745,6 +1760,7 @@ function init_player()
   end
 
   player.mogu_hit = function(mogu_x, mogu_y)
+    if player.state ~= "climb" then
       player.vecter.y = -1*cfg_mogu_jump
       change_animation(player, "jump")
       player.state = "jump"
@@ -1754,6 +1770,7 @@ function init_player()
       timer.add_timeout("mogu_hit", 0.1, function()
           mset(mogu_x/8, mogu_y/8, 84)
       end)
+    end
   end
 
   player.check_position = function()
