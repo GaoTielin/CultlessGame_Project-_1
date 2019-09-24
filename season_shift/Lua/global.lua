@@ -442,7 +442,6 @@ function game_over()
 end
 
 function change_level(level)
-    printh(level)
   if level > 7 and game_season == "summer" then return end
   if level == 12 and game_season == "winter" then
     init_cg("newhome.p8", 0, 224, 10, function()
