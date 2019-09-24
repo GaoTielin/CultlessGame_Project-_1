@@ -476,13 +476,28 @@ function init_comoon_box(box)
     box.down_dis = 0
     box.can_hit = false
     box.can_move = true
-    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-      -- printh("box_enter==============", "dir")
+    local function enter_func(zhui_x, zhui_y)
       local x, y = zhui_x/8, zhui_y/8
       local one = {x, y, mget(x, y)}
       add(changed_map, one)
       mset(x, y, 0)
-    end, "all")
+    end
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      -- printh("box_enter==============", "dir")
+      enter_func(zhui_x, zhui_y)
+    end, "left")
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      -- printh("box_enter==============", "dir")
+      enter_func(zhui_x, zhui_y)
+    end, "right")
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      -- printh("box_enter==============", "dir")
+      enter_func(zhui_x, zhui_y)
+    end, "up")
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      -- printh("box_enter==============", "dir")
+      enter_func(zhui_x, zhui_y)
+    end, "down")
     OnCllision(box, player, {
       height = function()
         player.on_ground_function()

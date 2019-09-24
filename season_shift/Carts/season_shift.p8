@@ -499,6 +499,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         animation = animation,
         flip_x = false,
         flip_y = false,
+        destroy_map_enter = {},
     }
     spr_obj.destroy_cllision = {}
     spr_obj.destroy = function()
@@ -516,8 +517,10 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
               v()
           end
       end
-      if spr_obj.destroy_map_enter then
-        spr_obj.destroy_map_enter()
+      if #spr_obj.destroy_map_enter ~= 0 then
+        for v in all(spr_obj.destroy_map_enter) do
+          v()
+        end
       end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
@@ -1400,9 +1403,10 @@ function map_trigger_enter(obj, map_flag, enter_func, direction)
             entered = false
         end
     end
-    obj.destroy_map_enter = function()
+    local destroy = function()
       del(map_trigger_tbl, trigger_enter)
     end
+    add(obj.destroy_map_enter, destroy)
 
     add(map_trigger_tbl, trigger_enter)
     return trigger_enter
@@ -1942,13 +1946,28 @@ function init_comoon_box(box)
     box.down_dis = 0
     box.can_hit = false
     box.can_move = true
-    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
-      -- printh("box_enter==============", "dir")
+    local function enter_func(zhui_x, zhui_y)
       local x, y = zhui_x/8, zhui_y/8
       local one = {x, y, mget(x, y)}
       add(changed_map, one)
       mset(x, y, 0)
-    end, "all")
+    end
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      -- printh("box_enter==============", "dir")
+      enter_func(zhui_x, zhui_y)
+    end, "left")
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      -- printh("box_enter==============", "dir")
+      enter_func(zhui_x, zhui_y)
+    end, "right")
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      -- printh("box_enter==============", "dir")
+      enter_func(zhui_x, zhui_y)
+    end, "up")
+    map_trigger_enter(box, 7, function(zhui_x, zhui_y)
+      -- printh("box_enter==============", "dir")
+      enter_func(zhui_x, zhui_y)
+    end, "down")
     oncllision(box, player, {
       height = function()
         player.on_ground_function()

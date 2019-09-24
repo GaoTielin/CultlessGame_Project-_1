@@ -45,6 +45,7 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
         animation = animation,
         flip_x = false,
         flip_y = false,
+        destroy_map_enter = {},
     }
     spr_obj.destroy_cllision = {}
     spr_obj.destroy = function()
@@ -62,8 +63,10 @@ function init_spr(name, sp, pos_x, pos_y, width, height, is_physic, v_x, v_y)
               v()
           end
       end
-      if spr_obj.destroy_map_enter then
-        spr_obj.destroy_map_enter()
+      if #spr_obj.destroy_map_enter ~= 0 then
+        for v in all(spr_obj.destroy_map_enter) do
+          v()
+        end
       end
       -- object_table[obj_idx] = nil
       del(object_table, spr_obj)
