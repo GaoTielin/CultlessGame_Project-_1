@@ -387,6 +387,7 @@ function init_change_camera()
     fix_driction_x = now_camera_pos_x - old_camera_pos_x
     fix_driction_y = now_camera_pos_y - old_camera_pos_y
     if abs(fix_driction_x) > 130 or fix_driction_y ~= 0 then
+        printh("change_camera", "dir")
         reset_player = true
         local player_start_pos = string_to_array(cfg_levels["level" .. level].player_start_pos)
         reset_player_x = player_start_pos[1]
@@ -533,6 +534,10 @@ function change_level(level)
       music(20)
     end
   end
+
+  player.vecter.y = 0
+  player.vecter.x = 0
+  player.is_physic = true
 
 end
 

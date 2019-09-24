@@ -43,7 +43,7 @@ function init_enemy (pos_x, pos_y, max_range, speed, flip_x, flip_y, type)
         ontrigger_enter(e, player, function()
           game_over()
         end)
-        
+
     elseif type == 'catepiller_x' then
         e = init_spr("catepiller_x", 34, pos_x, pos_y, 1, 1, true, 0, 0)
         init_animation(e, 34, 35, 10, "move", true)
@@ -295,6 +295,7 @@ function init_player()
   end
 
   player.mogu_hit = function(mogu_x, mogu_y)
+    if player.state ~= "climb" then
       player.vecter.y = -1*cfg_mogu_jump
       change_animation(player, "jump")
       player.state = "jump"
@@ -304,6 +305,7 @@ function init_player()
       timer.add_timeout("mogu_hit", 0.1, function()
           mset(mogu_x/8, mogu_y/8, 84)
       end)
+    end
   end
 
   player.check_position = function()

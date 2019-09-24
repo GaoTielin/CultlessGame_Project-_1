@@ -60,7 +60,7 @@ cfg_levels_spring = {
 
 cfg_levels_summer = {
   level1 = 'boxenemy_beesenemy_catepillersiceplayer_start_pos0,9camera_pos0,16songzi',
-  level2 = 'enemy_beesplayer_start_pos0,10iceboxenemy_catepillerscamera_pos16,16songzi1192,184',
+  level2 = 'enemy_catepillerscamera_pos16,16player_start_pos2,9icesongzi1192,184enemy_beesbox',
   level3 = 'songzicamera_pos32,16enemy_catepillersboxenemy_beesplayer_start_pos0,10ice',
   level4 = 'enemy_catepillersicesongzi1408,2162488,216player_start_pos0,10box1424,1762464,216camera_pos48,16enemy_bees',
   level5 = 'enemy_catepillers1560,216,24,0.5,0,0,02624,200,8,0.5,1,0,1iceplayer_start_pos0,10enemy_bees1536,200,16,0.5,0boxcamera_pos64,16songzi1528,216',

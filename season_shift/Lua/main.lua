@@ -127,6 +127,7 @@ controller = {
 
 function init_game()
   spx_timer = 0
+  self_time = 0
   autumn_config = init_config(cfg_levels_autumn)
   winter_config = init_config(cfg_levels_winter)
   spring_config = init_config(cfg_levels_spring)
@@ -275,6 +276,15 @@ update_states = {
         if (btn (3)) controller.down()
         if (btn (0) ) controller.left()
         if (btn (1) ) controller.right()
+
+        if (btn(5)) then
+          self_time += 1
+        else
+          self_time = 0
+        end
+        if self_time == 60 then
+          change_level(game_level)
+        end
         -- if (btnp (5)) season_shift("winter")
         -- if (btnp (5)) change_map(map_cfg)
 
